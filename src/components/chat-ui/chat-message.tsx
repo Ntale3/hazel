@@ -1,7 +1,6 @@
 import { createMemo, Show } from "solid-js"
 import { twMerge } from "tailwind-merge"
 import { tv } from "tailwind-variants"
-import { useZero } from "~/lib/zero-context"
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
 import { ChatImage } from "./chat-image"
 import { ReactionTags } from "./reaction-tags"
@@ -29,7 +28,6 @@ function getPlainTextFromContent(content: string): string {
 }
 
 export function ChatMessage(props: { message: Message, isLastMessage: boolean, isGroupStart: boolean, isGroupEnd: boolean }) {
-	const z = useZero()
 	const showAvatar = props.isGroupStart
 
 	const messageTime = createMemo(() => {
