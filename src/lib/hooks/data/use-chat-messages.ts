@@ -5,16 +5,16 @@ import { useZero } from "~/lib/zero-context"
 export const useChatMessages = (channelId: string) => {
 	const z = useZero()
 
-	const messageQuery = z.query.messages
+
+
+	const [messages, messagesResult] = useQuery(() => z.query.messages
 		.limit(100)
 		.related("author")
 		.related("replyToMessage", (q) => q.related("author"))
 		.related("childMessages")
 		.related("reactions")
 		.where(({ cmp }) => cmp("channelId", "=", channelId))
-		.orderBy("createdAt", "desc")
-
-	const [messages, messagesResult] = useQuery(() => messageQuery)
+		.orderBy("createdAt", "desc"))
 
 	const isLoading = createMemo(() => messagesResult().type !== "complete")
 

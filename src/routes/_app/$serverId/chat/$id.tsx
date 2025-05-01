@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/solid-router"
+import { createFileRoute, useParams } from "@tanstack/solid-router"
 import { For, createMemo } from "solid-js"
 import { ChatMessage } from "~/components/chat-ui/chat-message"
 import { ChatTopbar } from "~/components/chat-ui/chat-topbar"
@@ -10,11 +10,11 @@ export const Route = createFileRoute("/_app/$serverId/chat/$id")({
 
 
 function RouteComponent() {
-	const params = Route.useParams()()
-
-	const { messages } = useChatMessages(params.id)
+	const params = useParams({ from: "/_app/$serverId/chat/$id" })()
+	
+	const messages = createMemo(() => useChatMessages(params.id))
 	const processedMessages = createMemo(() => {
-		const groupedMessages = messages().reduce<Record<string, Message[]>>((groups, message) => {
+		const groupedMessages = messages().messages().reduce<Record<string, Message[]>>((groups, message) => {
 			const date = new Date(message.createdAt!).toLocaleDateString("en-US", {
 				year: "numeric",
 				month: "long",
