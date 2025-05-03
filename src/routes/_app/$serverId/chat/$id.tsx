@@ -110,23 +110,17 @@ function RouteComponent() {
 			<ChatTopbar />
 			<div class="flex-1 space-y-6 overflow-y-auto p-4 pl-0" ref={messagesRef}>
 				<For each={processedMessages().processedGroupedMessages}>
-					{([date, messages], dateIndex) => (
+					{([date, messages]) => (
 						<div class="flex flex-col">
 							<div class="py-2 text-center text-muted-foreground text-sm">
 								<span>{date}</span>
 							</div>
 
 							<For each={messages()}>
-								{({ message, isGroupStart, isGroupEnd }, messageIndex) => {
-									const isLastMessage =
-										dateIndex() ===
-											Object.keys(processedMessages().processedGroupedMessages).length - 1 &&
-										messageIndex() === messages().length - 1
-
+								{({ message, isGroupStart, isGroupEnd }) => {
 									return (
 										<ChatMessage
 											message={message}
-											isLastMessage={isLastMessage}
 											isGroupStart={isGroupStart}
 											isGroupEnd={isGroupEnd}
 										/>
