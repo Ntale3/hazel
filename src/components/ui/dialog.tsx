@@ -65,6 +65,8 @@ export const DialogDescription = (props: ArkDialog.TitleProps) => {
 	return <ArkDialog.Description class={twMerge("text-muted-foreground text-sm", local.class)} {...rest} />
 }
 
+export type DialogProps = Parameters<typeof DialogRoot>[0]
+
 const Dialog = Object.assign(DialogRoot, {
 	Backdrop: DialogBackdrop,
 	Content: DialogContent,

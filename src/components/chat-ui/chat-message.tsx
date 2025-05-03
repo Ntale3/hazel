@@ -297,7 +297,7 @@ export function ChatMessage(props: {
 							<Show
 								when={a.popoverContent}
 								fallback={
-									<Tooltip>
+									<Tooltip lazyMount>
 										<Button intent="ghost" size="icon" onClick={() => handleAction(a)}>
 											{a.icon}
 										</Button>
@@ -308,7 +308,7 @@ export function ChatMessage(props: {
 									</Tooltip>
 								}
 							>
-								<Tooltip>
+								<Tooltip lazyMount>
 									<Popover>
 										<Button intent="ghost" size="icon">
 											{a.icon}
@@ -323,7 +323,7 @@ export function ChatMessage(props: {
 							</Show>
 						)}
 					</For>
-					<Menu open={open()} onOpenChange={() => setOpen((prev) => !prev)}>
+					<Menu open={open()} onOpenChange={() => setOpen((prev) => !prev)} lazyMount>
 						<Menu.Trigger class={twMerge(buttonVariants({ intent: "ghost", size: "icon" }))}>
 							<IconDotsHorizontal class="size-4" />
 						</Menu.Trigger>
@@ -388,6 +388,7 @@ export function ChatMessage(props: {
 				</div>
 			</div>
 			<ConfirmDialog
+				lazyMount
 				open={!!pendingAction()}
 				title={pendingAction()?.label}
 				message={pendingAction()?.confirmMessage || "Are you sure?"}
