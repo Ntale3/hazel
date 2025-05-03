@@ -6,6 +6,8 @@ import { useServerChannels } from "~/lib/hooks/data/use-server-channels"
 import type { Channel } from "~/lib/schema"
 import { IconHashtag } from "./icons/hashtag"
 import { Avatar } from "./ui/avatar"
+import { Button } from "./ui/button"
+import { Popover } from "./ui/popover"
 import { Sidebar, SidebarItem } from "./ui/sidebar"
 
 export interface SidebarProps {
