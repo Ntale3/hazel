@@ -9,6 +9,10 @@
 - Better Image Components with Dialog (see discord)
 - Emoji Picker 
 - Add day/week/year to pinned message list
+- Image rendering
+    - Large image rendering is broken
+    - Add large image overlay preview
+    - Add image download button
 
 -- Later TODOS
 - Threads

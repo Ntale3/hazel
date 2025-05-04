@@ -1,5 +1,5 @@
 import { useAuth } from "clerk-solidjs"
-import { Show, createMemo } from "solid-js"
+import { For, Show, createEffect, createMemo, createSignal, onCleanup, type JSX } from "solid-js"
 import { twMerge } from "tailwind-merge"
 import { useChatMessage } from "~/lib/hooks/data/use-chat-message"
 import { newId } from "~/lib/id-helpers"
@@ -8,32 +8,241 @@ import { chatStore$ } from "~/routes/_app/$serverId/chat/$id"
 import { IconCirclePlusSolid } from "../icons/solid/circle-plus-solid"
 import { IconCircleXSolid } from "../icons/solid/circle-x-solid"
 import { Button } from "../ui/button"
+import { tv } from "tailwind-variants"
+
+// Type for individual attachment state
+type Attachment = {
+	id: string
+	file: File
+	status: "pending" | "uploading" | "success" | "error"
+	key?: string // Server-generated key after successful upload
+	error?: string // Error message on failure
+}
+
+// Hook for file attachment logic (multiple files)
+const useFileAttachment = () => {
+	const [attachments, setAttachments] = createSignal<Attachment[]>([])
+	const [fileInputRef, setFileInputRef] = createSignal<HTMLInputElement>()
+
+	// Function to add new files, filters for images
+	const addFiles = (files: FileList | File[]) => {
+		const imageFiles = Array.from(files).filter((file) => file.type.startsWith("image/"))
+
+		if (imageFiles.length === 0) {
+			// Optionally show an error if non-images were selected/pasted
+			console.warn("No valid image files selected.")
+			return
+		}
+
+		const newAttachments: Attachment[] = imageFiles.map((file) => ({
+			id: newId("attachment"),
+			file: file,
+			status: "pending",
+		}))
+
+		setAttachments((prev) => [...prev, ...newAttachments])
+	}
+
+	// Effect to process pending uploads
+	createEffect(() => {
+		const pendingAttachments = attachments().filter((att) => att.status === "pending")
+
+		if (pendingAttachments.length === 0) {
+			return
+		}
+
+		// Set status to uploading immediately
+		setAttachments((prev) =>
+			prev.map((att) =>
+				pendingAttachments.some((p) => p.id === att.id) ? { ...att, status: "uploading" } : att,
+			),
+		)
+
+		const uploadPromises = pendingAttachments.map(async (attachment) => {
+			try {
+				const uploadUrl = `${import.meta.env.VITE_BACKEND_URL}/upload?filename=${encodeURIComponent(
+					attachment.file.name,
+				)}`
+				const response = await fetch(uploadUrl, {
+					method: "PUT",
+					body: attachment.file,
+					headers: {
+						"Content-Type": attachment.file.type,
+					},
+				})
+
+				if (!response.ok) {
+					const errorText = await response.text()
+					throw new Error(`Upload failed: ${response.statusText} - ${errorText}`)
+				}
+
+				const result = await response.json()
+				if (!result || typeof result.key !== "string") {
+					throw new Error("Invalid response received after upload.")
+				}
+
+				return { id: attachment.id, status: "success" as const, key: result.key }
+			} catch (error: any) {
+				console.error("Error uploading file:", attachment.file.name, error)
+				return {
+					id: attachment.id,
+					status: "error" as const,
+					error: error.message || "An unknown error occurred.",
+				}
+			}
+		})
+
+		// Process results using for...of loop
+		Promise.allSettled(uploadPromises).then((results) => {
+			setAttachments((prev) => {
+				const updatedAttachments = [...prev]
+				for (const result of results) {
+					if (result.status === "fulfilled") {
+						const { id, status, key, error } = result.value
+						const index = updatedAttachments.findIndex((att) => att.id === id)
+						if (index !== -1) {
+							updatedAttachments[index] = {
+								...updatedAttachments[index],
+								status: status,
+								key: key,
+								error: error,
+							}
+						}
+					}
+				}
+				return updatedAttachments
+			})
+		})
+	})
+
+	const handleFileChange: JSX.ChangeEventHandlerUnion<HTMLInputElement, Event> = (e) => {
+		if (e.currentTarget.files) {
+			addFiles(e.currentTarget.files)
+		}
+		// Clear input value to allow selecting the same file again
+		if (e.currentTarget) e.currentTarget.value = ""
+	}
+
+	const openFileSelector = () => {
+		fileInputRef()?.click()
+	}
+
+	// Function to remove a specific attachment by its ID
+	const removeAttachment = (idToRemove: string) => {
+		setAttachments((prev) => prev.filter((att) => att.id !== idToRemove))
+		// Note: This doesn't cancel ongoing uploads for the removed file.
+		// Cancellation would require AbortController integration.
+	}
+
+	// Function to clear all attachments
+	const clearAttachments = () => {
+		setAttachments([])
+		if (fileInputRef()) {
+			fileInputRef()!.value = ""
+		}
+	}
+
+	const handlePaste = (e: ClipboardEvent) => {
+		const items = e.clipboardData?.items
+		if (!items) return
+
+		const filesToPaste: File[] = []
+		for (let i = 0; i < items.length; i++) {
+			if (items[i].kind === "file") {
+				const file = items[i].getAsFile()
+				if (file) {
+					filesToPaste.push(file)
+				}
+			}
+		}
+
+		if (filesToPaste.length > 0) {
+			e.preventDefault() // Prevent default paste only if files are found
+			addFiles(filesToPaste)
+		}
+	}
+
+	createEffect(() => {
+		window.addEventListener("paste", handlePaste)
+		onCleanup(() => {
+			window.removeEventListener("paste", handlePaste)
+		})
+	})
+
+	return {
+		attachments,
+		fileInputRef,
+		handleFileChange,
+		openFileSelector,
+		removeAttachment,
+		clearAttachments,
+	}
+}
 
 export function FloatingBar(props: { channelId: string }) {
 	const auth = useAuth()
-	const [chatStore] = chatStore$
+	const [chatStore, setChatStore] = chatStore$
+	const {
+		attachments,
+		fileInputRef,
+		handleFileChange,
+		openFileSelector,
+		removeAttachment,
+		clearAttachments, // Use this for a potential 'clear all' button if needed
+	} = useFileAttachment()
+
+	const isUploading = createMemo(() => attachments().some((att) => att.status === "uploading"))
+	const successfulKeys = createMemo(() =>
+		attachments()
+			.filter((att) => att.status === "success" && att.key)
+			.map((att) => att.key as string),
+	)
+	const showAttachmentArea = createMemo(() => successfulKeys().length > 0)
 
 	const z = useZero()
 
 	async function handleSubmit(text: string) {
 		if (!auth.userId()) return
-		if (text.trim().length === 0) return
+
+		if (isUploading()) {
+			console.warn("Upload in progress. Please wait.")
+			return
+		}
+
+		if (text.trim().length === 0 && successfulKeys().length === 0) return
 		const content = text.trim()
 
-		await z.mutate.messages.insert({
-			channelId: props.channelId,
-			id: newId("messages"),
-			content: content,
-			authorId: auth.userId()!,
-			createdAt: new Date().getTime(),
-			replyToMessageId: null,
-			parentMessageId: null,
-			attachedFiles: [],
-		})
+		await z.mutate.messages
+			.insert({
+				channelId: props.channelId,
+				id: newId("messages"),
+				content: content,
+				authorId: auth.userId()!,
+				createdAt: new Date().getTime(),
+				replyToMessageId: chatStore().replyToMessageId,
+				parentMessageId: null,
+				// parentMessageId: chatStore().parentMessageId,
+				attachedFiles: successfulKeys(),
+			})
+			.then(() => {
+				setChatStore((prev) => ({
+					...prev,
+					replyToMessageId: null,
+					// parentMessageId: null,
+				}))
+				clearAttachments()
+			})
 	}
 
 	return (
 		<div>
+			<Show when={showAttachmentArea()}>
+				<div class="flex flex-col gap-0 rounded-sm rounded-b-none border border-border/90 border-b-0 bg-secondary/90 px-2 py-1 transition hover:border-border/90">
+					<For each={attachments()}>
+						{(attachment) => <Attachment attachment={attachment} removeAttachment={removeAttachment} />}
+					</For>
+				</div>
+			</Show>
 			<Show when={chatStore().replyToMessageId}>
 				<ReplyInfo replyToMessageId={chatStore().replyToMessageId} />
 			</Show>
@@ -42,13 +251,7 @@ export function FloatingBar(props: { channelId: string }) {
 					"group flex h-12 w-full items-center rounded-sm border border-border bg-sidebar transition duration-300 ease-in hover:border-muted-foreground/70",
 				)}
 			>
-				<Button
-					size="icon"
-					class="mr-1 ml-2"
-					intent="icon"
-					// onPress={openFileSelector}
-					// isDisabled={isUploading}
-				>
+				<Button size="icon" class="mr-1 ml-2" intent="icon" onClick={openFileSelector} disabled={isUploading()}>
 					<IconCirclePlusSolid class="size-6!" />
 				</Button>
 
@@ -62,7 +265,48 @@ export function FloatingBar(props: { channelId: string }) {
 						}}
 					/>
 				</div>
+
+				<div class="ml-auto flex flex-shrink-0 items-center gap-3 px-3">
+					<input
+						type="file"
+						multiple
+						ref={fileInputRef}
+						onChange={handleFileChange}
+						accept="image/*"
+						class="hidden"
+						disabled={isUploading()}
+					/>
+				</div>
 			</div>
+		</div>
+	)
+}
+
+function Attachment(props: { attachment: Attachment; removeAttachment: (id: string) => void }) {
+	function getStatusText() {
+		if (props.attachment.status === "uploading") {
+			return "Uploading..."
+		}
+		if (props.attachment.status === "error") {
+			return `${props.attachment.file.name} - Error: ${props.attachment.error?.substring(0, 30) || "Failed"}${props.attachment.error && props.attachment.error.length > 30 ? "..." : ""}`
+		}
+		return props.attachment.file.name
+	}
+
+	return (
+		<div class="flex items-center justify-between gap-2 py-0.5">
+			<div class={attachmentStatusStyles({ status: props.attachment.status })}>
+				<Show when={props.attachment.status === "uploading"}>
+					<IconLoader class="size-4 flex-shrink-0 animate-spin" />
+				</Show>
+				<Show when={props.attachment.status === "error"}>
+					<IconCircleXSolid class="size-4 flex-shrink-0 text-red-500" />
+				</Show>
+				<span class="truncate font-medium text-sm">{getStatusText()}</span>
+			</div>
+			<Button size="icon" intent="icon" onClick={() => props.removeAttachment(props.attachment.id)}>
+				<IconCircleXSolid class="size-4" />
+			</Button>
 		</div>
 	)
 }
@@ -97,5 +341,43 @@ function ReplyInfo(props: {
 				<IconCircleXSolid />
 			</Button>
 		</div>
+	)
+}
+
+const attachmentStatusStyles = tv({
+	base: "flex min-w-0 items-center gap-2",
+	variants: {
+		status: {
+			pending: "text-muted-fg",
+			uploading: "text-muted-fg",
+			success: "text-fg",
+			error: "text-red-500",
+		},
+	},
+})
+
+function IconLoader(props: { class: string }) {
+	return (
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			width="24"
+			height="24"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			stroke-width="2"
+			stroke-linecap="round"
+			stroke-linejoin="round"
+			class={props.class}
+		>
+			<path d="M12 2v4" />
+			<path d="m16.2 7.8 2.9-2.9" />
+			<path d="M18 12h4" />
+			<path d="m16.2 16.2 2.9 2.9" />
+			<path d="M12 18v4" />
+			<path d="m4.9 19.1 2.9-2.9" />
+			<path d="M2 12h4" />
+			<path d="m4.9 4.9 2.9 2.9" />
+		</svg>
 	)
 }
