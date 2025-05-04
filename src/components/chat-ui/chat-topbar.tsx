@@ -1,4 +1,4 @@
-import { useQuery } from "@rocicorp/zero/solid"
+import { createQuery } from "@rocicorp/zero/solid"
 import { useParams } from "@tanstack/solid-router"
 import { useAuth } from "clerk-solidjs"
 import { For, Show, createMemo } from "solid-js"
@@ -18,7 +18,7 @@ export function ChatTopbar() {
 
 	const { userId } = useAuth()
 
-	const [channel] = useQuery(() => z.query.serverChannels.where("id", "=", params.id).related("users").one())
+	const [channel] = createQuery(() => z.query.serverChannels.where("id", "=", params.id).related("users").one())
 
 	if (!channel) {
 		return null

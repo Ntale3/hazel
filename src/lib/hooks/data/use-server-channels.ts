@@ -1,4 +1,4 @@
-import { useQuery } from "@rocicorp/zero/solid"
+import { createQuery } from "@rocicorp/zero/solid"
 import { type Accessor, createMemo } from "solid-js"
 import { useZero } from "~/lib/zero/zero-context"
 
@@ -12,7 +12,7 @@ export const useServerChannels = (serverId: Accessor<string>) => {
 			.whereExists("users", (eq) => eq.where("id", "=", z.userID)),
 	)
 
-	const [serverChannels, status] = useQuery(serverChannelQuery)
+	const [serverChannels, status] = createQuery(serverChannelQuery)
 
 	const isLoading = createMemo(() => status().type !== "complete")
 

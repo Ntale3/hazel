@@ -1,4 +1,4 @@
-import { useQuery } from "@rocicorp/zero/solid"
+import { createQuery } from "@rocicorp/zero/solid"
 import { type Accessor, createMemo } from "solid-js"
 import { useZero } from "~/lib/zero/zero-context"
 
@@ -11,7 +11,7 @@ export const usePublicServers = (serverId: Accessor<string>) => {
 			.where((eq) => eq.and(eq.cmp("channelType", "!=", "direct"), eq.cmp("serverId", "=", serverId()))),
 	)
 
-	const [serverChannels, status] = useQuery(serverChannelQuery)
+	const [serverChannels, status] = createQuery(serverChannelQuery)
 
 	const computedChannels = createMemo(() => {
 		return serverChannels().filter((channel) => {

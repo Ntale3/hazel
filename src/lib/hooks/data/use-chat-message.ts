@@ -1,4 +1,4 @@
-import { useQuery } from "@rocicorp/zero/solid"
+import { createQuery } from "@rocicorp/zero/solid"
 import { createMemo } from "solid-js"
 import { useZero } from "~/lib/zero/zero-context"
 
@@ -12,7 +12,7 @@ export const useChatMessage = (id: string) => {
 		.orderBy("createdAt", "desc")
 		.one()
 
-	const [messages, messagesResult] = useQuery(() => messageQuery)
+	const [messages, messagesResult] = createQuery(() => messageQuery)
 
 	const isLoading = createMemo(() => messagesResult().type !== "complete")
 

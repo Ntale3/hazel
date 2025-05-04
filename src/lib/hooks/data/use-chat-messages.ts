@@ -1,11 +1,11 @@
-import { useQuery } from "@rocicorp/zero/solid"
+import { createQuery } from "@rocicorp/zero/solid"
 import { createMemo } from "solid-js"
 import { useZero } from "~/lib/zero/zero-context"
 
 export const useChatMessages = (channelId: string) => {
 	const z = useZero()
 
-	const [messages, messagesResult] = useQuery(() =>
+	const [messages, messagesResult] = createQuery(() =>
 		z.query.messages
 			.limit(100)
 			.related("author")

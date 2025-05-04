@@ -1,4 +1,4 @@
-import { useQuery } from "@rocicorp/zero/solid"
+import { createQuery } from "@rocicorp/zero/solid"
 import { createMemo } from "solid-js"
 import { useZero } from "~/lib/zero/zero-context"
 
@@ -9,7 +9,7 @@ export const useUserServers = () => {
 		.whereExists("members", (eq) => eq.where("userId", "=", z.userID))
 		.related("owner")
 
-	const [servers, serversStatus] = useQuery(() => serverQuery)
+	const [servers, serversStatus] = createQuery(() => serverQuery)
 
 	const isLoading = createMemo(() => serversStatus().type !== "complete")
 
