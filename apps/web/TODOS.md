@@ -3,7 +3,6 @@
 ## Chat UI
 - Add markdown rendering 
 - Fix Reply to message Styling
-- Remove input after message send
 - Better Image Components with Dialog (see discord)
 - Emoji Picker 
 - Add day/week/year to pinned message list

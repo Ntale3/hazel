@@ -232,7 +232,7 @@ export function FloatingBar(props: { channelId: string }) {
 		clearAttachments, // Use this for a potential 'clear all' button if needed
 	} = useFileAttachment()
 
-	const [editorRef, setEditorRef] = createSignal<HTMLDivElement>()
+	const [editorRef, setEditorRef] = createSignal<HTMLInputElement>()
 	useGlobalEditorFocus(editorRef)
 
 	const isUploading = createMemo(() => attachments().some((att) => att.status === "uploading"))
@@ -274,6 +274,7 @@ export function FloatingBar(props: { channelId: string }) {
 					replyToMessageId: null,
 					// parentMessageId: null,
 				}))
+				editorRef()!.value = ""
 				clearAttachments()
 			})
 	}
@@ -288,7 +289,7 @@ export function FloatingBar(props: { channelId: string }) {
 				</div>
 			</Show>
 			<Show when={chatStore().replyToMessageId}>
-				<ReplyInfo replyToMessageId={chatStore().replyToMessageId} />
+				<ReplyInfo replyToMessageId={chatStore().replyToMessageId} showAttachmentArea={showAttachmentArea()} />
 			</Show>
 			<div
 				class={twMerge(
@@ -358,7 +359,7 @@ function Attachment(props: { attachment: Attachment; removeAttachment: (id: stri
 
 function ReplyInfo(props: {
 	replyToMessageId: string | null
-	// showAttachmentArea: boolean
+	showAttachmentArea: boolean
 }) {
 	const message = createMemo(() => {
 		return useChatMessage(props.replyToMessageId!)
@@ -372,7 +373,7 @@ function ReplyInfo(props: {
 		<div
 			class={twMerge(
 				"flex items-center justify-between gap-2 rounded-sm rounded-b-none border border-border/90 border-b-0 bg-secondary/90 px-2 py-1 text-muted-fg text-sm transition hover:border-border/90",
-				// showAttachmentArea && "rounded-t-none",
+				props.showAttachmentArea && "rounded-t-none",
 			)}
 		>
 			<p>
