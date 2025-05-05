@@ -499,11 +499,13 @@ export function ChatMessage(props: {
 									onClick={async (e) => {
 										e.stopPropagation()
 
+										const imageUrl = selectedImage()?.startsWith("https")
+											? selectedImage()!
+											: `${import.meta.env.VITE_BUCKET_URL}/${selectedImage()}`
+
 										try {
 											// Download the image
-											const response = await fetch(
-												`${import.meta.env.VITE_BUCKET_URL}/${selectedImage()}`,
-											)
+											const response = await fetch(imageUrl)
 											const blob = await response.blob()
 											const url = URL.createObjectURL(blob)
 											const a = document.createElement("a")
@@ -528,11 +530,13 @@ export function ChatMessage(props: {
 									onClick={async (e) => {
 										e.stopPropagation()
 
+										const imageUrl = selectedImage()?.startsWith("https")
+											? selectedImage()!
+											: `${import.meta.env.VITE_BUCKET_URL}/${selectedImage()}`
+
 										// Copy image content
 										try {
-											const response = await fetch(
-												`${import.meta.env.VITE_BUCKET_URL}/${selectedImage()}`,
-											)
+											const response = await fetch(imageUrl)
 											const blob = await response.blob()
 
 											// Use the Clipboard API to copy the image
