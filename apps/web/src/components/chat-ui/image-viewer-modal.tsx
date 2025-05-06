@@ -8,6 +8,7 @@ import { IconOpenLink } from "../icons/open-link"
 import { IconCircleXSolid } from "../icons/solid/circle-x-solid"
 import { Avatar } from "../ui/avatar"
 import { Button } from "../ui/button"
+import { toaster } from "../ui/toaster"
 import { Tooltip } from "../ui/tooltip"
 
 interface ImageViewerModalProps {
@@ -40,6 +41,12 @@ export function ImageViewerModal(props: ImageViewerModalProps) {
 				} catch (error) {
 					console.error("Failed to download image:", error)
 				}
+
+				toaster.create({
+					title: "Image downloaded",
+					description: "Your image has been downloaded.",
+					type: "success",
+				})
 			},
 		},
 		{
@@ -61,6 +68,8 @@ export function ImageViewerModal(props: ImageViewerModalProps) {
 				} catch (error) {
 					console.error("Failed to copy image:", error)
 				}
+
+				toaster.create({ title: "Image copied", description: "Your image has been copied.", type: "success" })
 			},
 		},
 		{
@@ -69,6 +78,12 @@ export function ImageViewerModal(props: ImageViewerModalProps) {
 			onClick: (e: MouseEvent) => {
 				e.stopPropagation()
 				navigator.clipboard.writeText(`${props.bucketUrl}/${props.selectedImage}`)
+
+				toaster.create({
+					title: "Image URL copied",
+					description: "Your image URL has been copied.",
+					type: "success",
+				})
 			},
 		},
 		{

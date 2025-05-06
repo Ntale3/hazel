@@ -15,7 +15,7 @@ export const toaster = createToaster({
 export const toastVariants = tv({
 	base: [
 		"w-[calc(100%-var(--gap)*2)] sm:w-64",
-		"rounded-md shadow bg-background text-foreground border-border",
+		"rounded-md shadow shadow-md bg-background border text-foreground border-border",
 		"px-3 py-2",
 	],
 })
