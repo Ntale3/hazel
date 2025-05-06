@@ -390,9 +390,9 @@ export function ChatMessage(props: {
 										"disabled:cursor-default disabled:opacity-60 forced-colors:disabled:text-[GrayText]",
 										"text-primary hover:underline",
 									])}
+									{...props}
 									target="_blank"
 									rel="noopener noreferrer"
-									{...props}
 								/>
 							),
 							p: (props) => <p class="leading-none" {...props} />,
