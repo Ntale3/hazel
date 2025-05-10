@@ -1,6 +1,7 @@
 import { relations } from "drizzle-orm"
 import {
 	type AnyPgColumn,
+	boolean,
 	index,
 	jsonb,
 	pgEnum,
@@ -80,6 +81,7 @@ export const serverChannels = pgTable(
 			.references(() => server.id, { onDelete: "cascade" }),
 		name: text("name").notNull(),
 		channelType: channelTypeEnum("channel_type").default("public").notNull(),
+
 		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 		updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 	},
@@ -95,6 +97,11 @@ export const channelMembers = pgTable(
 		channelId: text("channel_id")
 			.notNull()
 			.references(() => serverChannels.id, { onDelete: "cascade" }),
+
+		// Member controls
+		isHidden: boolean("is_hiddem").default(false).notNull(),
+		isMuted: boolean("is_muted").default(false).notNull(),
+
 		joinedAt: timestamp("joined_at", { withTimezone: true }).defaultNow().notNull(),
 	},
 	(table) => {

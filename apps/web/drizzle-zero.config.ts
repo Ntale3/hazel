@@ -41,6 +41,8 @@ export default drizzleZeroConfig(schema, {
 			userId: true,
 			channelId: true,
 			joinedAt: true,
+			isHidden: true,
+			isMuted: true,
 		},
 		messages: {
 			id: true,

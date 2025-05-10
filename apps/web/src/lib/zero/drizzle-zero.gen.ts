@@ -40,6 +40,20 @@ export const schema = {
 						null as (typeof DrizzleConfigSchema)["tables"]["channelMembers"]["columns"]["channelId"]["customType"],
 					serverName: "channel_id",
 				},
+				isHidden: {
+					type: "boolean",
+					optional: true,
+					customType:
+						null as (typeof DrizzleConfigSchema)["tables"]["channelMembers"]["columns"]["isHidden"]["customType"],
+					serverName: "is_hiddem",
+				},
+				isMuted: {
+					type: "boolean",
+					optional: true,
+					customType:
+						null as (typeof DrizzleConfigSchema)["tables"]["channelMembers"]["columns"]["isMuted"]["customType"],
+					serverName: "is_muted",
+				},
 				joinedAt: {
 					type: "number",
 					optional: true,
