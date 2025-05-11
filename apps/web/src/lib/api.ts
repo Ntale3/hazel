@@ -12,8 +12,8 @@ const test = Effect.gen(function* () {
 	const client = yield* apiClient
 
 	const formData = new FormData()
-	// formData.append("files", new File(["test"], "test.txt"))
-	formData.append("name", "test")
+	formData.append("files", new File(["test"], "test.txt"))
+	// formData.append("name", "test")
 
 	const res = yield* client.Root.upload({
 		payload: formData,
@@ -21,4 +21,4 @@ const test = Effect.gen(function* () {
 	console.log(res)
 }).pipe(Effect.provide(FetchHttpClient.layer))
 
-await Effect.runPromise(test)
+// await Effect.runPromise(test)
