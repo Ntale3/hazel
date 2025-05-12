@@ -1,7 +1,7 @@
 import type { Message } from "@maki-chat/zero"
 import Ably from "ably"
 import { useAuth } from "clerk-solidjs"
-import { type JSX, createContext, createEffect, createSignal, onCleanup, useContext } from "solid-js"
+import { type JSX, createContext, createEffect, createSignal, onCleanup, onMount, useContext } from "solid-js"
 import { toaster } from "~/components/ui/toaster"
 
 const ably = new Ably.Realtime("NY2l4Q._SC2Cw:4EX9XKKwif-URelo-XiW7AuAqAjy8QzOheHhnjocjkk")
@@ -19,13 +19,16 @@ type AblyProviderProps = {
 export function AblyProvider(props: AblyProviderProps) {
 	const { userId } = useAuth()
 	const [message, setMessage] = createSignal<unknown | null>(null)
-	let channel: Ably.RealtimeChannel | undefined
+	const [channel, setChannel] = createSignal<Ably.RealtimeChannel | undefined>(undefined)
 	const audio = new Audio("/sounds/notification01.mp3")
 
 	createEffect(() => {
 		if (!userId()) return
 
-		channel = ably.channels.get(`notifications:${userId()}`)
+		if (!channel()) {
+			setChannel(ably.channels.get(`notifications:${userId()}`))
+			return
+		}
 
 		const onMessage = (msg: Ably.InboundMessage) => {
 			const data = msg.data as Message
@@ -39,12 +42,14 @@ export function AblyProvider(props: AblyProviderProps) {
 			audio.play()
 		}
 
-		channel.subscribe(onMessage)
+		if (channel()) {
+			channel()?.subscribe(onMessage)
+		}
 
-		onCleanup(() => {
-			channel?.unsubscribe(onMessage)
-			ably.channels.release(`notifications:${userId()}`)
-		})
+		// onCleanup(() => {
+		// 	channel()?.unsubscribe(onMessage)
+		// 	ably.channels.release(`notifications:${userId()}`)
+		// })
 	})
 
 	return <AblyContext.Provider value={{ message }}>{props.children}</AblyContext.Provider>
