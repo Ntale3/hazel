@@ -32,10 +32,10 @@ export function AblyProvider(props: AblyProviderProps) {
 
 		const onMessage = (msg: Ably.InboundMessage) => {
 			const data = msg.data as Message
-			toaster.create({
-				title: data.authorId,
-				description: data.content,
-			})
+			// toaster.create({
+			// 	title: data.authorId,
+			// 	description: data.content,
+			// })
 			setMessage(msg.data)
 			audio.currentTime = 0
 			audio.volume = 0.5
