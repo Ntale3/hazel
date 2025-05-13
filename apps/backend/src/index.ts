@@ -1,9 +1,8 @@
 import { HttpApiBuilder, HttpApiScalar, HttpMiddleware, HttpServer } from "@effect/platform"
-import { ConfigProvider, Effect, Layer } from "effect"
+import { ConfigProvider, Layer } from "effect"
 
 import { oldUploadHandler } from "./http/old-upload"
 
-import { MakiApi } from "@maki-chat/api-schema"
 import { HttpLive } from "./http"
 
 const Live = HttpLive.pipe()
@@ -12,14 +11,14 @@ const HttpApiScalarLayer = HttpApiScalar.layer().pipe(Layer.provide(Live))
 
 declare global {
 	var env: Env
-	var waitUntil: (promise: Promise<any>) => Promise<void>
+	var waitUntil: (promise: Promise<any>) => void
 }
 
 export default {
 	async fetch(request, env, ctx): Promise<Response> {
 		Object.assign(globalThis, {
 			env,
-			waitUntil: ctx.waitUntil,
+			waitUntil: (promise: Promise<any>) => ctx.waitUntil(promise),
 		})
 
 		const url = new URL(request.url)

@@ -103,6 +103,9 @@ export const channelMembers = pgTable(
 		isHidden: boolean("is_hiddem").default(false).notNull(),
 		isMuted: boolean("is_muted").default(false).notNull(),
 
+		lastSeenMessageId: text("last_seen_message_id").references(() => messages.id, { onDelete: "set null" }),
+		notificationCount: integer("notification_count").notNull().default(0),
+
 		joinedAt: timestamp("joined_at", { withTimezone: true }).defaultNow().notNull(),
 	},
 	(table) => {
@@ -180,27 +183,6 @@ export const reactions = pgTable(
 			index("reaction_user_idx").on(table.userId),
 		]
 	},
-)
-
-export const channelNotifications = pgTable(
-	"channel_notifications",
-	{
-		channelId: text("channel_id")
-			.notNull()
-			.references(() => serverChannels.id, { onDelete: "cascade" }),
-		userId: text("user_id")
-			.notNull()
-			.references(() => users.id, { onDelete: "cascade" }),
-		lastSeenMessageId: text("last_seen_message_id").references(() => messages.id, { onDelete: "set null" }),
-		notificationCount: integer("notification_count").default(0).notNull(),
-		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-		updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
-	},
-	(table) => [
-		primaryKey({
-			columns: [table.channelId, table.userId],
-		}),
-	],
 )
 
 export const usersRelations = relations(users, ({ many }) => ({
