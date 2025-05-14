@@ -1,5 +1,6 @@
 import { createQuery } from "@rocicorp/zero/solid"
 import { type Accessor, createMemo } from "solid-js"
+import { CACHE_AWHILE } from "~/lib/zero/query-cache-policy"
 import { useZero } from "~/lib/zero/zero-context"
 
 export const useDmChannels = (serverId: Accessor<string>) => {
@@ -18,7 +19,7 @@ export const useDmChannels = (serverId: Accessor<string>) => {
 			),
 	)
 
-	const [recentDmChannels, status] = createQuery(dmChannelQuery)
+	const [recentDmChannels, status] = createQuery(dmChannelQuery, CACHE_AWHILE)
 
 	const isLoading = createMemo(() => status().type !== "complete")
 
