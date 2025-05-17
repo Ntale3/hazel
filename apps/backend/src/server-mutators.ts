@@ -1,16 +1,20 @@
 import { schema as drizzleSchema } from "@maki-chat/drizzle"
-import type { Message, schema } from "@maki-chat/zero"
+import type { AuthData, Message, schema } from "@maki-chat/zero"
 import type { CustomMutatorDefs } from "@rocicorp/zero"
 import Ably from "ably"
 import { and, eq } from "drizzle-orm"
 import { getDb } from "./lib/database"
 
-export const serverMutators = (clientMutators: CustomMutatorDefs<typeof schema>) =>
+export const serverMutators = (clientMutators: CustomMutatorDefs<typeof schema>, authData: AuthData) =>
 	({
 		...clientMutators,
 		messages: {
 			...clientMutators.messages,
 			insert: async (tx, data: Message) => {
+				if (data.authorId !== authData.userId) {
+					throw new Error("Unauthorized")
+				}
+
 				const ably = new Ably.Rest("NY2l4Q._SC2Cw:4EX9XKKwif-URelo-XiW7AuAqAjy8QzOheHhnjocjkk")
 
 				await tx.mutate.messages.insert(data)
@@ -23,8 +27,10 @@ export const serverMutators = (clientMutators: CustomMutatorDefs<typeof schema>)
 						where: (table, { eq }) => eq(table.channelId, data.channelId!),
 					})
 
+					const filteredChannelMembers = channelMembers.filter((member) => member.userId !== authData.userId)
+
 					await Promise.all(
-						channelMembers.map((member) =>
+						filteredChannelMembers.map((member) =>
 							db
 								.update(drizzleSchema.channelMembers)
 								.set({
@@ -42,7 +48,7 @@ export const serverMutators = (clientMutators: CustomMutatorDefs<typeof schema>)
 						),
 					)
 
-					const channels = channelMembers
+					const channels = filteredChannelMembers
 						.filter((member) => !member.isMuted)
 						.map((member) => `notifications:${member.userId}`)
 

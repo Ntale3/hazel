@@ -26,7 +26,9 @@ export const ZeroApiLive = HttpApiBuilder.group(MakiApi, "Zero", (handlers) =>
 					new ZQLDatabase(new PostgresJSConnection(postgres(databaseUrl)), schema),
 				)
 
-				const result = yield* Effect.promise(() => processor.process(serverMutators(createMutators()), raw))
+				const result = yield* Effect.promise(() =>
+					processor.process(serverMutators(createMutators(currentUser), currentUser), raw),
+				)
 				return result
 			}),
 		)

@@ -9,6 +9,7 @@
 		"postinstall": "bun run generate:zero"
 	},
 	"dependencies": {
+		"@maki-chat/api-schema": "workspace:*",
 		"@rocicorp/zero": "^0.19.2025050203",
 		"drizzle-zero": "^0.10.1"
 	},

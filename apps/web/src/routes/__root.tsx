@@ -1,3 +1,4 @@
+import type { UserId } from "@maki-chat/api-schema/schema/user.js"
 import { Outlet, createRootRouteWithContext } from "@tanstack/solid-router"
 import { TanStackRouterDevtools } from "@tanstack/solid-router-devtools"
 import { ClerkProvider, SignIn, useAuth } from "clerk-solidjs"
@@ -53,7 +54,9 @@ function ZeroInner() {
 		try {
 			// Call initZero, passing the current user ID and a function to get the token
 			// This matches the original React structure where initZero receives a function
-			const z = await initZero(currentUserId, () => getToken({ template: "ZeroSync" }).then((t) => t!))
+			const z = await initZero(currentUserId, () => getToken({ template: "ZeroSync" }).then((t) => t!), {
+				userId: currentUserId as typeof UserId.Type,
+			})
 
 			if (isActive) {
 				setZero(z)
