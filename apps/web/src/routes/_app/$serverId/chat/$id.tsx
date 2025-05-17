@@ -1,5 +1,5 @@
 import { createFileRoute, useParams } from "@tanstack/solid-router"
-import { For, createEffect, createMemo, createSignal } from "solid-js"
+import { For, createEffect, createMemo, createSignal, on } from "solid-js"
 import { ChatMessage } from "~/components/chat-ui/chat-message"
 import { ChatTopbar } from "~/components/chat-ui/chat-topbar"
 import { FloatingBar } from "~/components/chat-ui/floating-bar"
@@ -88,16 +88,18 @@ function RouteComponent() {
 
 	const [vlistRef, setVlistRef] = createSignal<VListHandle | undefined>(undefined)
 
-	createEffect(() => {
-		const ref = vlistRef()
-		if (!ref) return
-		if (!shouldStickToBottom()) return
+	createEffect(
+		on([processedMessages, vlistRef], () => {
+			const ref = vlistRef()
+			if (!ref) return
+			if (!shouldStickToBottom()) return
 
-		ref.scrollToIndex(processedMessages().length - 1, {
-			smooth: true,
-			align: "end",
-		})
-	})
+			ref.scrollToIndex(processedMessages().length - 1, {
+				smooth: false,
+				align: "end",
+			})
+		}),
+	)
 
 	return (
 		<div class="flex h-screen flex-col">
