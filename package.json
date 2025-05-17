@@ -6,6 +6,7 @@
 	"scripts": {
 		"dev": "turbo dev",
 		"build": "turbo build typecheck",
+		"typecheck": "turbo build typecheck",
 		"setup:dev": "bun run ./scripts/setup-dev.ts",
 		"dev:zero-cache": "zero-cache-dev -p ./packages/zero/src/schema.ts",
 		"dev:db-up": "docker compose --env-file .env -f ./docker/docker-compose.yml up -d",
