@@ -14,7 +14,7 @@ export function parseText(text: string, rules: TokenRule[]): ParsedSegment[] {
 	const allMatches: MatchInfo[] = []
 
 	for (const rule of rules) {
-		const regex = new RegExp(rule.regex, rule.regex.flags.includes("g") ? rule.regex.flags : rule.regex.flags + "g")
+		const regex = new RegExp(rule.regex, rule.regex.flags.includes("g") ? rule.regex.flags : `${rule.regex.flags}g`)
 		for (const match of text.matchAll(regex)) {
 			if (match.index !== undefined) {
 				allMatches.push({
@@ -63,11 +63,11 @@ export function parseText(text: string, rules: TokenRule[]): ParsedSegment[] {
 			let closingDelimiterText: string
 
 			// Use matchResult.indices if available (ES2018+) for precise delimiter extraction
-			if (matchResult.indices && matchResult.indices[2]) {
+			if (matchResult.indices?.[2]) {
 				// indices[2] is [start, end] for the codeContent group
 				// Convert to offsets relative to the start of fullMatchText
-				const contentStartInFullMatch = matchResult.indices[2][0] - matchResult.index
-				const contentEndInFullMatch = matchResult.indices[2][1] - matchResult.index
+				const contentStartInFullMatch = matchResult.indices[2][0] - (matchResult?.index || 0)
+				const contentEndInFullMatch = matchResult.indices[2][1] - (matchResult.index || 0)
 
 				openingDelimiterText = fullMatchText.substring(0, contentStartInFullMatch)
 				closingDelimiterText = fullMatchText.substring(contentEndInFullMatch)
@@ -76,10 +76,10 @@ export function parseText(text: string, rules: TokenRule[]): ParsedSegment[] {
 				console.warn(
 					"RegExpMatchArray.indices not available. Code block delimiter parsing might be less precise.",
 				)
-				openingDelimiterText = "```" + (lang || "")
-				if (fullMatchText.startsWith(openingDelimiterText + "\n" + codeContent)) {
+				openingDelimiterText = `\`\`\`${lang || ""}`
+				if (fullMatchText.startsWith(`${openingDelimiterText}\n${codeContent}`)) {
 					openingDelimiterText += "\n"
-				} else if (!lang && fullMatchText.startsWith("```\n" + codeContent)) {
+				} else if (!lang && fullMatchText.startsWith(`\`\`\`\n${codeContent}`)) {
 					openingDelimiterText = "```\n"
 				}
 				closingDelimiterText = "```" // Simplified fallback

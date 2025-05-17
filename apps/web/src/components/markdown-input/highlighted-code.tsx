@@ -35,8 +35,6 @@ export function HighlightedCode(props: HighlightedCodeProps) {
 	})
 
 	return (
-		// The `hljs` class is often targeted by themes.
-		// `block` ensures it behaves like a block in the contenteditable flow.
 		<pre class={`hljs block ${props.class || ""}`}>
 			<code ref={codeElementRef} />
 		</pre>

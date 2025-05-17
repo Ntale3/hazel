@@ -1,4 +1,4 @@
-import "highlight.js/styles/github-dark.css" // Example: GitHub Dark theme
+import "highlight.js/styles/github-dark.css"
 import { createSignal } from "solid-js"
 import { MarkdownInput } from "./markdown-input"
 import type { TokenRule } from "./types"
