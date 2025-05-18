@@ -20,7 +20,7 @@ export function AblyProvider(props: AblyProviderProps) {
 	const { userId } = useAuth()
 	const [message, setMessage] = createSignal<unknown | null>(null)
 	const [channel, setChannel] = createSignal<Ably.RealtimeChannel | undefined>(undefined)
-	const audio = new Audio("/sounds/notification01.mp3")
+	const audio = new Audio("/sounds/notification02.mp3")
 
 	createEffect(() => {
 		if (!userId()) return
