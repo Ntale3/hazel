@@ -1,5 +1,5 @@
 import { useAuth } from "clerk-solidjs"
-import { For, type JSX, Show, createEffect, createMemo, createSignal, onCleanup } from "solid-js"
+import { type Accessor, For, type JSX, Show, createEffect, createMemo, createSignal, onCleanup } from "solid-js"
 import { twMerge } from "tailwind-merge"
 import { tv } from "tailwind-variants"
 import { useChatMessage } from "~/lib/hooks/data/use-chat-message"
@@ -10,8 +10,9 @@ import { IconLoader } from "../icons/loader"
 import { IconCirclePlusSolid } from "../icons/solid/circle-plus-solid"
 import { IconCircleXSolid } from "../icons/solid/circle-x-solid"
 import { ChatInput } from "../markdown-input/chat-input"
-import { MarkdownInput } from "../markdown-input/markdown-input"
 import { Button } from "../ui/button"
+
+import { createSelection } from "@solid-primitives/selection"
 
 // Type for individual attachment state
 type Attachment = {
@@ -181,9 +182,13 @@ const useFileAttachment = () => {
 	}
 }
 
-const createGlobalEditorFocus = (editorRef: () => HTMLTextAreaElement | undefined) => {
+const createGlobalEditorFocus = (props: {
+	editorRef: () => HTMLDivElement | undefined
+	setInput: (value: string) => void
+	input: Accessor<string>
+}) => {
 	createEffect(() => {
-		const ref = editorRef()
+		const ref = props.editorRef()
 		if (!ref) {
 			return
 		}
@@ -211,9 +216,10 @@ const createGlobalEditorFocus = (editorRef: () => HTMLTextAreaElement | undefine
 
 			if (isPrintableKey) {
 				event.preventDefault()
+
 				ref.focus()
-				const content = editorRef()?.value + event.key
-				ref.value = content
+				const content = props.input() + event.key
+				props.setInput(content)
 			}
 		}
 
@@ -227,14 +233,17 @@ const createGlobalEditorFocus = (editorRef: () => HTMLTextAreaElement | undefine
 
 export function FloatingBar(props: { channelId: string }) {
 	const auth = useAuth()
+
 	const [chatStore, setChatStore] = chatStore$
 	const { attachments, setFileInputRef, handleFileChange, openFileSelector, removeAttachment, clearAttachments } =
 		useFileAttachment()
 
-	const [input, setInput] = createSignal("")
-	const [editorRef, setEditorRef] = createSignal<HTMLTextAreaElement>()
+	const [selection, setSelection] = createSelection()
 
-	createGlobalEditorFocus(editorRef)
+	const [input, setInput] = createSignal("")
+	const [editorRef, setEditorRef] = createSignal<HTMLDivElement>()
+
+	createGlobalEditorFocus({ editorRef, setInput, input })
 
 	const isUploading = createMemo(() => attachments().some((att) => att.status === "uploading"))
 	const successfulKeys = createMemo(() =>
@@ -311,9 +320,13 @@ export function FloatingBar(props: { channelId: string }) {
 				</Button>
 
 				<ChatInput
-					ref={setEditorRef}
+					ref={(ref) => {
+						setEditorRef(ref)
+					}}
 					value={input}
-					onValueChange={setInput}
+					onValueChange={(value) => {
+						setInput(value)
+					}}
 					onKeyDown={(e) => {
 						if (e.key === "Enter" && !e.shiftKey) {
 							e.preventDefault()
