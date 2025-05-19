@@ -12,8 +12,7 @@ export const useServerChannels = (serverId: Accessor<string>) => {
 			.related("members")
 			.where((eq) =>
 				eq.and(
-					eq.cmp("channelType", "!=", "direct"),
-					eq.cmp("channelType", "!=", "single"),
+					eq.or(eq.cmp("channelType", "=", "public"), eq.cmp("channelType", "=", "private")),
 					eq.cmp("serverId", "=", serverId()),
 				),
 			)

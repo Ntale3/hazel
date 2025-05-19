@@ -8,7 +8,7 @@ export const usePublicServers = (serverId: Accessor<string>) => {
 	const serverChannelQuery = createMemo(() =>
 		z.query.serverChannels
 			.related("users")
-			.where((eq) => eq.and(eq.cmp("channelType", "!=", "direct"), eq.cmp("serverId", "=", serverId()))),
+			.where((eq) => eq.and(eq.cmp("channelType", "=", "public"), eq.cmp("serverId", "=", serverId()))),
 	)
 
 	const [serverChannels, status] = createQuery(serverChannelQuery)
