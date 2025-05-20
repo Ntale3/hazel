@@ -156,6 +156,7 @@ export function ImageViewerModal(props: ImageViewerModalProps) {
 							<Carousel
 								class="mx-36"
 								slideCount={props.availableImages().length}
+								page={props.availableImages().indexOf(selectedImage())}
 								onPageChange={(details) => setSelectedImage(props.availableImages()[details.page])}
 							>
 								<Carousel.ItemGroup>
