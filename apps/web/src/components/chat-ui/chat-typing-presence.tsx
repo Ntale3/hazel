@@ -8,7 +8,7 @@ export const ChatTypingPresence = () => {
 	const { users } = userUsers(() => state.typingUserIds)
 
 	return (
-		<div class="mb-2 h-4">
+		<div class="mb-2 h-3">
 			<For each={users()}>
 				{(user) => (
 					<div class="flex items-center gap-2 text-muted-foreground text-xs">
