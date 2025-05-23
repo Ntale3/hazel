@@ -158,11 +158,17 @@ export function ImageViewerModal(props: ImageViewerModalProps) {
 								slideCount={props.availableImages().length}
 								page={props.availableImages().indexOf(selectedImage())}
 								onPageChange={(details) => setSelectedImage(props.availableImages()[details.page])}
+								onClick={(e) => {
+									if ((e.target as HTMLElement).tagName.toLowerCase() === "div") {
+										props.onOpenChange(false)
+									}
+								}}
 							>
 								<Carousel.ItemGroup>
 									<Index each={props.availableImages()}>
 										{(image, index) => (
 											<Carousel.Item index={index}>
+												{/* biome-ignore lint/a11y/useKeyWithClickEvents: <explanation> */}
 												<img
 													src={
 														image()?.startsWith("https")
@@ -171,6 +177,7 @@ export function ImageViewerModal(props: ImageViewerModalProps) {
 													}
 													alt={`Slide ${index}`}
 													class="max-h-[90vh] max-w-[90vw] rounded-md"
+													onClick={(e) => e.stopPropagation()}
 												/>
 											</Carousel.Item>
 										)}
