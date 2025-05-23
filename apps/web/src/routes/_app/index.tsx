@@ -1,6 +1,7 @@
 import { Link, createFileRoute, useNavigate } from "@tanstack/solid-router"
-import { For, createMemo } from "solid-js"
+import { For, createEffect, createMemo } from "solid-js"
 import { Card } from "~/components/ui/card"
+import { getCurrentServerId } from "~/lib/helpers/localstorage"
 import { useUserServers } from "~/lib/hooks/data/use-user-servers"
 
 export const Route = createFileRoute("/_app/")({
@@ -11,10 +12,23 @@ function App() {
 	const navigate = useNavigate()
 	const { servers, isLoading } = useUserServers()
 
-	createMemo(() => {
+	createEffect(() => {
 		if (!isLoading() && servers().length === 0) {
 			navigate({
 				to: "/onboarding",
+			})
+		}
+	})
+
+	createEffect(() => {
+		const savedServerId = getCurrentServerId()
+
+		if (savedServerId) {
+			navigate({
+				to: "/$serverId",
+				params: {
+					serverId: savedServerId,
+				},
 			})
 		}
 	})
