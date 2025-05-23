@@ -9,7 +9,7 @@
 - Fix Reply to Preview of Message if it's a markdown thing like a image display an icon
 - Emoji Picker
 - Add day/week/year to pinned message list
-- Add some Date viewer to shown messages
+- Add some Date viewer to shown messages ( what date is this message from)
 - Fix weird Avatar flashing caused by reloads (probbaly means to fork virtua and change For to Index for our usecase)
 - Image preview
     - Add multiple images in the prop

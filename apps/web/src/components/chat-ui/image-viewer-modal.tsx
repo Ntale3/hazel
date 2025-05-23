@@ -118,7 +118,7 @@ export function ImageViewerModal(props: ImageViewerModalProps) {
 	return (
 		<Dialog open={!!selectedImage()} onOpenChange={(details) => props.onOpenChange(details.open)}>
 			<Portal>
-				<DialogBackdrop />
+				<DialogBackdrop class="bg-black/90" />
 				<ArkDialog.Positioner>
 					<ArkDialog.Content
 						class={twMerge(

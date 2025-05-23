@@ -2,16 +2,21 @@ import { Dialog as ArkDialog } from "@ark-ui/solid"
 import { type JSX, splitProps } from "solid-js"
 import { Portal } from "solid-js/web"
 import { twMerge } from "tailwind-merge"
+import { cn } from "~/lib/utils"
 
 export const DialogRoot = ArkDialog.Root
 export const DialogTrigger = ArkDialog.Trigger
 export const DialogCloseTrigger = ArkDialog.CloseTrigger
 
 export const DialogBackdrop = (props: ArkDialog.BackdropProps) => {
+	const [local, rest] = splitProps(props, ["class"])
 	return (
 		<ArkDialog.Backdrop
-			class="data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/80 data-[state=closed]:animate-out data-[state=open]:animate-in"
-			{...props}
+			class={cn(
+				"data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/80 data-[state=closed]:animate-out data-[state=open]:animate-in",
+				local.class,
+			)}
+			{...rest}
 		/>
 	)
 }
