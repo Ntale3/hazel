@@ -20,7 +20,6 @@ import { newId } from "~/lib/id-helpers"
 import { useZero } from "~/lib/zero/zero-context"
 
 import { ConfirmDialog } from "./confirm-dialog"
-import { ImageViewerModal } from "./image-viewer-modal"
 import { ReactionTags } from "./reaction-tags"
 import { UserTag } from "./user-tag"
 
@@ -503,18 +502,34 @@ export function ChatMessage(props: ChatMessageProps) {
 									"mt-2",
 									"gap-1",
 									{
-										"flex max-w-[400px]": attachedCount() === 1,
-										"grid max-w-lg grid-cols-2": attachedCount() === 2,
-										"grid max-w-lg grid-cols-3": attachedCount() === 3,
+										flex: attachedCount() === 1,
+										"grid max-w-lg grid-cols-2 gap-1": attachedCount() >= 2,
 									},
 								])}
 							>
 								<For each={props.message().attachedFiles?.slice(0, 4)}>
-									{(file) => (
-										<div class={itemClass()}>
+									{(file, index) => (
+										<div
+											class={cn([
+												"relative cursor-pointer overflow-hidden rounded",
+												"transition-opacity hover:opacity-90",
+												{
+													"max-w-[400px]": attachedCount() === 1,
+													"aspect-square": attachedCount() > 1,
+													"col-span-1 row-span-2": attachedCount() === 3 && index() === 0,
+												},
+											])}
+										>
 											<ChatImage
 												src={`${import.meta.env.VITE_BUCKET_URL}/${file}`}
 												alt={file}
+												class={cn([
+													"object-cover",
+													{
+														"h-auto max-h-[300px] w-auto max-w-full": attachedCount() === 1,
+														"h-full w-full": attachedCount() > 1,
+													},
+												])}
 												onClick={() => {
 													setState(
 														"imageDialog",
@@ -526,6 +541,13 @@ export function ChatMessage(props: ChatMessageProps) {
 													)
 												}}
 											/>
+											{attachedCount() > 4 && index() === 3 && (
+												<div class="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/60">
+													<span class="font-semibold text-lg text-white">
+														+{attachedCount() - 4}
+													</span>
+												</div>
+											)}
 										</div>
 									)}
 								</For>
