@@ -2,7 +2,6 @@ import { useAuth } from "clerk-solidjs"
 import { type Accessor, For, type JSX, Show, createEffect, createMemo, createSignal, onCleanup } from "solid-js"
 import { twMerge } from "tailwind-merge"
 import { tv } from "tailwind-variants"
-import { useChatMessage } from "~/lib/hooks/data/use-chat-message"
 import { newId } from "~/lib/id-helpers"
 import { useZero } from "~/lib/zero/zero-context"
 import { IconLoader } from "../icons/loader"
@@ -13,6 +12,7 @@ import { Button } from "../ui/button"
 
 import type { ChannelId, MessageId } from "@maki-chat/api-schema/schema/message.js"
 import { Option } from "effect"
+import { useUser } from "~/lib/hooks/data/use-user"
 import { MessageQueries } from "~/lib/services/data-access/message-queries"
 import { useChat } from "../chat-state/chat-store"
 import { createPresence } from "../chat-state/create-presence"
@@ -268,8 +268,6 @@ export function FloatingBar(props: { channelId: ChannelId }) {
 	)
 	const showAttachmentArea = createMemo(() => successfulKeys().length > 0)
 
-	const z = useZero()
-
 	async function handleSubmit(text: string) {
 		if (!auth.userId()) return
 
@@ -281,6 +279,9 @@ export function FloatingBar(props: { channelId: ChannelId }) {
 		if (text.trim().length === 0 && successfulKeys().length === 0) return
 		const content = text.trim()
 
+		setInput("")
+
+		// TODO: If we are not a channel member and the channel is a thread, we need to add the current user as a channel member
 		await createMessageMutation.mutateAsync({
 			content: content,
 			authorId: auth.userId()! as any,
@@ -288,25 +289,6 @@ export function FloatingBar(props: { channelId: ChannelId }) {
 			attachedFiles: successfulKeys(),
 			threadChannelId: Option.none(),
 		})
-
-		// TODO: If we are not a channel member and the channel is a thread, we need to add the current user as a channel member
-
-		await z.mutate.messages
-			.insert({
-				channelId: props.channelId,
-				id: newId("messages"),
-				content: content,
-				authorId: auth.userId()!,
-				replyToMessageId: state.replyToMessageId,
-				createdAt: new Date().getTime(),
-				attachedFiles: successfulKeys(),
-			})
-			.then(() => {
-				setState("replyToMessageId", null)
-
-				setInput("")
-				clearAttachments()
-			})
 
 		trackTyping(false)
 	}
@@ -406,10 +388,18 @@ function ReplyInfo(props: {
 	const { setState, state } = useChat()
 	const replyToMessageId = createMemo(() => state.replyToMessageId!)
 
-	const { message } = useChatMessage(replyToMessageId)
+	const channelId = createMemo(() => state.channelId)
+	const messageQuery = MessageQueries.createMessageQuery({
+		messageId: replyToMessageId,
+		channelId: channelId,
+	})
+
+	const authorId = createMemo(() => messageQuery.data?.authorId!)
+
+	const { user: author } = useUser(authorId)
 
 	return (
-		<Show when={message()}>
+		<Show when={messageQuery.data}>
 			<div
 				class={twMerge(
 					"flex items-center justify-between gap-2 rounded-sm rounded-b-none border border-border/90 border-b-0 bg-secondary/90 px-2 py-1 text-muted-fg text-sm transition hover:border-border/90",
@@ -417,7 +407,7 @@ function ReplyInfo(props: {
 				)}
 			>
 				<p>
-					Replying to <span class="font-semibold text-fg">{message()!.author?.displayName}</span>
+					Replying to <span class="font-semibold text-fg">{author()?.displayName}</span>
 				</p>
 				<Button size="icon" intent="icon" onClick={() => setState("replyToMessageId", null)}>
 					<IconCircleXSolid />

@@ -11,7 +11,6 @@ import * as Context from "effect/Context"
 import * as Duration from "effect/Duration"
 import * as Effect from "effect/Effect"
 import * as Layer from "effect/Layer"
-import { cons } from "effect/List"
 import * as Redacted from "effect/Redacted"
 import type { Scope } from "effect/Scope"
 import * as Stream from "effect/Stream"
@@ -83,7 +82,22 @@ export const make = (
 			}
 
 			private run(cql: string, params?: ReadonlyArray<any>) {
-				return this.runRaw(cql, params).pipe(Effect.map((result) => result.rows || []))
+				function transformTimeUuids(rows: Cassandra.types.Row[] = []): Cassandra.types.Row[] {
+					for (const row of rows) {
+						for (const key of Object.keys(row)) {
+							const value = row[key]
+							if (value?.constructor && value.constructor.name === "TimeUuid") {
+								row[key] = value.toString()
+							}
+						}
+					}
+					return rows
+				}
+				return this.runRaw(cql, params).pipe(
+					Effect.map((result) => {
+						return result.rows ? transformTimeUuids(result.rows) : []
+					}),
+				)
 			}
 
 			execute(

@@ -1,26 +1,23 @@
-CREATE KEYSPACE chat WITH replication = {
-  'class': 'SimpleStrategy',
-  'replication_factor': 3
-};
+CREATE KEYSPACE chat WITH replication = {'class': 'org.apache.cassandra.locator.SimpleStrategy', 'replication_factor': '3'} AND durable_writes = true AND tablets = {'enabled': false};
 
 CREATE TABLE chat.messages (
-  id TIMEUUID PRIMARY KEY,
-  content TEXT,
-  channel_id TEXT,
-  thread_channel_id TEXT,
-  author_id TEXT,
-  reply_to_message_id TEXT,
-  attached_files LIST<TEXT>,
-  created_at TIMESTAMP,
-  updated_at TIMESTAMP
-);
+    id timeuuid,
+    attached_files list<text>,
+    author_id text,
+    channel_id text,
+    content text,
+    created_at timestamp,
+    reply_to_message_id timeuuid,
+    thread_channel_id text,
+    updated_at timestamp,
+    PRIMARY KEY (id)
+)
 
-CREATE TABLE chat.messages_by_channel (
-  channel_id TEXT,
-  created_at TIMESTAMP,
-  id TIMEUUID,
-  PRIMARY KEY (channel_id, created_at, id)
-) WITH CLUSTERING ORDER BY (created_at DESC, id DESC);
+CREATE MATERIALIZED VIEW chat.messages_by_channel AS
+    SELECT channel_id, id, attached_files, author_id, content, created_at, reply_to_message_id, thread_channel_id, updated_at
+    FROM chat.messages
+    WHERE channel_id IS NOT null AND id IS NOT null
+    PRIMARY KEY (channel_id, id)
+    WITH CLUSTERING ORDER BY (id DESC)
 
-CREATE INDEX ON chat.messages (thread_channel_id);
-CREATE INDEX ON chat.messages (reply_to_message_id);
+

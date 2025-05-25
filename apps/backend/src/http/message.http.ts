@@ -15,6 +15,7 @@ export const MessageApiLive = HttpApiBuilder.group(MakiApi, "message", (handlers
 				Effect.fnUntraced(function* ({ payload, path }) {
 					const message = yield* messageService.create(path.channelId, payload)
 
+					console.log("Message created:", message)
 					return { success: true, id: message.id }
 				}),
 			)

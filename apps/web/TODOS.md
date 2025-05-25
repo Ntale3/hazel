@@ -54,12 +54,10 @@
  # ScyllaDB Rework Todos
 
  - Integrate into the chatUI
-  - Fix Reply to Message
   - Reimplemnet Unpin
   - Reimplement Threads 
-  - Fix Pin Popover
-  - Reimplement Delete Message
-
+  - Fix Pinned Message Popover
+  - Fix Reply to Message weirdly scrolling up? rerendering idk
  - Add Optimistic Updates to TSQ 
  - Add Websocket and connect
 

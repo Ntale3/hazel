@@ -106,4 +106,30 @@ export namespace MessageQueries {
 			toastifySuccess: () => "Message deleted",
 		})
 	}
+
+	export const createMessageQuery = ({
+		messageId,
+		channelId,
+	}: { messageId: Accessor<MessageId>; channelId: Accessor<ChannelId> }) => {
+		return useEffectQuery(() => ({
+			queryKey: [
+				"MessageQueries.getMessage",
+				{
+					messageId: messageId(),
+					channelId: channelId(),
+				},
+			],
+
+			queryFn: Effect.fnUntraced(function* () {
+				const { client } = yield* ApiClient
+
+				return yield* client.message.getMessage({
+					path: {
+						id: messageId(),
+						channelId: channelId(),
+					},
+				})
+			}),
+		}))
+	}
 }

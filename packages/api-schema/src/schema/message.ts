@@ -23,18 +23,7 @@ const ModelArrayString = Model.Field({
 })
 
 export class Message extends Model.Class<Message>("@hazel/Message")({
-	id: Model.Field({
-		insert: MessageId,
-		update: MessageId,
-		select: Schema.transform(Schema.Any, MessageId, {
-			strict: true,
-			encode: (value) => value,
-			// TODO: Cant use cassandra dep since we use this in the browser
-			// encode: (value) => types.TimeUuid.fromString(value),
-			decode: (value) => value.toString(),
-		}),
-		json: MessageId,
-	}),
+	id: Model.GeneratedByApp(MessageId),
 	content: Schema.String.pipe(Schema.minLength(1), Schema.maxLength(4000)),
 	channelId: Model.GeneratedByApp(ChannelId),
 	threadChannelId: Model.FieldOption(ChannelId),

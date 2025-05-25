@@ -95,7 +95,7 @@ export function Channel(props: { channelId: Accessor<ChannelId>; serverId: Acces
 		<div class="flex flex-1 flex-col">
 			<VList
 				class="flex-1"
-				overscan={3}
+				overscan={7}
 				shift
 				data={processedMessages()}
 				ref={setVlistRef}
@@ -106,8 +106,8 @@ export function Channel(props: { channelId: Accessor<ChannelId>; serverId: Acces
 
 					setShouldStickToBottom(offset >= vlistRef()!.scrollSize - vlistRef()!.viewportSize - 120)
 
-					if (offset < 700) {
-						if (paginatedMessages.hasNextPage) {
+					if (offset < 300) {
+						if (paginatedMessages.hasNextPage || !paginatedMessages.isLoading) {
 							paginatedMessages.fetchNextPage()
 						}
 					}
