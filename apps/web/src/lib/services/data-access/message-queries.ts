@@ -1,4 +1,5 @@
 import type { ChannelId, Message, MessageId } from "@maki-chat/api-schema/schema/message.js"
+import { keepPreviousData } from "@tanstack/solid-query"
 import { Effect } from "effect"
 import type { Accessor } from "solid-js"
 import { QueryData, useEffectInfiniteQuery, useEffectMutation, useEffectQuery } from "~/lib/tanstack"
@@ -7,9 +8,8 @@ import { ApiClient } from "../common/api-client"
 export namespace MessageQueries {
 	type InfiniteVars = {
 		channelId: ChannelId
-		limit?: number
 	}
-	const messagesKey = QueryData.makeQueryKey<"message", InfiniteVars>("message")
+	const messagesKey = QueryData.makeQueryKey<"messages", InfiniteVars>("messages")
 	const messagesHelpers = QueryData.makeHelpers<Array<Message>, InfiniteVars>(messagesKey)
 
 	export const createPaginatedMessagesQuery = ({
@@ -19,7 +19,6 @@ export namespace MessageQueries {
 		return useEffectInfiniteQuery(() => ({
 			queryKey: messagesKey({
 				channelId: channelId(),
-				limit,
 			}),
 
 			queryFn: ({ pageParam }) =>
@@ -39,6 +38,7 @@ export namespace MessageQueries {
 			getPreviousPageParam: (firstPage) =>
 				firstPage.pagination.hasPrevious ? firstPage.pagination.previousCursor : undefined,
 			initialPageParam: undefined as string | undefined,
+			placeholderData: keepPreviousData,
 		}))
 	}
 
@@ -69,7 +69,7 @@ export namespace MessageQueries {
 						channelId: channelId(),
 					},
 				})
-			}, Effect.scoped),
+			}),
 		})
 	}
 
@@ -95,6 +95,7 @@ export namespace MessageQueries {
 					.pipe(
 						Effect.tap(() =>
 							messagesHelpers.setData({ channelId: channelId() }, (draft) => {
+								console.log(draft)
 								const index = draft.findIndex((t) => t.id === messageId)
 								if (index !== -1) {
 									draft.splice(index, 1)

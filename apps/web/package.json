@@ -41,6 +41,7 @@
 	},
 	"devDependencies": {
 		"@tailwindcss/vite": "^4.1.7",
+		"solid-devtools": "^0.34.0",
 		"tailwindcss": "^4.1.7",
 		"tw-animate-css": "^1.3.0",
 		"typescript": "^5.8.3",

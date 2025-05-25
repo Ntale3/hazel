@@ -113,14 +113,25 @@ export const schema = {
             "id"
           >,
         },
-        content: {
-          type: "string",
-          optional: false,
+        attachedFiles: {
+          type: "json",
+          optional: true,
           customType: null as unknown as ZeroCustomType<
             typeof zeroSchema,
             "messages",
-            "content"
+            "attachedFiles"
           >,
+          serverName: "attached_files",
+        },
+        authorId: {
+          type: "string",
+          optional: true,
+          customType: null as unknown as ZeroCustomType<
+            typeof zeroSchema,
+            "messages",
+            "authorId"
+          >,
+          serverName: "author_id",
         },
         channelId: {
           type: "string",
@@ -130,26 +141,26 @@ export const schema = {
             "messages",
             "channelId"
           >,
+          serverName: "channel_id",
         },
-        threadChannelId: {
+        content: {
           type: "string",
           optional: true,
           customType: null as unknown as ZeroCustomType<
             typeof zeroSchema,
             "messages",
-            "threadChannelId"
+            "content"
           >,
-          serverName: "thread_channel_id",
         },
-        authorId: {
-          type: "string",
-          optional: false,
+        createdAt: {
+          type: "number",
+          optional: true,
           customType: null as unknown as ZeroCustomType<
             typeof zeroSchema,
             "messages",
-            "authorId"
+            "createdAt"
           >,
-          serverName: "author_id",
+          serverName: "created_at",
         },
         replyToMessageId: {
           type: "string",
@@ -161,25 +172,15 @@ export const schema = {
           >,
           serverName: "reply_to_message_id",
         },
-        attachedFiles: {
-          type: "json",
+        threadChannelId: {
+          type: "string",
           optional: true,
           customType: null as unknown as ZeroCustomType<
             typeof zeroSchema,
             "messages",
-            "attachedFiles"
+            "threadChannelId"
           >,
-          serverName: "attached_files",
-        },
-        createdAt: {
-          type: "number",
-          optional: true,
-          customType: null as unknown as ZeroCustomType<
-            typeof zeroSchema,
-            "messages",
-            "createdAt"
-          >,
-          serverName: "created_at",
+          serverName: "thread_channel_id",
         },
         updatedAt: {
           type: "number",

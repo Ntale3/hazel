@@ -57,7 +57,6 @@
 reactivity needs to be fixed
 
  - Integrate into the chatUI
-  - Reimplemnet Unpin
   - Reimplement Threads 
   - Fix Pinned Message Popover
   - Fix Reply to Message weirdly scrolling up? rerendering idk
@@ -65,3 +64,37 @@ reactivity needs to be fixed
  - Add Websocket and connect
 
  - Add Authentication to endpoints
+
+
+
+
+
+# Architecture
+
+This probably will be our architecture in the future, but to
+keep infra a bit more simple, we will be using a combination of
+Postgres + Supabase Realtime
+
+┌─────────────┐    ┌──────────────┐    ┌─────────────┐
+│   Client    │◄──►│ WebSocket    │◄──►│   Redis     │
+│ (Browser)   │    │   Server     │    │  Pub/Sub    │
+└─────────────┘    └──────────────┘    └─────────────┘
+                           │                    │
+                           ▼                    ▼
+                   ┌──────────────┐    ┌─────────────┐
+                   │  ScyllaDB    │    │   Kafka     │
+                   │ (Messages)   │    │ (Events)    │
+                   └──────────────┘    └─────────────┘
+
+
+## Current Version
+
+┌─────────────┐    ┌──────────────┐    ┌─────────────┐
+│   Client    │◄──►│  Supabase    │◄──►│ PostgreSQL  │
+│ (Browser)   │    │   Realtime   │    │  LISTEN/    │
+└─────────────┘    │              │    │  NOTIFY     │
+                   └──────────────┘    └─────────────┘
+                           │
+                           ▼
+                   All clients get all
+                   messages for filtering

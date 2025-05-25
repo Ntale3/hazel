@@ -56,10 +56,13 @@ export const MessageApiLive = HttpApiBuilder.group(MakiApi, "message", (handlers
 			.handle(
 				"getMessages",
 				Effect.fnUntraced(function* ({ urlParams, path }) {
+					console.log("Paginating messages:", path.channelId, urlParams)
 					const result = yield* messageService.paginate(path.channelId, {
 						cursor: urlParams.cursor || null,
 						limit: urlParams.limit,
 					})
+
+					console.log("Messages:", result)
 
 					return {
 						data: result.data,

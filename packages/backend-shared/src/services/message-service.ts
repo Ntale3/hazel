@@ -58,7 +58,7 @@ export class MessageService extends Effect.Service<MessageService>()("@hazel/Mes
 			yield* Effect.annotateCurrentSpan("params", params)
 
 			const messagesByChannelPaginator = yield* Model.makePartitionedPaginatedQuery(Message, {
-				tableName: "messages_by_channel",
+				tableName: "messages",
 				spanPrefix: "Message",
 				partitionKey: "channelId",
 				cursorField: "id",

@@ -1,5 +1,5 @@
 import { HttpApiBuilder, HttpApiScalar, HttpMiddleware, HttpServer } from "@effect/platform"
-import { ConfigProvider, Layer, String } from "effect"
+import { ConfigProvider, Layer, Redacted, String } from "effect"
 
 import { addCorsHeaders, oldUploadHandler } from "./http/old-upload"
 
@@ -8,9 +8,10 @@ import { AuthorizationLive } from "./authorization.live"
 import { HttpLive } from "./http"
 import { Jose } from "./services/jose"
 
+import { PgClient } from "@effect/sql-pg"
 import { SqlCassandra } from "@maki-chat/backend-shared"
 
-const SqlLive = SqlCassandra.layer({
+const SqlLiveCass = SqlCassandra.layer({
 	contactPoints: ["127.0.0.1"],
 	localDataCenter: "datacenter1",
 	keyspace: "chat",
@@ -31,7 +32,7 @@ const Live = HttpLive.pipe(
 	Layer.provide(AuthorizationLive),
 	Layer.provide(Jose.Default),
 	Layer.provide(MessageService.Default),
-	Layer.provide(SqlLive),
+	// Layer.provide(SqlLiveCass),
 )
 
 const HttpApiScalarLayer = HttpApiScalar.layer().pipe(Layer.provide(Live))
@@ -80,12 +81,22 @@ export default {
 			)
 		}
 
+		const PgLive = PgClient.layer({
+			url: Redacted.make(env.HYPERDRIVE.connectionString),
+
+			transformQueryNames: String.camelToSnake,
+			transformResultNames: String.snakeToCamel,
+		})
+
 		const ConfigLayer = Layer.setConfigProvider(
 			ConfigProvider.fromJson({ ...env, DATABASE_URL: env.HYPERDRIVE.connectionString }),
 		)
 
 		const { dispose, handler } = HttpApiBuilder.toWebHandler(
-			Layer.mergeAll(Live, HttpApiScalarLayer, HttpServer.layerContext).pipe(Layer.provide(ConfigLayer)),
+			Layer.mergeAll(Live, HttpApiScalarLayer, HttpServer.layerContext).pipe(
+				Layer.provide(ConfigLayer),
+				Layer.provide(PgLive),
+			),
 			{
 				middleware: HttpMiddleware.cors(),
 			},

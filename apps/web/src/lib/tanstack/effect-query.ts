@@ -184,15 +184,11 @@ export function useEffectQuery<
 	E extends EffectfulError,
 	R extends LiveRuntimeContext,
 	QueryKeyType extends QueryKey = QueryKey,
->(
-	options: EffectfulQueryOptions<A, E, R, QueryKeyType> | Accessor<EffectfulQueryOptions<A, E, R, QueryKeyType>>,
-): UseQueryResult<A, E | QueryDefect> {
-	const resolvedOptions = createMemo(() => (typeof options === "function" ? options() : options))
-
-	const effectRunner = createMemo(() => useRunner<A, E, R>(resolvedOptions()))
+>(options: Accessor<EffectfulQueryOptions<A, E, R, QueryKeyType>>): UseQueryResult<A, E | QueryDefect> {
+	const effectRunner = createMemo(() => useRunner<A, E, R>(options()))
 
 	const queryOptions = createMemo(() => {
-		const opts = resolvedOptions()
+		const opts = options()
 		const runner = effectRunner()
 		const { gcTime, staleTime, ...restOpts } = opts
 		const [spanName] = opts.queryKey
@@ -244,16 +240,12 @@ export function useEffectInfiniteQuery<
 	QueryKeyType extends QueryKey = QueryKey,
 	PageParam = unknown,
 >(
-	options:
-		| EffectfulInfiniteQueryOptions<A, E, R, QueryKeyType, PageParam>
-		| Accessor<EffectfulInfiniteQueryOptions<A, E, R, QueryKeyType, PageParam>>,
+	options: Accessor<EffectfulInfiniteQueryOptions<A, E, R, QueryKeyType, PageParam>>,
 ): UseInfiniteQueryResult<InfiniteData<A, PageParam>, E | QueryDefect> {
-	const resolvedOptions = createMemo(() => (typeof options === "function" ? options() : options))
-
-	const effectRunner = createMemo(() => useRunner<A, E, R>(resolvedOptions()))
+	const effectRunner = createMemo(() => useRunner<A, E, R>(options()))
 
 	const infiniteQueryOptions = createMemo(() => {
-		const opts = resolvedOptions()
+		const opts = options()
 		const runner = effectRunner()
 		const {
 			gcTime,

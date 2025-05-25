@@ -12,6 +12,7 @@ import {
 	timestamp,
 	unique,
 	uniqueIndex,
+	uuid,
 	varchar,
 } from "drizzle-orm/pg-core"
 
@@ -125,35 +126,22 @@ export const channelMembers = pgTable(
 export const messages = pgTable(
 	"messages",
 	{
-		id: text("id").primaryKey(),
-		content: text("content").notNull(),
-		channelId: text("channelId").references(() => serverChannels.id, {
-			onDelete: "cascade",
-		}),
-		threadChannelId: text("thread_channel_id").references(() => serverChannels.id, {
-			onDelete: "cascade",
-		}),
-		authorId: text("author_id")
-			.references(() => users.id, {
-				onDelete: "set null",
-			})
-			.notNull(),
-		replyToMessageId: text("reply_to_message_id").references((): AnyPgColumn => messages.id, {
-			onDelete: "set null",
-		}),
-		attachedFiles: jsonb("attached_files").default([]).$type<string[]>(),
-
-		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-		updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+		id: uuid("id").primaryKey(),
+		attachedFiles: jsonb("attached_files").$type<string[]>(),
+		authorId: text("author_id"),
+		channelId: text("channel_id"),
+		content: text("content"),
+		createdAt: timestamp("created_at"),
+		replyToMessageId: uuid("reply_to_message_id"),
+		threadChannelId: text("thread_channel_id"),
+		updatedAt: timestamp("updated_at"),
 	},
-	(table) => {
-		return {
-			channelIdx: index("message_channel_idx").on(table.channelId),
-			threadChannelIdx: index("message_thread_channel_idx").on(table.threadChannelId),
-			userIdx: index("message_user_idx").on(table.authorId),
-			channelCreatedAtIdx: index("message_channel_created_at_idx").on(table.channelId, table.createdAt),
-		}
-	},
+	(table) => ({
+		channelCreatedIdx: index("idx_messages_channel_created").on(table.channelId, table.id),
+		authorIdx: index("idx_messages_author").on(table.authorId),
+		threadIdx: index("idx_messages_thread").on(table.threadChannelId),
+		replyToIdx: index("idx_messages_reply_to").on(table.replyToMessageId),
+	}),
 )
 
 export const pinnedMessages = pgTable(
@@ -171,9 +159,7 @@ export const reactions = pgTable(
 	"reactions",
 	{
 		id: text("id").primaryKey(),
-		messageId: text("message_id")
-			.notNull()
-			.references(() => messages.id, { onDelete: "cascade" }),
+		messageId: text("message_id").notNull(),
 		userId: text("user_id")
 			.notNull()
 			.references(() => users.id, { onDelete: "cascade" }),

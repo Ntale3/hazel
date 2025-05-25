@@ -1,4 +1,4 @@
-import type { Message } from "@maki-chat/zero"
+import type { Message } from "@maki-chat/api-schema/schema/message.js"
 import Ably from "ably"
 import { useAuth } from "clerk-solidjs"
 import { type JSX, createContext, createEffect, createSignal, onCleanup, onMount, useContext } from "solid-js"
