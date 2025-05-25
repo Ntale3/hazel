@@ -54,6 +54,11 @@
  # ScyllaDB Rework Todos
 
  - Integrate into the chatUI
+  - Fix Reply to Message
+  - Reimplemnet Unpin
+  - Reimplement Threads 
+  - Fix Pin Popover
+  - Reimplement Delete Message
 
  - Add Optimistic Updates to TSQ 
  - Add Websocket and connect

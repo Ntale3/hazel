@@ -5,6 +5,7 @@ import { Badge } from "~/components/ui/badge"
 import { useZero } from "~/lib/zero/zero-context"
 
 import type { Message } from "@maki-chat/api-schema/schema/message.js"
+import { Option } from "effect"
 import { useChat } from "~/components/chat-state/chat-store"
 import { useIsPinned } from "~/lib/hooks/data/use-is-pinned"
 import { MessageActions } from "./message-actions"
@@ -26,7 +27,7 @@ export function ChatMessage(props: ChatMessageProps) {
 	const z = useZero()
 	const params = useParams({ from: "/_app/$serverId/chat/$id" })()
 
-	const isRepliedTo = createMemo(() => !!props.message().replyToMessageId)
+	const isRepliedTo = createMemo(() => Option.isSome(props.message().replyToMessageId))
 	const showAvatar = createMemo(() => props.isGroupStart() || isRepliedTo())
 
 	const { state } = useChat()

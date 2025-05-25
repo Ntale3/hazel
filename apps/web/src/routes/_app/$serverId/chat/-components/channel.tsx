@@ -106,7 +106,7 @@ export function Channel(props: { channelId: Accessor<ChannelId>; serverId: Acces
 
 					setShouldStickToBottom(offset >= vlistRef()!.scrollSize - vlistRef()!.viewportSize - 120)
 
-					if (offset < 150) {
+					if (offset < 700) {
 						if (paginatedMessages.hasNextPage) {
 							paginatedMessages.fetchNextPage()
 						}

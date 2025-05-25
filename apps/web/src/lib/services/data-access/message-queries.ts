@@ -72,4 +72,38 @@ export namespace MessageQueries {
 			}, Effect.scoped),
 		})
 	}
+
+	export const deleteMutation = (channelId: Accessor<ChannelId>) => {
+		return useEffectMutation({
+			mutationKey: [
+				"MessageQueries.deleteMessage",
+				{
+					channelId: channelId(),
+				},
+			],
+
+			mutationFn: Effect.fnUntraced(function* (messageId: MessageId) {
+				const { client } = yield* ApiClient
+
+				return yield* client.message
+					.deleteMessage({
+						path: {
+							channelId: channelId(),
+							id: messageId,
+						},
+					})
+					.pipe(
+						Effect.tap(() =>
+							messagesHelpers.setData({ channelId: channelId() }, (draft) => {
+								const index = draft.findIndex((t) => t.id === messageId)
+								if (index !== -1) {
+									draft.splice(index, 1)
+								}
+							}),
+						),
+					)
+			}),
+			toastifySuccess: () => "Message deleted",
+		})
+	}
 }

@@ -13,6 +13,7 @@ import { IconThread } from "~/components/icons/thread"
 import { IconTrash } from "~/components/icons/trash"
 
 import { newId } from "~/lib/id-helpers"
+import { MessageQueries } from "~/lib/services/data-access/message-queries"
 import { useZero } from "~/lib/zero/zero-context"
 
 interface CreateMessageActionsProps {
@@ -25,7 +26,11 @@ interface CreateMessageActionsProps {
 export function createMessageActions(props: CreateMessageActionsProps) {
 	const z = useZero()
 	const params = useParams({ from: "/_app/$serverId/chat/$id" })()
-	const { setState } = useChat()
+	const { setState, state } = useChat()
+
+	const channelId = createMemo(() => state.channelId)
+
+	const deleteMessageMutation = MessageQueries.deleteMutation(channelId)
 
 	return createMemo(() => [
 		{
@@ -122,7 +127,7 @@ export function createMessageActions(props: CreateMessageActionsProps) {
 			key: "delete",
 			label: "Delete",
 			icon: <IconTrash class="size-4" />,
-			onAction: async () => z.mutate.messages.delete({ id: props.message().id }),
+			onAction: async () => deleteMessageMutation.mutateAsync(props.message().id),
 			hotkey: "del",
 			showMenu: true,
 			isDanger: true,
