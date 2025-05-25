@@ -64,7 +64,6 @@ export namespace MessageQueries {
 				const { client } = yield* ApiClient
 
 				const optimisticId = OptimisticId.make(crypto.randomUUID())
-				const tempMessageId = MessageId.make(crypto.randomUUID())
 
 				yield* Ref.update(pendingOptimisticIds, (set) => set.add(optimisticId))
 				yield* Effect.addFinalizer(() =>
@@ -80,6 +79,7 @@ export namespace MessageQueries {
 					...message,
 					channelId: channelId(),
 					id: MessageId.make(`temp_${crypto.randomUUID()}`),
+					optimisticId: Option.some(optimisticId),
 					createdAt: now,
 					updatedAt: now,
 				})
@@ -98,14 +98,38 @@ export namespace MessageQueries {
 						},
 					})
 					.pipe(
+						Effect.tap((serverMessage) =>
+							messagesHelpers.setInfiniteData({ channelId: channelId() }, (draft) => {
+								for (let pageIndex = 0; pageIndex < draft.pages.length; pageIndex++) {
+									const page = draft.pages[pageIndex]
+									if (page.data) {
+										const messageIndex = page.data.findIndex((msg) => {
+											const msgOptId = Option.getOrNull(msg.optimisticId)
+											const targetOptId = Option.getOrNull(serverMessage.optimisticId)
+											return msgOptId === targetOptId && msgOptId !== null
+										})
+
+										if (messageIndex !== -1) {
+											page.data[messageIndex] = serverMessage as any
+											return
+										}
+									}
+								}
+							}),
+						),
 						Effect.tapError(() =>
 							messagesHelpers.setInfiniteData({ channelId: channelId() }, (draft) => {
-								if (draft.pages.length > 0) {
-									const messageIndex = draft.pages[0].data.findIndex(
-										(msg) => msg.id === tempMessageId,
-									)
-									if (messageIndex !== -1) {
-										draft.pages[0].data.splice(messageIndex, 1)
+								for (let pageIndex = 0; pageIndex < draft.pages.length; pageIndex++) {
+									const page = draft.pages[pageIndex]
+									if (page.data) {
+										const messageIndex = page.data.findIndex((msg) => {
+											const msgOptId = Option.getOrNull(msg.optimisticId)
+											return msgOptId === optimisticId
+										})
+										if (messageIndex !== -1) {
+											page.data.splice(messageIndex, 1)
+											return
+										}
 									}
 								}
 							}),
