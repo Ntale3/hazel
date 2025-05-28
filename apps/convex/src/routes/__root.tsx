@@ -1,14 +1,15 @@
-import { Outlet, createRootRoute } from "@tanstack/solid-router"
+import { Outlet, createRootRouteWithContext } from "@tanstack/solid-router"
 
-export const Route = createRootRoute({
+import type { useAuth } from "clerk-solidjs"
+
+interface RootContext {
+	auth: ReturnType<typeof useAuth>
+}
+
+export const Route = createRootRouteWithContext<RootContext>()({
 	component: RootComponent,
 })
 
 function RootComponent() {
-	return (
-		<>
-			<div>Hello "__root"!</div>
-			<Outlet />
-		</>
-	)
+	return <Outlet />
 }

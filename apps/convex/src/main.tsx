@@ -9,6 +9,7 @@ import "./styles/root.css"
 import "./styles/code.css"
 import "./styles/toast.css"
 
+import { ClerkProvider, useAuth } from "clerk-solidjs"
 import { Toaster } from "./components/ui/toaster"
 
 const router = createRouter({
@@ -16,6 +17,9 @@ const router = createRouter({
 	defaultPreload: "intent",
 	scrollRestoration: true,
 	defaultPreloadStaleTime: 0,
+	context: {
+		auth: undefined!,
+	},
 })
 
 declare module "@tanstack/solid-router" {
@@ -25,15 +29,24 @@ declare module "@tanstack/solid-router" {
 }
 
 const InnerProviders = () => {
-	return <RouterProvider router={router} />
+	const auth = useAuth()
+
+	return (
+		<RouterProvider
+			router={router}
+			context={{
+				auth: auth,
+			}}
+		/>
+	)
 }
 
 function App() {
 	return (
-		<>
+		<ClerkProvider publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}>
 			<Toaster />
 			<InnerProviders />
-		</>
+		</ClerkProvider>
 	)
 }
 
