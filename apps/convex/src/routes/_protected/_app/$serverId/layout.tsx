@@ -8,9 +8,16 @@ import { removeCurrentServerId, setCurrentServerId } from "~/lib/helpers/localst
 export const Route = createFileRoute("/_protected/_app/$serverId")({
 	component: RouteComponent,
 	beforeLoad: async ({ context, params }) => {
-		const server = await context.convex.query(api.servers.getServer, {
-			serverId: params.serverId as Id<"servers">,
-		})
+		const server = await context.convex
+			.query(api.servers.getServer, {
+				serverId: params.serverId as Id<"servers">,
+			})
+			.catch(() => {
+				removeCurrentServerId()
+				throw redirect({
+					to: "/",
+				})
+			})
 
 		if (!server) {
 			removeCurrentServerId()

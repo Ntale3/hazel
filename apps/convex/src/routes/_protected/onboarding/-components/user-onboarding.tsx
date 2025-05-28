@@ -1,4 +1,5 @@
 import { createForm } from "@tanstack/solid-form"
+import { useNavigate } from "@tanstack/solid-router"
 import { type } from "arktype"
 import { useUser } from "clerk-solidjs"
 import { api } from "convex-hazel/_generated/api"
@@ -6,12 +7,13 @@ import { IconInternet } from "~/components/icons/internet"
 import { Button } from "~/components/ui/button"
 import { TextField } from "~/components/ui/text-field"
 import { createMutation } from "~/lib/convex"
-import { Route } from "../.."
 
 export const Useronboarding = () => {
-	const createUser = createMutation(api.users.createUser)
+	const createAccount = createMutation(api.accounts.createAccount)
 
-	const navigate = Route.useNavigate()
+	const navigate = useNavigate({
+		from: "/onboarding",
+	})
 
 	const { user } = useUser()
 
@@ -27,7 +29,7 @@ export const Useronboarding = () => {
 			}),
 		},
 		onSubmit: async ({ value }) => {
-			createUser({
+			createAccount({
 				displayName: value.displayName,
 				tag: value.tag,
 			})
