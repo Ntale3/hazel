@@ -18,7 +18,7 @@ const router = createRouter({
 	routeTree,
 	defaultPreload: "intent",
 	scrollRestoration: true,
-	defaultPreloadStaleTime: 0,
+	defaultPreloadStaleTime: 30_000,
 	context: {
 		auth: undefined!,
 		convex: undefined!,

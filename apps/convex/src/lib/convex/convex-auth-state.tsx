@@ -20,6 +20,7 @@ const ConvexAuthContext = createContext<ConvexAuthState | undefined>()
 
 export function useConvexAuth(): ConvexAuthState {
 	const authContext = useContext(ConvexAuthContext)
+
 	if (authContext === undefined) {
 		throw new Error(
 			"Could not find `ConvexProviderWithAuth` as an ancestor component. " +
@@ -33,7 +34,7 @@ export function useConvexAuth(): ConvexAuthState {
 export function ConvexProviderWithAuth(props: {
 	children?: JSX.Element
 	client: ConvexSolidClient
-	useAuth: () => {
+	createAuth: () => {
 		isLoading: Accessor<boolean>
 		isAuthenticated: Accessor<boolean>
 		fetchAccessToken: (args: {
@@ -43,24 +44,21 @@ export function ConvexProviderWithAuth(props: {
 }) {
 	const [isConvexAuthenticated, setIsConvexAuthenticated] = createSignal<boolean | null>(null)
 
-	const authState = () => props.useAuth()
+	const auth = props.createAuth()
 
 	createEffect(() => {
-		const auth = authState()
 		if (auth.isLoading() && isConvexAuthenticated() !== null) {
 			setIsConvexAuthenticated(null)
 		}
 	})
 
 	createEffect(() => {
-		const auth = authState()
 		if (!auth.isLoading() && !auth.isAuthenticated() && isConvexAuthenticated() !== false) {
 			setIsConvexAuthenticated(false)
 		}
 	})
 
 	createEffect(() => {
-		const auth = authState()
 		let isThisEffectRelevant = true
 
 		if (auth.isAuthenticated()) {
@@ -78,8 +76,6 @@ export function ConvexProviderWithAuth(props: {
 	})
 
 	createEffect(() => {
-		const auth = authState()
-
 		if (auth.isAuthenticated()) {
 			onCleanup(() => {
 				props.client.clearAuth()
@@ -89,7 +85,7 @@ export function ConvexProviderWithAuth(props: {
 	})
 
 	const isLoading = createMemo(() => isConvexAuthenticated() === null)
-	const isAuthenticated = createMemo(() => authState().isAuthenticated() && (isConvexAuthenticated() ?? false))
+	const isAuthenticated = createMemo(() => props.createAuth().isAuthenticated() && (isConvexAuthenticated() ?? false))
 
 	const authContextValue = {
 		isLoading: isLoading,

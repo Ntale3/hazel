@@ -24,19 +24,18 @@ export function ConvexProviderWithClerk(props: {
 	client: ConvexSolidClient
 	useAuth: UseAuth
 }) {
-	const useAuthFromClerk = createUseAuthFromClerk(() => props.useAuth)
+	const useAuthFromClerk = createUseAuthFromClerk(props.useAuth)
 
 	return (
-		<ConvexProviderWithAuth client={props.client} useAuth={useAuthFromClerk}>
+		<ConvexProviderWithAuth client={props.client} createAuth={useAuthFromClerk}>
 			{props.children}
 		</ConvexProviderWithAuth>
 	)
 }
 
-function createUseAuthFromClerk(useAuth: () => UseAuth) {
+function createUseAuthFromClerk(useAuth: UseAuth) {
 	return () => {
-		const authHook = useAuth()
-		const { isLoaded, isSignedIn, getToken, orgId, orgRole } = authHook()
+		const { isLoaded, isSignedIn, getToken, orgId, orgRole } = useAuth()
 
 		const fetchAccessToken = createMemo(() => {
 			const currentOrgId = orgId()
