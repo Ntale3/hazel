@@ -99,7 +99,7 @@ export const createReaction = userMutation({
 	},
 	handler: async (ctx, args) => {
 		const message = await ctx.db.get(args.messageId)
-		if (!message) throw new Error("Message not found")
+		if (!message || message.deletedAt) throw new Error("Message not found")
 
 		await ctx.user.validateIsMemberOfChannel({ ctx, channelId: message.channelId })
 

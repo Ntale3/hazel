@@ -442,3 +442,548 @@ describe("messages", () => {
 		expect(user2Message?.content).toEqual("Message from user 2")
 	})
 })
+
+describe("reactions", () => {
+	test("user can add reaction to message", async () => {
+		const ct = convexTest()
+		const { server, userId, channelId, t } = await setupServerAndUser(ct)
+
+		const messageId = await createMessage(t, {
+			serverId: server,
+			channelId,
+		})
+
+		// Add reaction
+		await t.mutation(api.messages.createReaction, {
+			serverId: server,
+			messageId,
+			userId,
+			emoji: "👍",
+		})
+
+		const messages = await t.query(api.messages.getMessages, {
+			serverId: server,
+			channelId,
+			paginationOpts: { numItems: 10, cursor: null },
+		})
+
+		const message = messages.page[0]
+		expect(message?.reactions).toHaveLength(1)
+		expect(message?.reactions[0]?.userId).toEqual(userId)
+		expect(message?.reactions[0]?.emoji).toEqual("👍")
+	})
+
+	test("user can remove their own reaction", async () => {
+		const ct = convexTest()
+		const { server, userId, channelId, t } = await setupServerAndUser(ct)
+
+		const messageId = await createMessage(t, {
+			serverId: server,
+			channelId,
+		})
+
+		// Add reaction
+		await t.mutation(api.messages.createReaction, {
+			serverId: server,
+			messageId,
+			userId,
+			emoji: "👍",
+		})
+
+		// Remove reaction
+		await t.mutation(api.messages.deleteReaction, {
+			serverId: server,
+			id: messageId,
+			emoji: "👍",
+		})
+
+		const messages = await t.query(api.messages.getMessages, {
+			serverId: server,
+			channelId,
+			paginationOpts: { numItems: 10, cursor: null },
+		})
+
+		const message = messages.page[0]
+		expect(message?.reactions).toHaveLength(0)
+	})
+
+	test("user cannot add duplicate reaction", async () => {
+		const ct = convexTest()
+		const { server, userId, channelId, t } = await setupServerAndUser(ct)
+
+		const messageId = await createMessage(t, {
+			serverId: server,
+			channelId,
+		})
+
+		// Add reaction
+		await t.mutation(api.messages.createReaction, {
+			serverId: server,
+			messageId,
+			userId,
+			emoji: "👍",
+		})
+
+		// Try to add same reaction again
+		await expect(
+			t.mutation(api.messages.createReaction, {
+				serverId: server,
+				messageId,
+				userId,
+				emoji: "👍",
+			}),
+		).rejects.toThrow("You have already reacted to this message")
+	})
+
+	test("user can add different emoji reactions to same message", async () => {
+		const ct = convexTest()
+		const { server, userId, channelId, t } = await setupServerAndUser(ct)
+
+		const messageId = await createMessage(t, {
+			serverId: server,
+			channelId,
+		})
+
+		// Add multiple different reactions
+		await t.mutation(api.messages.createReaction, {
+			serverId: server,
+			messageId,
+			userId,
+			emoji: "👍",
+		})
+
+		await t.mutation(api.messages.createReaction, {
+			serverId: server,
+			messageId,
+			userId,
+			emoji: "❤️",
+		})
+
+		await t.mutation(api.messages.createReaction, {
+			serverId: server,
+			messageId,
+			userId,
+			emoji: "😂",
+		})
+
+		const messages = await t.query(api.messages.getMessages, {
+			serverId: server,
+			channelId,
+			paginationOpts: { numItems: 10, cursor: null },
+		})
+
+		const message = messages.page[0]
+		expect(message?.reactions).toHaveLength(3)
+
+		const emojis = message?.reactions.map((r: any) => r.emoji).sort()
+		expect(emojis).toEqual(["👍", "❤️", "😂"].sort())
+	})
+
+	test("multiple users can react to same message", async () => {
+		const ct = convexTest()
+		const { server, user1Id, user2Id, channelId, t1, t2 } = await setupMultipleUsers(ct)
+
+		// User 2 joins the channel
+		await t2.mutation(api.channels.joinChannel, {
+			serverId: server,
+			channelId,
+		})
+
+		const messageId = await createMessage(t1, {
+			serverId: server,
+			channelId,
+		})
+
+		// Both users add reactions
+		await t1.mutation(api.messages.createReaction, {
+			serverId: server,
+			messageId,
+			userId: user1Id,
+			emoji: "👍",
+		})
+
+		await t2.mutation(api.messages.createReaction, {
+			serverId: server,
+			messageId,
+			userId: user2Id,
+			emoji: "👍",
+		})
+
+		const messages = await t1.query(api.messages.getMessages, {
+			serverId: server,
+			channelId,
+			paginationOpts: { numItems: 10, cursor: null },
+		})
+
+		const message = messages.page[0]
+		expect(message?.reactions).toHaveLength(2)
+
+		const userIds = message?.reactions.map((r: any) => r.userId).sort()
+		expect(userIds).toEqual([user1Id, user2Id].sort())
+	})
+
+	test("user cannot remove another user's reaction", async () => {
+		const ct = convexTest()
+		const { server, user1Id, user2Id, channelId, t1, t2 } = await setupMultipleUsers(ct)
+
+		// User 2 joins the channel
+		await t2.mutation(api.channels.joinChannel, {
+			serverId: server,
+			channelId,
+		})
+
+		const messageId = await createMessage(t1, {
+			serverId: server,
+			channelId,
+		})
+
+		// User 1 adds reaction
+		await t1.mutation(api.messages.createReaction, {
+			serverId: server,
+			messageId,
+			userId: user1Id,
+			emoji: "👍",
+		})
+
+		// User 2 tries to remove User 1's reaction
+		await expect(
+			t2.mutation(api.messages.deleteReaction, {
+				serverId: server,
+				id: messageId,
+				emoji: "👍",
+			}),
+		).rejects.toThrow("You do not have permission to delete this reaction")
+	})
+
+	test("user cannot react to message in channel they're not member of", async () => {
+		const ct = convexTest()
+		const { server, user1Id, user2Id, t1, t2 } = await setupMultipleUsers(ct)
+
+		// User 1 creates a separate channel and message
+		const separateChannelId = await createChannel(t1, { serverId: server })
+		const messageId = await createMessage(t1, {
+			serverId: server,
+			channelId: separateChannelId,
+		})
+
+		// User 2 tries to react without being a member
+		await expect(
+			t2.mutation(api.messages.createReaction, {
+				serverId: server,
+				messageId,
+				userId: user2Id,
+				emoji: "👍",
+			}),
+		).rejects.toThrow()
+	})
+
+	test("user cannot react to deleted message", async () => {
+		const ct = convexTest()
+		const { server, userId, channelId, t } = await setupServerAndUser(ct)
+
+		// Try to react to deleted message
+
+		const messageId = await createMessage(t, {
+			serverId: server,
+			channelId,
+		})
+		await t.mutation(api.messages.deleteMessage, {
+			serverId: server,
+			id: messageId,
+		})
+
+		await expect(
+			t.mutation(api.messages.createReaction, {
+				serverId: server,
+				messageId,
+				userId,
+				emoji: "👍",
+			}),
+		).rejects.toThrow("Message not found")
+	})
+
+	test("removing non-existent reaction fails gracefully", async () => {
+		const ct = convexTest()
+		const { server, userId, channelId, t } = await setupServerAndUser(ct)
+
+		const messageId = await createMessage(t, {
+			serverId: server,
+			channelId,
+		})
+
+		// Try to remove reaction that doesn't exist
+		await expect(
+			t.mutation(api.messages.deleteReaction, {
+				serverId: server,
+				id: messageId,
+				emoji: "👍",
+			}),
+		).rejects.toThrow("You do not have permission to delete this reaction")
+	})
+})
+
+describe("pinning", () => {
+	test("user can pin message in channel", async () => {
+		const ct = convexTest()
+		const { server, userId, channelId, t } = await setupServerAndUser(ct)
+
+		const messageId = await createMessage(t, {
+			serverId: server,
+			channelId,
+		})
+
+		// Pin the message
+		const pinnedMessageId = await t.mutation(api.pinnedMessages.createPinnedMessage, {
+			serverId: server,
+			messageId,
+			channelId,
+		})
+
+		// Get pinned messages
+		const pinnedMessages = await t.query(api.pinnedMessages.getPinnedMessages, {
+			channelId,
+			serverId: server,
+		})
+
+		expect(pinnedMessages).toHaveLength(1)
+		expect(pinnedMessages[0]?._id).toEqual(pinnedMessageId)
+		expect(pinnedMessages[0]?.messageId).toEqual(messageId)
+		expect(pinnedMessages[0]?.channelId).toEqual(channelId)
+	})
+
+	test("user can unpin message", async () => {
+		const ct = convexTest()
+		const { server, userId, channelId, t } = await setupServerAndUser(ct)
+
+		const messageId = await createMessage(t, {
+			serverId: server,
+			channelId,
+		})
+
+		// Pin the message
+		const pinnedMessageId = await t.mutation(api.pinnedMessages.createPinnedMessage, {
+			serverId: server,
+			messageId,
+			channelId,
+		})
+
+		// Unpin the message
+		await t.mutation(api.pinnedMessages.deletePinnedMessage, {
+			serverId: server,
+			id: pinnedMessageId,
+		})
+
+		// Get pinned messages
+		const pinnedMessages = await t.query(api.pinnedMessages.getPinnedMessages, {
+			channelId,
+			serverId: server,
+		})
+
+		expect(pinnedMessages).toHaveLength(0)
+	})
+
+	test("multiple messages can be pinned in same channel", async () => {
+		const ct = convexTest()
+		const { server, userId, channelId, t } = await setupServerAndUser(ct)
+
+		// Create multiple messages
+		const message1Id = await createMessage(t, {
+			serverId: server,
+			channelId,
+			content: "First message",
+		})
+
+		const message2Id = await createMessage(t, {
+			serverId: server,
+			channelId,
+			content: "Second message",
+		})
+
+		const message3Id = await createMessage(t, {
+			serverId: server,
+			channelId,
+			content: "Third message",
+		})
+
+		// Pin all messages
+		await t.mutation(api.pinnedMessages.createPinnedMessage, {
+			serverId: server,
+			messageId: message1Id,
+			channelId,
+		})
+
+		await t.mutation(api.pinnedMessages.createPinnedMessage, {
+			serverId: server,
+			messageId: message2Id,
+			channelId,
+		})
+
+		await t.mutation(api.pinnedMessages.createPinnedMessage, {
+			serverId: server,
+			messageId: message3Id,
+			channelId,
+		})
+
+		// Get pinned messages
+		const pinnedMessages = await t.query(api.pinnedMessages.getPinnedMessages, {
+			channelId,
+			serverId: server,
+		})
+
+		expect(pinnedMessages).toHaveLength(3)
+
+		const pinnedMessageIds = pinnedMessages.map((pm: any) => pm.messageId).sort()
+		expect(pinnedMessageIds).toEqual([message1Id, message2Id, message3Id].sort())
+	})
+
+	test("user cannot pin message in channel they're not member of", async () => {
+		const ct = convexTest()
+		const { server, user1Id, user2Id, t1, t2 } = await setupMultipleUsers(ct)
+
+		// User 1 creates a separate channel and message
+		const separateChannelId = await createChannel(t1, { serverId: server })
+		const messageId = await createMessage(t1, {
+			serverId: server,
+			channelId: separateChannelId,
+		})
+
+		// User 2 tries to pin message without being a member
+		await expect(
+			t2.mutation(api.pinnedMessages.createPinnedMessage, {
+				serverId: server,
+				messageId,
+				channelId: separateChannelId,
+			}),
+		).rejects.toThrow()
+	})
+
+	test("user cannot view pinned messages in channel they're not member of", async () => {
+		const ct = convexTest()
+		const { server, user1Id, user2Id, t1, t2 } = await setupMultipleUsers(ct)
+
+		// User 1 creates a separate channel, message, and pins it
+		const separateChannelId = await createChannel(t1, { serverId: server, type: "private" })
+		const messageId = await createMessage(t1, {
+			serverId: server,
+			channelId: separateChannelId,
+		})
+
+		await t1.mutation(api.pinnedMessages.createPinnedMessage, {
+			serverId: server,
+			messageId,
+			channelId: separateChannelId,
+		})
+
+		// User 2 tries to view pinned messages without being a member
+		await expect(
+			t2.query(api.pinnedMessages.getPinnedMessages, {
+				channelId: separateChannelId,
+				serverId: server,
+			}),
+		).rejects.toThrow()
+	})
+
+	test("user cannot unpin message they don't have access to", async () => {
+		const ct = convexTest()
+		const { server, user1Id, user2Id, t1, t2 } = await setupMultipleUsers(ct)
+
+		// User 1 creates a separate channel, message, and pins it
+		const separateChannelId = await createChannel(t1, { serverId: server })
+		const messageId = await createMessage(t1, {
+			serverId: server,
+			channelId: separateChannelId,
+		})
+
+		const pinnedMessageId = await t1.mutation(api.pinnedMessages.createPinnedMessage, {
+			serverId: server,
+			messageId,
+			channelId: separateChannelId,
+		})
+
+		// User 2 tries to unpin message without access
+		await expect(
+			t2.mutation(api.pinnedMessages.deletePinnedMessage, {
+				serverId: server,
+				id: pinnedMessageId,
+			}),
+		).rejects.toThrow()
+	})
+
+	test("pinned messages are isolated per channel", async () => {
+		const ct = convexTest()
+		const { server, userId, channelId, t } = await setupServerAndUser(ct)
+
+		// Create second channel
+		const channel2Id = await createChannel(t, { serverId: server })
+
+		// Create messages in both channels
+		const message1Id = await createMessage(t, {
+			serverId: server,
+			channelId,
+			content: "Message in channel 1",
+		})
+
+		const message2Id = await createMessage(t, {
+			serverId: server,
+			channelId: channel2Id,
+			content: "Message in channel 2",
+		})
+
+		// Pin messages in both channels
+		await t.mutation(api.pinnedMessages.createPinnedMessage, {
+			serverId: server,
+			messageId: message1Id,
+			channelId,
+		})
+
+		await t.mutation(api.pinnedMessages.createPinnedMessage, {
+			serverId: server,
+			messageId: message2Id,
+			channelId: channel2Id,
+		})
+
+		// Get pinned messages for each channel
+		const pinnedMessages1 = await t.query(api.pinnedMessages.getPinnedMessages, {
+			channelId,
+			serverId: server,
+		})
+
+		const pinnedMessages2 = await t.query(api.pinnedMessages.getPinnedMessages, {
+			channelId: channel2Id,
+			serverId: server,
+		})
+
+		// Each channel should only see its own pinned messages
+		expect(pinnedMessages1).toHaveLength(1)
+		expect(pinnedMessages1[0]?.messageId).toEqual(message1Id)
+
+		expect(pinnedMessages2).toHaveLength(1)
+		expect(pinnedMessages2[0]?.messageId).toEqual(message2Id)
+	})
+
+	test("same message cannot be pinned twice in same channel", async () => {
+		const ct = convexTest()
+		const { server, userId, channelId, t } = await setupServerAndUser(ct)
+
+		const messageId = await createMessage(t, {
+			serverId: server,
+			channelId,
+		})
+
+		// Pin the message
+		await t.mutation(api.pinnedMessages.createPinnedMessage, {
+			serverId: server,
+			messageId,
+			channelId,
+		})
+
+		// Try to pin the same message again
+		await expect(
+			t.mutation(api.pinnedMessages.createPinnedMessage, {
+				serverId: server,
+				messageId,
+				channelId,
+			}),
+		).rejects.toThrow()
+	})
+})

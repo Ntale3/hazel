@@ -68,7 +68,7 @@ export class User {
 		const pinnedMessage = await args.ctx.db.get(args.pinnedMessageId)
 		if (!pinnedMessage) throw new Error("Pinned message not found")
 
-		return await this.canViewChannel({ ctx: args.ctx, channelId: pinnedMessage.channelId })
+		return await this.isMemberOfChannel({ ctx: args.ctx, channelId: pinnedMessage.channelId })
 	}
 	public async validateCanAccessPinnedMessage(args: { ctx: GenericContext; pinnedMessageId: Id<"pinnedMessages"> }) {
 		if (!(await this.canAccessPinnedMessage(args))) {

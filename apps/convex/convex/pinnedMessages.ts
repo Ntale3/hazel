@@ -17,13 +17,17 @@ export const getPinnedMessages = userQuery({
 
 export const createPinnedMessage = userMutation({
 	args: {
-		serverId: v.id("servers"),
-
 		messageId: v.id("messages"),
 		channelId: v.id("channels"),
 	},
 	handler: async (ctx, args) => {
-		await ctx.user.validateCanViewChannel({ ctx, channelId: args.channelId })
+		await ctx.user.validateIsMemberOfChannel({ ctx, channelId: args.channelId })
+
+		const pinnedMessage = await ctx.db
+			.query("pinnedMessages")
+			.filter((q) => q.eq(q.field("messageId"), args.messageId))
+			.first()
+		if (pinnedMessage) throw new Error("Message already pinned")
 
 		return await ctx.db.insert("pinnedMessages", {
 			messageId: args.messageId,
@@ -34,8 +38,6 @@ export const createPinnedMessage = userMutation({
 
 export const deletePinnedMessage = userMutation({
 	args: {
-		serverId: v.id("servers"),
-
 		id: v.id("pinnedMessages"),
 	},
 	handler: async (ctx, args) => {

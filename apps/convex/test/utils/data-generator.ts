@@ -46,12 +46,12 @@ export async function createUser(
 
 export async function createChannel(
 	t: TestConvex<typeof schema> | TestConvexForDataModel<(typeof schema)["schemaValidation"]>,
-	props: { serverId: Id<"servers"> },
+	props: { serverId: Id<"servers">; type?: "public" | "private" },
 ) {
 	return await t.mutation(api.channels.createChannel, {
 		serverId: props.serverId,
 		name: "Test Channel",
-		type: "public",
+		type: props.type || "public",
 	})
 }
 
