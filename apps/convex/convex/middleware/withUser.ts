@@ -1,5 +1,5 @@
 import { mutation, query } from "convex-hazel/_generated/server"
-import { customMutation, customQuery } from "convex-hazel/lib/activeRecords/customFunctions"
+import { customMutation, customQuery } from "convex-hazel/lib/customFunctions"
 import { User } from "convex-hazel/lib/activeRecords/user"
 import { v } from "convex/values"
 

@@ -30,7 +30,7 @@ import type {
 	RegisteredQuery,
 	ReturnValueForOptionalValidator,
 } from "convex/server"
-import { omit, pick } from "../utils"
+import { omit, pick } from "./utils"
 
 /**
  * A modifier for a query, mutation, or action.

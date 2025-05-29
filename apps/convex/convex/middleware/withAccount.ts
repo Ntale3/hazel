@@ -1,6 +1,6 @@
 import { mutation, query } from "convex-hazel/_generated/server"
 import { Account } from "convex-hazel/lib/activeRecords/account"
-import { customMutation, customQuery } from "convex-hazel/lib/activeRecords/customFunctions"
+import { customMutation, customQuery } from "convex-hazel/lib/customFunctions"
 
 export const accountQuery = customQuery(query, {
 	args: {},
