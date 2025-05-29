@@ -1,7 +1,7 @@
 import type { Doc, Id } from "convex-hazel/_generated/dataModel"
-import type { GenericContext } from "./user"
-import type { UserIdentity } from "convex/server"
 import type { MutationCtx } from "convex-hazel/_generated/server"
+import type { UserIdentity } from "convex/server"
+import type { GenericContext } from "./user"
 
 export class Account {
 	private constructor(public readonly doc: Doc<"accounts">) {}
@@ -30,7 +30,7 @@ export class Account {
 	public async createUserFromAccount(args: { ctx: MutationCtx; serverId: Id<"servers"> }) {
 		const user = await args.ctx.db
 			.query("users")
-			.withIndex("by_accountId", (q) => q.eq("accountId", this.id))
+			.withIndex("by_accountId_serverId", (q) => q.eq("accountId", this.id))
 			.filter((q) => q.eq(q.field("serverId"), args.serverId))
 			.unique()
 

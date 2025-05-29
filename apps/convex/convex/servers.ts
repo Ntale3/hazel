@@ -29,7 +29,7 @@ export const getServersForUser = accountQuery({
 	handler: async (ctx) => {
 		const serverMembers = await ctx.db
 			.query("users")
-			.withIndex("by_accountId", (q) => q.eq("accountId", ctx.account.doc._id))
+			.withIndex("by_accountId_serverId", (q) => q.eq("accountId", ctx.account.doc._id))
 			.collect()
 
 		const servers = await Promise.all(
@@ -60,7 +60,7 @@ export const createServer = accountMutation({
 		await ctx.db.patch(serverId, {
 			creatorId: user,
 		})
-		
+
 		await ctx.db.insert("channels", {
 			serverId: serverId,
 			name: "general",

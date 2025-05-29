@@ -54,7 +54,6 @@ export const Serveronboarding = () => {
 							try {
 								const serverId = await createServer({
 									name: serverName.toString(),
-									slug: serverName.toString().toLowerCase(),
 								})
 
 								setCreateModalOpen(false)

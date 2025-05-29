@@ -92,9 +92,9 @@ export const AppSidebar = (props: SidebarProps) => {
 						</Dialog>
 					</Sidebar.GroupAction>
 					<Sidebar.Menu>
-						<Index each={serverChannels()}>
+						{/* <Index each={serverChannels()}>
 							{(channel) => <ChannelItem channel={channel} serverId={serverId} />}
-						</Index>
+						</Index> */}
 					</Sidebar.Menu>
 				</Sidebar.Group>
 				<Sidebar.Group>
@@ -103,9 +103,9 @@ export const AppSidebar = (props: SidebarProps) => {
 						<CreateDmDialog serverId={serverId} />
 					</Sidebar.GroupAction>
 					<Sidebar.Menu>
-						<Index each={dmChannels()}>
+						{/* <Index each={dmChannels()}>
 							{(channel) => <DmChannelLink channel={channel} serverId={serverId} />}
-						</Index>
+						</Index> */}
 					</Sidebar.Menu>
 				</Sidebar.Group>
 				<Sidebar.Group class="mt-auto">
@@ -314,10 +314,11 @@ const DmChannelLink = (props: DmChannelLinkProps) => {
 	)
 }
 
-const MuteMenuItem = ({
-	channelId,
-	isMuted,
-}: { channelId: Accessor<string>; isMuted: Accessor<boolean>; serverId: Accessor<string> }) => {
+const MuteMenuItem = (props: {
+	channelId: Accessor<string>
+	isMuted: Accessor<boolean>
+	serverId: Accessor<string>
+}) => {
 	const updateChannelPreferences = createMutation(api.channels.updateChannelPreferences)
 
 	return (
@@ -325,14 +326,14 @@ const MuteMenuItem = ({
 			value="mute"
 			onSelect={async () => {
 				await updateChannelPreferences({
-					channelId: channelId() as Id<"channels">,
-					serverId: serverId() as Id<"servers">,
-					isMuted: !isMuted(),
+					channelId: props.channelId() as Id<"channels">,
+					serverId: props.serverId() as Id<"servers">,
+					isMuted: !props.isMuted(),
 				})
 			}}
 		>
-			{isMuted() ? <IconAudio class="size-4" /> : <IconMutedAudio class="size-4" />}
-			{isMuted() ? "Unmute" : "Mute"}
+			{props.isMuted() ? <IconAudio class="size-4" /> : <IconMutedAudio class="size-4" />}
+			{props.isMuted() ? "Unmute" : "Mute"}
 		</Menu.Item>
 	)
 }

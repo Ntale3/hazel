@@ -44,8 +44,8 @@ export default defineSchema({
 		lastSeen: v.number(),
 		deletedAt: v.optional(v.number()),
 	})
-		.index("by_accountId", ["accountId"])
-		.index("by_serverId", ["serverId"]),
+		.index("by_accountId_serverId", ["accountId", "serverId"])
+		.index("by_server_id", ["serverId"]),
 	messages: defineTable({
 		attachedFiles: v.array(v.string()),
 		content: v.string(),

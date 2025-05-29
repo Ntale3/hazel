@@ -58,7 +58,7 @@ export const createChannel = userMutation({
 			v.literal("direct"),
 			v.literal("single"),
 		),
-		ownerId: v.id("users"),
+		userIds: v.optional(v.array(v.id("users"))),
 		parentChannelId: v.optional(v.id("channels")),
 	},
 	handler: async (ctx, args) => {
@@ -72,11 +72,24 @@ export const createChannel = userMutation({
 
 		await ctx.db.insert("channelMembers", {
 			channelId,
-			userId: args.ownerId,
+			userId: ctx.user.id,
 			joinedAt: Date.now(),
 			isHidden: false,
 			isMuted: false,
 		})
+
+		if (args.userIds) {
+			// TODO: Validate that user can add userIds to channel?
+			await asyncMap(args.userIds, async (userId) => {
+				await ctx.db.insert("channelMembers", {
+					channelId,
+					userId: userId,
+					joinedAt: Date.now(),
+					isHidden: false,
+					isMuted: false,
+				})
+			})
+		}
 
 		return channelId
 	},

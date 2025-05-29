@@ -1,4 +1,4 @@
-import { Link, createFileRoute, useNavigate } from "@tanstack/solid-router"
+import { Link, createFileRoute, redirect, useNavigate } from "@tanstack/solid-router"
 import { api } from "convex-hazel/_generated/api"
 import { For, createEffect } from "solid-js"
 import { Card } from "~/components/ui/card"
@@ -7,6 +7,7 @@ import { getCurrentServerId } from "~/lib/helpers/localstorage"
 
 export const Route = createFileRoute("/_protected/_app/")({
 	component: App,
+	beforeLoad: async ({ context }) => {},
 })
 
 function App() {

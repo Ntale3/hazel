@@ -7,7 +7,7 @@ export const getUsers = userQuery({
 	handler: async (ctx, args) => {
 		return await ctx.db
 			.query("users")
-			.withIndex("by_serverId", (q) => q.eq("serverId", args.serverId))
+			.withIndex("by_server_id", (q) => q.eq("serverId", args.serverId))
 			.collect()
 	},
 })

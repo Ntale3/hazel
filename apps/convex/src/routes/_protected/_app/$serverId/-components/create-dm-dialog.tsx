@@ -9,17 +9,20 @@ import { Dialog } from "~/components/ui/dialog"
 import { ListBox } from "~/components/ui/list-box"
 import { TextField } from "~/components/ui/text-field"
 
-import type { User } from "@maki-chat/zero"
 import { api } from "convex-hazel/_generated/api"
-import { createQuery } from "~/lib/convex"
+import type { Doc, Id } from "convex-hazel/_generated/dataModel"
+import { createMutation, createQuery } from "~/lib/convex"
 
 export interface CreateDmDialogProps {
 	serverId: Accessor<string>
 }
 
 export const CreateDmDialog = (props: CreateDmDialogProps) => {
+	const friends = createQuery(api.social.getFriends, {
+		serverId: props.serverId() as Id<"servers">,
+	})
 
-	const [friends] = createQuery(api.servers.)
+	const createDmChannelMutation = createMutation(api.channels.createChannel)
 
 	const [friendFilter, setFriendFilter] = createSignal<string>("")
 
@@ -28,8 +31,14 @@ export const CreateDmDialog = (props: CreateDmDialogProps) => {
 	const navigate = useNavigate()
 
 	const filteredFriends = createMemo(() => {
-		if (friendFilter() === "") return friends()
-		return friends().filter(
+		const initalFriends = friends()
+
+		if (!initalFriends) return []
+
+		if (friendFilter() === "") {
+			return initalFriends
+		}
+		return initalFriends.filter(
 			(friend) =>
 				friend.displayName.toLowerCase().includes(friendFilter().toLowerCase()) ||
 				friend.tag.includes(friendFilter().toLowerCase()),
@@ -44,7 +53,7 @@ export const CreateDmDialog = (props: CreateDmDialogProps) => {
 		}),
 	)
 
-	const [selectFriends, setSelectedFriends] = createSignal<User[]>([])
+	const [selectFriends, setSelectedFriends] = createSignal<Doc<"users">[]>([])
 
 	return (
 		<Dialog open={isDialogOpen()} onOpenChange={(details) => setDialogOpen(details.open)}>
@@ -104,10 +113,12 @@ export const CreateDmDialog = (props: CreateDmDialogProps) => {
 					<Button
 						intent="default"
 						onClick={async () => {
-							const { channelId } = await createJoinChannelMutation({
-								serverId: props.serverId(),
-								userIds: selectFriends().map((friend) => friend.id),
-								z,
+							createDmChannelMutation
+							const channelId = await createDmChannelMutation({
+								serverId: props.serverId() as Id<"servers">,
+								userIds: selectFriends().map((friend) => friend._id as Id<"users">),
+								type: "direct",
+								name: "Dm Channel",
 							})
 
 							setDialogOpen(false)

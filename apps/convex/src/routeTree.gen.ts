@@ -16,6 +16,7 @@ import { Route as AuthLayoutImport } from './routes/_auth/layout'
 import { Route as ProtectedOtherPageImport } from './routes/_protected/other-page'
 import { Route as AuthSignUpImport } from './routes/_auth/sign-up'
 import { Route as AuthSignInImport } from './routes/_auth/sign-in'
+import { Route as ProtectedAppLayoutImport } from './routes/_protected/_app/layout'
 import { Route as ProtectedOnboardingIndexImport } from './routes/_protected/onboarding/index'
 import { Route as ProtectedAppIndexImport } from './routes/_protected/_app/index'
 import { Route as ProtectedAppServerIdLayoutImport } from './routes/_protected/_app/$serverId/layout'
@@ -54,6 +55,11 @@ const AuthSignInRoute = AuthSignInImport.update({
   getParentRoute: () => AuthLayoutRoute,
 } as any)
 
+const ProtectedAppLayoutRoute = ProtectedAppLayoutImport.update({
+  id: '/_app',
+  getParentRoute: () => ProtectedLayoutRoute,
+} as any)
+
 const ProtectedOnboardingIndexRoute = ProtectedOnboardingIndexImport.update({
   id: '/onboarding/',
   path: '/onboarding/',
@@ -61,16 +67,16 @@ const ProtectedOnboardingIndexRoute = ProtectedOnboardingIndexImport.update({
 } as any)
 
 const ProtectedAppIndexRoute = ProtectedAppIndexImport.update({
-  id: '/_app/',
+  id: '/',
   path: '/',
-  getParentRoute: () => ProtectedLayoutRoute,
+  getParentRoute: () => ProtectedAppLayoutRoute,
 } as any)
 
 const ProtectedAppServerIdLayoutRoute = ProtectedAppServerIdLayoutImport.update(
   {
-    id: '/_app/$serverId',
+    id: '/$serverId',
     path: '/$serverId',
-    getParentRoute: () => ProtectedLayoutRoute,
+    getParentRoute: () => ProtectedAppLayoutRoute,
   } as any,
 )
 
@@ -120,6 +126,13 @@ declare module '@tanstack/solid-router' {
       preLoaderRoute: typeof ProtectedLayoutImport
       parentRoute: typeof rootRoute
     }
+    '/_protected/_app': {
+      id: '/_protected/_app'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof ProtectedAppLayoutImport
+      parentRoute: typeof ProtectedLayoutImport
+    }
     '/_auth/sign-in': {
       id: '/_auth/sign-in'
       path: '/sign-in'
@@ -146,14 +159,14 @@ declare module '@tanstack/solid-router' {
       path: '/$serverId'
       fullPath: '/$serverId'
       preLoaderRoute: typeof ProtectedAppServerIdLayoutImport
-      parentRoute: typeof ProtectedLayoutImport
+      parentRoute: typeof ProtectedAppLayoutImport
     }
     '/_protected/_app/': {
       id: '/_protected/_app/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof ProtectedAppIndexImport
-      parentRoute: typeof ProtectedLayoutImport
+      parentRoute: typeof ProtectedAppLayoutImport
     }
     '/_protected/onboarding/': {
       id: '/_protected/onboarding/'
@@ -229,17 +242,28 @@ const ProtectedAppServerIdLayoutRouteWithChildren =
     ProtectedAppServerIdLayoutRouteChildren,
   )
 
-interface ProtectedLayoutRouteChildren {
-  ProtectedOtherPageRoute: typeof ProtectedOtherPageRoute
+interface ProtectedAppLayoutRouteChildren {
   ProtectedAppServerIdLayoutRoute: typeof ProtectedAppServerIdLayoutRouteWithChildren
   ProtectedAppIndexRoute: typeof ProtectedAppIndexRoute
+}
+
+const ProtectedAppLayoutRouteChildren: ProtectedAppLayoutRouteChildren = {
+  ProtectedAppServerIdLayoutRoute: ProtectedAppServerIdLayoutRouteWithChildren,
+  ProtectedAppIndexRoute: ProtectedAppIndexRoute,
+}
+
+const ProtectedAppLayoutRouteWithChildren =
+  ProtectedAppLayoutRoute._addFileChildren(ProtectedAppLayoutRouteChildren)
+
+interface ProtectedLayoutRouteChildren {
+  ProtectedAppLayoutRoute: typeof ProtectedAppLayoutRouteWithChildren
+  ProtectedOtherPageRoute: typeof ProtectedOtherPageRoute
   ProtectedOnboardingIndexRoute: typeof ProtectedOnboardingIndexRoute
 }
 
 const ProtectedLayoutRouteChildren: ProtectedLayoutRouteChildren = {
+  ProtectedAppLayoutRoute: ProtectedAppLayoutRouteWithChildren,
   ProtectedOtherPageRoute: ProtectedOtherPageRoute,
-  ProtectedAppServerIdLayoutRoute: ProtectedAppServerIdLayoutRouteWithChildren,
-  ProtectedAppIndexRoute: ProtectedAppIndexRoute,
   ProtectedOnboardingIndexRoute: ProtectedOnboardingIndexRoute,
 }
 
@@ -248,7 +272,7 @@ const ProtectedLayoutRouteWithChildren = ProtectedLayoutRoute._addFileChildren(
 )
 
 export interface FileRoutesByFullPath {
-  '': typeof ProtectedLayoutRouteWithChildren
+  '': typeof ProtectedAppLayoutRouteWithChildren
   '/sign-in': typeof AuthSignInRoute
   '/sign-up': typeof AuthSignUpRoute
   '/other-page': typeof ProtectedOtherPageRoute
@@ -262,7 +286,7 @@ export interface FileRoutesByFullPath {
 }
 
 export interface FileRoutesByTo {
-  '': typeof AuthLayoutRouteWithChildren
+  '': typeof ProtectedLayoutRouteWithChildren
   '/sign-in': typeof AuthSignInRoute
   '/sign-up': typeof AuthSignUpRoute
   '/other-page': typeof ProtectedOtherPageRoute
@@ -278,6 +302,7 @@ export interface FileRoutesById {
   __root__: typeof rootRoute
   '/_auth': typeof AuthLayoutRouteWithChildren
   '/_protected': typeof ProtectedLayoutRouteWithChildren
+  '/_protected/_app': typeof ProtectedAppLayoutRouteWithChildren
   '/_auth/sign-in': typeof AuthSignInRoute
   '/_auth/sign-up': typeof AuthSignUpRoute
   '/_protected/other-page': typeof ProtectedOtherPageRoute
@@ -320,6 +345,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_auth'
     | '/_protected'
+    | '/_protected/_app'
     | '/_auth/sign-in'
     | '/_auth/sign-up'
     | '/_protected/other-page'
@@ -367,10 +393,17 @@ export const routeTree = rootRoute
     "/_protected": {
       "filePath": "_protected/layout.tsx",
       "children": [
+        "/_protected/_app",
         "/_protected/other-page",
-        "/_protected/_app/$serverId",
-        "/_protected/_app/",
         "/_protected/onboarding/"
+      ]
+    },
+    "/_protected/_app": {
+      "filePath": "_protected/_app/layout.tsx",
+      "parent": "/_protected",
+      "children": [
+        "/_protected/_app/$serverId",
+        "/_protected/_app/"
       ]
     },
     "/_auth/sign-in": {
@@ -387,7 +420,7 @@ export const routeTree = rootRoute
     },
     "/_protected/_app/$serverId": {
       "filePath": "_protected/_app/$serverId/layout.tsx",
-      "parent": "/_protected",
+      "parent": "/_protected/_app",
       "children": [
         "/_protected/_app/$serverId/billing",
         "/_protected/_app/$serverId/settings",
@@ -397,7 +430,7 @@ export const routeTree = rootRoute
     },
     "/_protected/_app/": {
       "filePath": "_protected/_app/index.tsx",
-      "parent": "/_protected"
+      "parent": "/_protected/_app"
     },
     "/_protected/onboarding/": {
       "filePath": "_protected/onboarding/index.tsx",
