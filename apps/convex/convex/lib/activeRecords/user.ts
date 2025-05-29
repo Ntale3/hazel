@@ -16,7 +16,8 @@ export class User {
 
 		const user = await ctx.db
 			.query("users")
-			.withIndex("by_accountId_serverId", (q) => q.eq("accountId", account.id).eq("serverId", serverId))
+			.withIndex("by_accountId_serverId", (q) => q.eq("accountId", account.id))
+			.filter((q) => q.eq(q.field("serverId"), serverId))
 			.unique()
 
 		if (!user) throw new Error("User not found")

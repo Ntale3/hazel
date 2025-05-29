@@ -47,6 +47,47 @@ export const getChannels = userQuery({
 	},
 })
 
+export const getPublicChannels = userQuery({
+	args: {
+		serverId: v.id("servers"),
+	},
+	handler: async (ctx, args) => {
+		const publicChannels = await ctx.db
+			.query("channels")
+			.withIndex("by_serverId", (q) => q.eq("serverId", args.serverId))
+			.filter((q) => q.eq(q.field("type"), "public"))
+			.collect()
+
+		return publicChannels
+	},
+})
+
+export const getUnjoinedPublicChannels = userQuery({
+	args: {
+		serverId: v.id("servers"),
+	},
+	handler: async (ctx, args) => {
+		const publicChannels = await ctx.db
+			.query("channels")
+			.withIndex("by_serverId", (q) => q.eq("serverId", args.serverId))
+			.filter((q) => q.eq(q.field("type"), "public"))
+			.collect()
+
+		const channelsWithMembers = await asyncMap(publicChannels, async (channel) => {
+			const channelMembers = await ctx.db
+				.query("channelMembers")
+				.withIndex("by_channelIdAndUserId", (q) => q.eq("channelId", channel._id).eq("userId", ctx.user.id))
+				.first()
+
+			if (!channelMembers) return channel
+
+			return null
+		})
+
+		return channelsWithMembers.filter((channel) => channel !== null)
+	},
+})
+
 export const createChannel = userMutation({
 	args: {
 		serverId: v.id("servers"),
