@@ -4,7 +4,6 @@ import type { Id } from "convex-hazel/_generated/dataModel"
 import { createEffect, createMemo } from "solid-js"
 import { Sidebar } from "~/components/ui/sidebar"
 import { removeCurrentServerId, setCurrentServerId } from "~/lib/helpers/localstorage"
-import { AppSidebar } from "./-components/app-sidebar"
 
 export const Route = createFileRoute("/_protected/_app/$serverId")({
 	component: RouteComponent,
