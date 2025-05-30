@@ -1,3 +1,4 @@
+import { asyncMap } from "convex-helpers"
 import { v } from "convex/values"
 import { userMutation, userQuery } from "./middleware/withUser"
 
@@ -8,10 +9,27 @@ export const getPinnedMessages = userQuery({
 	handler: async (ctx, args) => {
 		await ctx.user.validateCanViewChannel({ ctx, channelId: args.channelId })
 
-		return await ctx.db
+		const pinnedMessages = await ctx.db
 			.query("pinnedMessages")
 			.withIndex("by_channelId", (q) => q.eq("channelId", args.channelId))
+			.order("desc")
 			.collect()
+
+		const computedPinnedMessages = await asyncMap(pinnedMessages, async (pinnedMessage) => {
+			const message = await ctx.db.get(pinnedMessage.messageId)
+			if (!message) return null
+
+			const messageAuthor = await ctx.db.get(message.authorId)
+			if (!messageAuthor) return null
+
+			return {
+				...pinnedMessage,
+				messageAuthor,
+				message,
+			}
+		})
+
+		return computedPinnedMessages.filter((pinnedMessage) => pinnedMessage !== null)
 	},
 })
 

@@ -1,8 +1,9 @@
 import { useParams } from "@tanstack/solid-router"
+import { api } from "convex-hazel/_generated/api"
+import type { Id } from "convex-hazel/_generated/dataModel"
 import { For, createMemo } from "solid-js"
 import { IconPin } from "~/components/icons/pin"
-import { usePinnedMessages } from "~/lib/hooks/data/use-pinned-messages"
-import { useZero } from "~/lib/zero/zero-context"
+import { createMutation, createQuery } from "~/lib/convex"
 import { IconCircleXSolid } from "../icons/solid/circle-x-solid"
 import { Avatar } from "../ui/avatar"
 import { Button } from "../ui/button"
@@ -10,15 +11,18 @@ import { Popover } from "../ui/popover"
 import { chatMessageStyles } from "./message/message-styles"
 
 export function PinnedModal() {
-	const z = useZero()
-	const params = useParams({ from: "/_app/$serverId/chat/$id" })()
+	const params = useParams({ from: "/_protected/_app/$serverId/chat/$id" })()
 	const channelId = createMemo(() => params.id)
+	const serverId = createMemo(() => params.serverId)
 
-	const pinnedMessages = createMemo(() => usePinnedMessages(channelId))
+	const pinnedMessages = createQuery(api.pinnedMessages.getPinnedMessages, {
+		channelId: channelId() as Id<"channels">,
+		serverId: serverId() as Id<"servers">,
+	})
 
-	const sortedMessages = createMemo(() =>
-		[...pinnedMessages().pinnedMessages()].sort((a, b) => a.message?.createdAt! - b.message?.createdAt!),
-	)
+	const deletePinnedMessageMutation = createMutation(api.pinnedMessages.deletePinnedMessage)
+
+	const sortedPins = createMemo(() => [...(pinnedMessages() || [])].sort((a, b) => a._creationTime - b._creationTime))
 
 	const scrollToMessage = (messageId: string) => {
 		const element = document.getElementById(`message-${messageId}`)
@@ -44,7 +48,7 @@ export function PinnedModal() {
 					<IconPin /> Pinned Messages
 				</Popover.Title>
 				<div class="flex flex-col gap-2">
-					<For each={sortedMessages()}>
+					<For each={sortedPins()}>
 						{(pinnedMessage) => (
 							// biome-ignore lint/a11y/useKeyWithClickEvents: <explanation>
 							<div
@@ -56,8 +60,9 @@ export function PinnedModal() {
 										<Button
 											onClick={(e) => {
 												e.stopPropagation()
-												z.mutate.pinnedMessages.delete({
-													messageId: pinnedMessage.messageId,
+												deletePinnedMessageMutation({
+													id: pinnedMessage._id,
+													serverId: serverId() as Id<"servers">,
 												})
 											}}
 											size="icon-small"
@@ -68,17 +73,15 @@ export function PinnedModal() {
 										</Button>
 									</div>
 									<Avatar
-										src={pinnedMessage?.message?.author?.avatarUrl}
-										name={pinnedMessage?.message?.author?.displayName!}
+										src={pinnedMessage.messageAuthor.avatarUrl}
+										name={pinnedMessage.messageAuthor.displayName!}
 									/>
 									<div class="min-w-0 flex-1">
 										<div class="flex items-baseline gap-2">
-											<span class="font-semibold">
-												{pinnedMessage?.message?.author?.displayName}
-											</span>
+											<span class="font-semibold">{pinnedMessage.messageAuthor.displayName}</span>
 											<span class="text-muted-fg text-xs">
 												{/* TODO: Add day date here */}
-												{new Date(pinnedMessage?.message?.createdAt!).toLocaleTimeString(
+												{new Date(pinnedMessage.message._creationTime!).toLocaleTimeString(
 													"en-US",
 													{
 														hour: "2-digit",

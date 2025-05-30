@@ -1,8 +1,7 @@
 import { useParams } from "@tanstack/solid-router"
-import { useAuth } from "clerk-solidjs"
 import { api } from "convex-hazel/_generated/api"
 import type { Id } from "convex-hazel/_generated/dataModel"
-import { For, Match, Show, Switch, createMemo } from "solid-js"
+import { For, Match, Show, Switch } from "solid-js"
 import { createQuery } from "~/lib/convex"
 import { useChat } from "../chat-state/chat-store"
 import { IconGroup } from "../icons/group"
@@ -13,6 +12,7 @@ import { IconUserPlus } from "../icons/user-plus"
 import { Avatar } from "../ui/avatar"
 import { Button } from "../ui/button"
 import { TextField } from "../ui/text-field"
+import { PinnedModal } from "./pinned-modal"
 
 export function ChatTopbar() {
 	const params = useParams({ from: "/_protected/_app/$serverId/chat/$id" })()
@@ -71,8 +71,7 @@ export function ChatTopbar() {
 							<Button size="square" intent="ghost">
 								<IconPhone />
 							</Button>
-							{/* // TODO: Implement */}
-							{/* <PinnedModal /> */}
+							<PinnedModal />
 							<Button size="square" intent="ghost">
 								<IconUserPlus />
 							</Button>
