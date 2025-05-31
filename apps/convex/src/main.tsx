@@ -31,7 +31,7 @@ declare module "@tanstack/solid-router" {
 	}
 }
 
-const convex = new ConvexSolidClient("http://127.0.0.1:3210")
+const convex = new ConvexSolidClient(import.meta.env.VITE_CONVEX_URL)
 
 const InnerProviders = () => {
 	const auth = useAuth()
