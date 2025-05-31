@@ -29,8 +29,8 @@ export function ChatMessage(props: ChatMessageProps) {
 	const channelId = createMemo(() => state.channelId)
 	const messageId = createMemo(() => props.message()._id)
 
-	// TODO: Implement
-	const isPinned = () => false
+	const isPinned = () =>
+		state.channel?.pinnedMessages.find((m) => m.messageId === messageId()) !== undefined
 
 	const scrollToMessage = (id: string) => {
 		const el = document.getElementById(`message-${id}`)

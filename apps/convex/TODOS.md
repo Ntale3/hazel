@@ -9,3 +9,5 @@ Needs to be investigated
 - Add isLoading and error state to createQuery
 - Add error tuple to createMutation
 - Add convex client tests to our sdk
+
+- Move Pinned Message back to separate table

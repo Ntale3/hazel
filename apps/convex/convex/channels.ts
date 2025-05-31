@@ -47,7 +47,9 @@ export const getChannels = userQuery({
 
 		const filteredChannels = channelsWithMembers.filter((channel) => channel !== null)
 
-		const dmChannels = filteredChannels.filter((channel) => channel.type !== "private" && channel.type !== "public")
+		const dmChannels = filteredChannels.filter(
+			(channel) => channel.type !== "private" && channel.type !== "public",
+		)
 		const serverChannels = filteredChannels.filter(
 			(channel) => channel.type === "private" || channel.type === "public",
 		)
@@ -66,6 +68,8 @@ export const getChannel = userQuery({
 	},
 	handler: async (ctx, args) => {
 		const channel = await ctx.db.get(args.channelId)
+
+		if (!channel) throw new Error("Channel not found")
 
 		const channelMembers = await ctx.db
 			.query("channelMembers")
@@ -130,7 +134,9 @@ export const getUnjoinedPublicChannels = userQuery({
 		const channelsWithMembers = await asyncMap(publicChannels, async (channel) => {
 			const channelMembers = await ctx.db
 				.query("channelMembers")
-				.withIndex("by_channelIdAndUserId", (q) => q.eq("channelId", channel._id).eq("userId", ctx.user.id))
+				.withIndex("by_channelIdAndUserId", (q) =>
+					q.eq("channelId", channel._id).eq("userId", ctx.user.id),
+				)
 				.first()
 
 			if (!channelMembers) return channel
@@ -150,6 +156,8 @@ export const createChannel = userMutation({
 		type: v.union(v.literal("public"), v.literal("private"), v.literal("thread"), v.literal("direct")),
 		userIds: v.optional(v.array(v.id("users"))),
 		parentChannelId: v.optional(v.id("channels")),
+
+		threadMessageId: v.optional(v.id("messages")),
 	},
 	handler: async (ctx, args) => {
 		const channelId = await ctx.db.insert("channels", {
@@ -181,6 +189,14 @@ export const createChannel = userMutation({
 					isMuted: false,
 					notificationCount: 0,
 				})
+			})
+		}
+
+		if (args.type === "thread") {
+			if (!args.threadMessageId) throw new Error("Thread message id is required")
+
+			await ctx.db.patch(args.threadMessageId, {
+				threadChannelId: channelId,
 			})
 		}
 
@@ -251,7 +267,9 @@ export const leaveChannel = userMutation({
 	handler: async (ctx, args) => {
 		const channelMember = await ctx.db
 			.query("channelMembers")
-			.withIndex("by_channelIdAndUserId", (q) => q.eq("channelId", args.channelId).eq("userId", ctx.user.id))
+			.withIndex("by_channelIdAndUserId", (q) =>
+				q.eq("channelId", args.channelId).eq("userId", ctx.user.id),
+			)
 			.first()
 
 		if (!channelMember) throw new Error("You are not a member of this channel")
@@ -268,7 +286,9 @@ export const joinChannel = userMutation({
 	handler: async (ctx, args) => {
 		const channelMember = await ctx.db
 			.query("channelMembers")
-			.withIndex("by_channelIdAndUserId", (q) => q.eq("channelId", args.channelId).eq("userId", ctx.user.id))
+			.withIndex("by_channelIdAndUserId", (q) =>
+				q.eq("channelId", args.channelId).eq("userId", ctx.user.id),
+			)
 			.first()
 
 		if (channelMember) throw new Error("You are already a member of this channel")

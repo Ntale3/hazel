@@ -41,9 +41,6 @@ export function Channel(props: { channelId: Accessor<Id<"channels">>; serverId: 
 	const processedMessages = createMemo(() => {
 		const timeThreshold = 5 * 60 * 1000
 
-		console.count("processedMessages")
-		console.log("length", paginatedMessages.results().length)
-
 		const allMessages = paginatedMessages.results().reverse()
 
 		const result: Array<{
@@ -129,7 +126,9 @@ export function Channel(props: { channelId: Accessor<Id<"channels">>; serverId: 
 						message={() => message.message}
 						isGroupStart={() => message.isGroupStart}
 						isGroupEnd={() => message.isGroupEnd}
-						isFirstNewMessage={() => message.message._id === channel()?.currentUser?.lastSeenMessageId}
+						isFirstNewMessage={() =>
+							message.message._id === channel()?.currentUser?.lastSeenMessageId
+						}
 						serverId={props.serverId}
 						isThread={() => false}
 					/>
