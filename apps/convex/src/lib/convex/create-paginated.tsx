@@ -11,6 +11,7 @@ import type { FunctionArgs, FunctionReference } from "convex/server"
 import { ConvexError, type Infer, type Value, convexToJson } from "convex/values"
 import { compareValues } from "convex/values"
 import { type Accessor, createEffect, createMemo, createSignal, onCleanup } from "solid-js"
+import { createStore } from "solid-js/store"
 import { useConvex } from "./client"
 
 export type PaginatedQueryReference = FunctionReference<
@@ -150,12 +151,13 @@ export function createPaginatedQuery<Query extends PaginatedQueryReference>(
 		return currentState
 	})
 
-	const [queryResults, setQueryResults] = createSignal<Record<QueryPageKey, any>>({})
+	const [queryResults, setQueryResults] = createStore<Record<QueryPageKey, any>>({})
 
 	createEffect(() => {
 		const currState = currentState()
 		const watchers: (() => void)[] = []
-		const results: Record<QueryPageKey, any> = {}
+
+		setQueryResults({})
 
 		// biome-ignore lint/complexity/noForEach: <explanation>
 		Object.entries(currState.queries).forEach(([pageKeyStr, queryDef]) => {
@@ -164,22 +166,20 @@ export function createPaginatedQuery<Query extends PaginatedQueryReference>(
 
 			const existingResult = watch.localQueryResult()
 			if (existingResult !== undefined) {
-				results[pageKey] = existingResult
+				setQueryResults(pageKey, existingResult)
 			}
 
 			const unsubscribe = watch.onUpdate(() => {
 				try {
 					const result = watch.localQueryResult()
-					setQueryResults((prev) => ({ ...prev, [pageKey]: result }))
+					setQueryResults(pageKey, result)
 				} catch (error) {
-					setQueryResults((prev) => ({ ...prev, [pageKey]: error }))
+					setQueryResults(pageKey, error)
 				}
 			})
 
 			watchers.push(unsubscribe)
 		})
-
-		setQueryResults(results)
 
 		onCleanup(() => {
 			// biome-ignore lint/complexity/noForEach: <explanation>
@@ -262,12 +262,11 @@ export function createPaginatedQuery<Query extends PaginatedQueryReference>(
 
 	const results = createMemo(() => {
 		const currState = currentState()
-		const resultsObject = queryResults()
 		let currResult = undefined
 
 		const allItems = []
 		for (const pageKey of currState.pageKeys) {
-			currResult = resultsObject[pageKey]
+			currResult = queryResults[pageKey]
 			if (currResult === undefined) {
 				break
 			}
@@ -289,7 +288,7 @@ export function createPaginatedQuery<Query extends PaginatedQueryReference>(
 
 			const ongoingSplit = currState.ongoingSplits[pageKey]
 			if (ongoingSplit !== undefined) {
-				if (resultsObject[ongoingSplit[0]] !== undefined && resultsObject[ongoingSplit[1]] !== undefined) {
+				if (queryResults[ongoingSplit[0]] !== undefined && queryResults[ongoingSplit[1]] !== undefined) {
 					completeSplitQuery(pageKey)
 				}
 			} else if (
@@ -443,10 +442,13 @@ export function insertAtBottomIfLoaded<Query extends PaginatedQueryReference>(op
 		}
 		return Object.keys(argsToMatch).every((k) => compareValues(argsToMatch[k], q.args[k]) === 0)
 	})
+
 	const lastPage = queriesThatMatch.find((q) => q.value?.isDone)
+
 	if (lastPage === undefined) {
 		return
 	}
+
 	localQueryStore.setQuery(paginatedQuery, lastPage.args, {
 		...lastPage.value!,
 		page: [...lastPage.value!.page, item],

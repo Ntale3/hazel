@@ -10,8 +10,15 @@ import { Button } from "../ui/button"
 
 import type { MessageId } from "@maki-chat/api-schema/schema/message.js"
 import { api } from "convex-hazel/_generated/api"
+import type { Id } from "convex-hazel/_generated/dataModel"
 import { Option } from "effect"
-import { createMutation, createQuery } from "~/lib/convex"
+import {
+	createMutation,
+	createQuery,
+	insertAtBottomIfLoaded,
+	insertAtTop,
+	optimisticallyUpdateValueInPaginatedQuery,
+} from "~/lib/convex"
 import { useChat } from "../chat-state/chat-store"
 import { createPresence } from "../chat-state/create-presence"
 import { setElementAnchorAndFocus } from "../markdown-input/utils"
@@ -249,7 +256,33 @@ export function FloatingBar() {
 	const { state, setState } = useChat()
 	const { trackTyping } = createPresence()
 
-	const createMessage = createMutation(api.messages.createMessage)
+	const createMessage = createMutation(api.messages.createMessage).withOptimisticUpdate((localStore, args) => {
+		optimisticallyUpdateValueInPaginatedQuery(
+			localStore,
+			api.messages.getMessages,
+			{
+				channelId: args.channelId,
+				serverId: args.serverId,
+			},
+			(currentValue) => {
+				insertAtBottomIfLoaded({
+					paginatedQuery: api.messages.getMessages,
+					argsToMatch: { channelId: args.channelId, serverId: args.serverId },
+					localQueryStore: localStore,
+					item: {
+						_id: crypto.randomUUID() as Id<"messages">,
+						...args,
+						author: {},
+						_creationTime: Date.now(),
+						updatedAt: Date.now(),
+						authorId: auth.userId() as Id<"users">,
+						reactions: [],
+					},
+				})
+				return currentValue
+			},
+		)
+	})
 
 	const { attachments, setFileInputRef, handleFileChange, openFileSelector, removeAttachment, clearAttachments } =
 		useFileAttachment()

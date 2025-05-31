@@ -42,6 +42,9 @@ export function Channel(props: { channelId: Accessor<Id<"channels">>; serverId: 
 	const processedMessages = createMemo(() => {
 		const timeThreshold = 5 * 60 * 1000
 
+		console.count("processedMessages")
+		console.log("length", paginatedMessages.results().length)
+
 		const allMessages = paginatedMessages.results().reverse()
 
 		const result: Array<{

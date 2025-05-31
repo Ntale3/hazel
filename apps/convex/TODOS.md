@@ -5,3 +5,8 @@
 - There is a bug in the clerk x convex auth flow, the inital token doesnt seem to get created, 
 but seesm to be when we create the token manually in our beforeLoad function lol.
 Needs to be investigated
+
+- Add optimistic updates to message creation
+ - Optmistic updates not really working it seems like 
+- Add isLoading and error state to createQuery
+- Add error tuple to createMutation
