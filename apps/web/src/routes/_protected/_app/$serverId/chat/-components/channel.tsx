@@ -1,7 +1,6 @@
 import { api } from "convex-hazel/_generated/api"
 import type { Id } from "convex-hazel/_generated/dataModel"
 import { type Accessor, Show, createEffect, createMemo, createSignal, on } from "solid-js"
-import { unwrap } from "solid-js/store"
 import { VList, type VListHandle } from "virtua/solid"
 import { ChatTypingPresence } from "~/components/chat-ui/chat-typing-presence"
 import { FloatingBar } from "~/components/chat-ui/floating-bar"
@@ -191,10 +190,6 @@ export function Channel(props: { channelId: Accessor<Id<"channels">>; serverId: 
 		}
 		// If exhausted, do nothing
 	}
-
-	createEffect(() => {
-		console.log(paginatedMessages.results().length)
-	})
 
 	return (
 		<div class="flex flex-1 flex-col">
