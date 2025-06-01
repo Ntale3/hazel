@@ -1,6 +1,6 @@
 import { api } from "convex-hazel/_generated/api"
 import type { Id } from "convex-hazel/_generated/dataModel"
-import { type Accessor, createEffect, createMemo, createSignal, on } from "solid-js"
+import { type Accessor, Show, createEffect, createMemo, createSignal, on } from "solid-js"
 import { VList, type VListHandle } from "virtua/solid"
 import { ChatTypingPresence } from "~/components/chat-ui/chat-typing-presence"
 import { FloatingBar } from "~/components/chat-ui/floating-bar"
@@ -9,6 +9,31 @@ import { createPaginatedQuery, createQuery } from "~/lib/convex"
 import type { Message } from "~/lib/types"
 
 const PAGE_SIZE = 30
+
+// Skeleton component for loading messages
+const MessageSkeleton = (props: { isGroupStart: boolean }) => (
+	<div class="flex gap-3 px-4 py-2">
+		<Show when={props.isGroupStart}>
+			<div class="h-10 w-10 animate-pulse rounded-full bg-muted" />
+		</Show>
+		<Show when={!props.isGroupStart}>
+			<div class="w-10" />
+		</Show>
+		<div class="flex-1 space-y-2">
+			<Show when={props.isGroupStart}>
+				<div class="h-4 w-24 animate-pulse rounded bg-muted" />
+			</Show>
+			<div class="space-y-1">
+				<div class="h-4 w-3/4 animate-pulse rounded bg-muted/80" />
+				<div class="h-4 w-1/2 animate-pulse rounded bg-muted/80" />
+			</div>
+		</div>
+	</div>
+)
+
+type ListItem =
+	| { type: "message"; data: { message: Message; isGroupStart: boolean; isGroupEnd: boolean } }
+	| { type: "skeleton"; id: string; isGroupStart: boolean }
 
 export function Channel(props: { channelId: Accessor<Id<"channels">>; serverId: Accessor<Id<"servers">> }) {
 	const channel = createQuery(api.channels.getChannel, {
@@ -27,20 +52,23 @@ export function Channel(props: { channelId: Accessor<Id<"channels">>; serverId: 
 		},
 	)
 
-	// Redirect when channel is not found
-	// TODO: Readd once creaequery has loading state
-	// createEffect(() => {
-	// 	if (!channel() && !isChannelLoading()) {
-	// 		navigate({
-	// 			to: "/$serverId",
-	// 			params: { serverId: props.serverId() },
-	// 		})
-	// 	}
-	// })
+	const [pendingLoads, setPendingLoads] = createSignal(0)
+
+	// Watch for status changes and process queue when loads complete
+	createEffect(() => {
+		const status = paginatedMessages.status()
+
+		if (status === "CanLoadMore" && pendingLoads() > 0) {
+			setPendingLoads((prev) => prev - 1)
+			paginatedMessages.loadMore(PAGE_SIZE)
+		} else if (status === "Exhausted") {
+			// No more messages, clear all pending loads
+			setPendingLoads(0)
+		}
+	})
 
 	const processedMessages = createMemo(() => {
 		const timeThreshold = 5 * 60 * 1000
-
 		const allMessages = paginatedMessages.results().reverse()
 
 		const result: Array<{
@@ -84,6 +112,46 @@ export function Channel(props: { channelId: Accessor<Id<"channels">>; serverId: 
 		return result
 	})
 
+	const listData = createMemo((): ListItem[] => {
+		const items: ListItem[] = []
+
+		if (paginatedMessages.status() !== "Exhausted") {
+			// Calculate total skeletons to show (current loading + pending loads)
+			const totalLoadingSections =
+				(paginatedMessages.status() === "LoadingMore" ? 1 : 0) + pendingLoads()
+
+			for (let section = 0; section < totalLoadingSections; section++) {
+				for (let i = 0; i < PAGE_SIZE; i++) {
+					items.push({
+						type: "skeleton",
+						id: `skeleton-${section}-${i}`,
+						isGroupStart: i === 0 || Math.random() > 0.7,
+					})
+				}
+			}
+		}
+
+		for (const messageData of processedMessages()) {
+			items.push({
+				type: "message",
+				data: messageData,
+			})
+		}
+
+		// Add initial skeletons if no messages loaded yet
+		if (processedMessages().length === 0 && paginatedMessages.status() === "LoadingFirstPage") {
+			for (let i = 0; i < 15; i++) {
+				items.push({
+					type: "skeleton",
+					id: `initial-skeleton-${i}`,
+					isGroupStart: i === 0 || Math.random() > 0.7,
+				})
+			}
+		}
+
+		return items
+	})
+
 	const [shouldStickToBottom, setShouldStickToBottom] = createSignal(true)
 	const [vlistRef, setVlistRef] = createSignal<VListHandle | undefined>(undefined)
 
@@ -93,9 +161,12 @@ export function Channel(props: { channelId: Accessor<Id<"channels">>; serverId: 
 			if (!ref) return
 			if (!shouldStickToBottom()) return
 
+			// Only auto-scroll if we have actual messages
+			if (processedMessages().length === 0) return
+
 			// Wait for next animation frame to ensure the scroll position is updated
 			setTimeout(() => {
-				ref.scrollToIndex(processedMessages().length - 1, {
+				ref.scrollToIndex(listData().length - 1, {
 					smooth: false,
 					align: "end",
 				})
@@ -103,13 +174,25 @@ export function Channel(props: { channelId: Accessor<Id<"channels">>; serverId: 
 		}),
 	)
 
+	const requestLoadMore = () => {
+		const status = paginatedMessages.status()
+		if (status === "CanLoadMore") {
+			// If we can load immediately, do it
+			paginatedMessages.loadMore(PAGE_SIZE)
+		} else if (status === "LoadingMore") {
+			// If currently loading, queue the request
+			setPendingLoads((prev) => prev + 1)
+		}
+		// If exhausted, do nothing
+	}
+
 	return (
 		<div class="flex flex-1 flex-col">
 			<VList
 				class="flex-1"
 				overscan={15}
 				shift
-				data={processedMessages()}
+				data={listData()}
 				ref={setVlistRef}
 				onScroll={async (offset) => {
 					if (!vlistRef()) {
@@ -119,23 +202,44 @@ export function Channel(props: { channelId: Accessor<Id<"channels">>; serverId: 
 					setShouldStickToBottom(offset >= vlistRef()!.scrollSize - vlistRef()!.viewportSize - 120)
 
 					if (offset < 900) {
-						if (paginatedMessages.status() === "CanLoadMore") {
-							paginatedMessages.loadMore(PAGE_SIZE)
+						// Only try to load if not exhausted
+						if (
+							paginatedMessages.status() === "CanLoadMore" ||
+							paginatedMessages.status() === "LoadingMore"
+						) {
+							requestLoadMore()
 						}
 					}
 				}}
 			>
-				{(message) => (
-					<ChatMessage
-						message={() => message.message}
-						isGroupStart={() => message.isGroupStart}
-						isGroupEnd={() => message.isGroupEnd}
-						isFirstNewMessage={() =>
-							message.message._id === channel()?.currentUser?.lastSeenMessageId
+				{(item) => (
+					<Show
+						when={item.type === "message"}
+						fallback={
+							<MessageSkeleton
+								isGroupStart={
+									(item as { type: "skeleton"; isGroupStart: boolean }).isGroupStart
+								}
+							/>
 						}
-						serverId={props.serverId}
-						isThread={() => false}
-					/>
+					>
+						{(() => {
+							const messageItem = item as { type: "message"; data: any }
+							return (
+								<ChatMessage
+									message={() => messageItem.data.message}
+									isGroupStart={() => messageItem.data.isGroupStart}
+									isGroupEnd={() => messageItem.data.isGroupEnd}
+									isFirstNewMessage={() =>
+										messageItem.data.message._id ===
+										channel()?.currentUser?.lastSeenMessageId
+									}
+									serverId={props.serverId}
+									isThread={() => false}
+								/>
+							)
+						})()}
+					</Show>
 				)}
 			</VList>
 			<div class="mx-2 flex flex-col gap-1.5">
