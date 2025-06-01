@@ -14,6 +14,8 @@ interface ChatStore extends InputChatStore {
 	}
 	onlineUserIds: string[]
 	typingUserIds: string[]
+
+	inputText: string
 }
 
 interface InputChatStore {
@@ -31,6 +33,7 @@ const createChatStore = (props: InputChatStore) => {
 			messageId: null,
 			selectedImage: null,
 		},
+		inputText: "",
 		onlineUserIds: [],
 		typingUserIds: [],
 		...props,

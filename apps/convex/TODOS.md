@@ -8,3 +8,12 @@
 - Add convex client tests to our sdk
 
 - Move Pinned Message back to separate table
+
+# Features
+- Add Presence (online/offline)
+- Add Is Typing indicator
+
+
+# Improvements 
+- Add local caching for messages 
+- Delete Notification after it was seen (maybe just a simple cron cleanup job)

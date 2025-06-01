@@ -52,10 +52,8 @@ function App() {
 	return (
 		<ClerkProvider publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}>
 			<ConvexProviderWithClerk client={convex} useAuth={useAuth}>
-				<NotificationManager>
-					<Toaster />
-					<InnerProviders />
-				</NotificationManager>
+				<Toaster />
+				<InnerProviders />
 			</ConvexProviderWithClerk>
 		</ClerkProvider>
 	)

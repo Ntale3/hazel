@@ -1,5 +1,6 @@
 import { Outlet, createFileRoute, redirect } from "@tanstack/solid-router"
 import { api } from "convex-hazel/_generated/api"
+import { NotificationManager } from "~/lib/notification-manager"
 
 export const Route = createFileRoute("/_protected/_app")({
 	component: RouteComponent,
@@ -20,5 +21,9 @@ export const Route = createFileRoute("/_protected/_app")({
 })
 
 function RouteComponent() {
-	return <Outlet />
+	return (
+		<NotificationManager>
+			<Outlet />
+		</NotificationManager>
+	)
 }

@@ -28,6 +28,7 @@ import {
 	insertAtTop,
 	optimisticallyUpdateValueInPaginatedQuery,
 } from "~/lib/convex"
+import { createTypingIndicator } from "~/lib/convex-presence/create-typing-indicator"
 import { useChat } from "../chat-state/chat-store"
 import { createPresence } from "../chat-state/create-presence"
 import { setElementAnchorAndFocus } from "../markdown-input/utils"
@@ -203,9 +204,10 @@ const useFileAttachment = () => {
 
 const createGlobalEditorFocus = (props: {
 	editorRef: () => HTMLDivElement | undefined
-	setInput: (value: string) => void
-	input: Accessor<string>
 }) => {
+	const { setState, state } = useChat()
+	const input = createMemo(() => state.inputText)
+
 	createEffect(() => {
 		const ref = props.editorRef()
 		if (!ref) {
@@ -236,14 +238,15 @@ const createGlobalEditorFocus = (props: {
 			if (isPrintableKey) {
 				event.preventDefault()
 
-				const content = props.input() + event.key
-				props.setInput(content)
+				const content = input() + event.key
+
+				setState("inputText", content)
 
 				ref.focus()
 
 				try {
 					setElementAnchorAndFocus(props.editorRef()!, {
-						anchor: props.input().length,
+						anchor: input().length,
 					})
 				} catch (error) {
 					console.error(error)
@@ -301,10 +304,9 @@ export function FloatingBar() {
 		clearAttachments,
 	} = useFileAttachment()
 
-	const [input, setInput] = createSignal("")
 	const [editorRef, setEditorRef] = createSignal<HTMLDivElement>()
 
-	createGlobalEditorFocus({ editorRef, setInput, input })
+	createGlobalEditorFocus({ editorRef })
 
 	const isUploading = createMemo(() => attachments().some((att) => att.status === "uploading"))
 	const successfulKeys = createMemo(() =>
@@ -328,7 +330,7 @@ export function FloatingBar() {
 
 			const content = text.trim()
 
-			setInput("")
+			setState("inputText", "")
 			setState("replyToMessageId", null)
 			trackTyping(false)
 
@@ -375,15 +377,15 @@ export function FloatingBar() {
 					ref={(ref) => {
 						setEditorRef(ref)
 					}}
-					value={input}
+					value={() => state.inputText}
 					onValueChange={(value) => {
 						trackTyping(true)
-						setInput(value)
+						setState("inputText", value)
 					}}
 					onKeyDown={(e) => {
 						if (e.key === "Enter" && !e.shiftKey) {
 							e.preventDefault()
-							queueMicrotask(() => handleSubmit(input()))
+							queueMicrotask(() => handleSubmit(state.inputText))
 						}
 					}}
 				/>
