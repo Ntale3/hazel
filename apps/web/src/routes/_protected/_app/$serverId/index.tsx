@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/solid-router"
+import { useAuth } from "clerk-solidjs"
 import { api } from "convex-hazel/_generated/api"
 import type { Id } from "convex-hazel/_generated/dataModel"
-import { For, createMemo, createSignal } from "solid-js"
+import { For, Show, createMemo, createSignal } from "solid-js"
 import { IconChat } from "~/components/icons/chat"
 import { IconHorizontalDots } from "~/components/icons/horizontal-dots"
 import { IconSearch } from "~/components/icons/search"
@@ -19,6 +20,8 @@ function RouteComponent() {
 	const serverId = createMemo(() => params().serverId as Id<"servers">)
 
 	const [searchQuery, setSearchQuery] = createSignal("")
+
+	const currentUser = createQuery(api.me.get)
 
 	const members = createQuery(api.social.getMembers, {
 		serverId: serverId() as Id<"servers">,
@@ -66,23 +69,25 @@ function RouteComponent() {
 									<p class="text-muted-foreground">{member.tag}</p>
 								</div>
 							</div>
-							<div class="flex items-center gap-2">
-								<Button
-									intent="ghost"
-									size="square"
-									onClick={() =>
-										handleOpenChat({
-											targetUserId: member._id,
-											serverId: serverId(),
-										})
-									}
-								>
-									<IconChat />
-								</Button>
-								<Button intent="ghost" size="square">
-									<IconHorizontalDots />
-								</Button>
-							</div>
+							<Show when={currentUser()?._id !== member.accountId}>
+								<div class="flex items-center gap-2">
+									<Button
+										intent="ghost"
+										size="square"
+										onClick={() =>
+											handleOpenChat({
+												targetUserId: member._id,
+												serverId: serverId(),
+											})
+										}
+									>
+										<IconChat />
+									</Button>
+									<Button intent="ghost" size="square">
+										<IconHorizontalDots />
+									</Button>
+								</div>
+							</Show>
 						</div>
 					)}
 				</For>

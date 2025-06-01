@@ -95,6 +95,7 @@ export const createMessage = userMutation({
 			channelId: args.channelId,
 			accountId: ctx.user.doc.accountId,
 			messageId: messageId,
+			userId: ctx.user.id,
 		})
 
 		return messageId
