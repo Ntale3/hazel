@@ -192,6 +192,10 @@ export function Channel(props: { channelId: Accessor<Id<"channels">>; serverId: 
 		// If exhausted, do nothing
 	}
 
+	createEffect(() => {
+		console.log(paginatedMessages.results().length)
+	})
+
 	return (
 		<div class="flex flex-1 flex-col">
 			<VList

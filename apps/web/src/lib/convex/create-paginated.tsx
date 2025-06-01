@@ -10,8 +10,8 @@ import {
 import type { FunctionArgs, FunctionReference } from "convex/server"
 import { ConvexError, type Infer, type Value, convexToJson } from "convex/values"
 import { compareValues } from "convex/values"
-import { type Accessor, createEffect, createMemo, createSignal, onCleanup } from "solid-js"
-import { createStore } from "solid-js/store"
+import { type Accessor, createEffect, createMemo, createSignal, on, onCleanup } from "solid-js"
+import { createStore, reconcile } from "solid-js/store"
 import { useConvex } from "./client"
 
 export type PaginatedQueryReference = FunctionReference<
@@ -157,7 +157,7 @@ export function createPaginatedQuery<Query extends PaginatedQueryReference>(
 		const currState = currentState()
 		const watchers: (() => void)[] = []
 
-		setQueryResults({})
+		setQueryResults(reconcile({}))
 
 		// biome-ignore lint/complexity/noForEach: <explanation>
 		Object.entries(currState.queries).forEach(([pageKeyStr, queryDef]) => {
@@ -262,7 +262,7 @@ export function createPaginatedQuery<Query extends PaginatedQueryReference>(
 
 	const results = createMemo(() => {
 		const currState = currentState()
-		let currResult = undefined
+		let currResult: any = undefined
 
 		const allItems = []
 		for (const pageKey of currState.pageKeys) {
@@ -294,22 +294,27 @@ export function createPaginatedQuery<Query extends PaginatedQueryReference>(
 					queryResults[ongoingSplit[0]] !== undefined &&
 					queryResults[ongoingSplit[1]] !== undefined
 				) {
-					completeSplitQuery(pageKey)
+					// Use setTimeout to defer side effect and prevent infinite loops
+					setTimeout(() => completeSplitQuery(pageKey), 0)
 				}
 			} else if (
-				currResult.splitCursor &&
+				currResult?.splitCursor &&
 				(currResult.pageStatus === "SplitRecommended" ||
 					currResult.pageStatus === "SplitRequired" ||
-					currResult.page.length > options.initialNumItems * 2)
+					(Array.isArray(currResult.page) && currResult.page.length > options.initialNumItems * 2))
 			) {
-				splitQuery(pageKey, currResult.splitCursor, currResult.continueCursor)
+				// Use setTimeout to defer side effect and prevent infinite loops
+				setTimeout(() => splitQuery(pageKey, currResult.splitCursor, currResult.continueCursor), 0)
 			}
 
-			if (currResult.pageStatus === "SplitRequired") {
+			if (currResult && currResult.pageStatus === "SplitRequired") {
 				return [allItems, undefined]
 			}
 
-			allItems.push(...currResult.page)
+			// Only spread if page exists and is an array
+			if (currResult && Array.isArray(currResult.page)) {
+				allItems.push(...currResult.page)
+			}
 		}
 		return [allItems, currResult]
 	})
