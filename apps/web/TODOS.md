@@ -15,3 +15,5 @@
 - Add local caching for messages 
 - Delete Notification after it was seen (maybe just a simple cron cleanup job)
 - Improve typing presence todo less calls
+
+- Rework presence with convex component https://github.com/get-convex/presence

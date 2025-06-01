@@ -1,5 +1,5 @@
 import { RouterProvider, createRouter } from "@tanstack/solid-router"
-import { render } from "solid-js/web"
+import { Suspense, render } from "solid-js/web"
 
 import "solid-devtools"
 
@@ -51,10 +51,12 @@ const InnerProviders = () => {
 function App() {
 	return (
 		<ClerkProvider publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}>
-			<ConvexProviderWithClerk client={convex} useAuth={useAuth}>
-				<Toaster />
-				<InnerProviders />
-			</ConvexProviderWithClerk>
+			<Suspense>
+				<ConvexProviderWithClerk client={convex} useAuth={useAuth}>
+					<Toaster />
+					<InnerProviders />
+				</ConvexProviderWithClerk>
+			</Suspense>
 		</ClerkProvider>
 	)
 }

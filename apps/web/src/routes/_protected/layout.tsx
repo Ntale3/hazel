@@ -6,13 +6,12 @@ import { For, Match, Show, Switch, createEffect } from "solid-js"
 export const Route = createFileRoute("/_protected")({
 	component: RouteComponent,
 	beforeLoad: async ({ context }) => {
-		const token = await context.auth.getToken()
-
-		if (!token) {
-			throw redirect({
-				to: "/sign-in",
-			})
-		}
+		// const token = await context.auth.getToken()
+		// if (!token) {
+		// 	throw redirect({
+		// 		to: "/sign-in",
+		// 	})
+		// }
 	},
 })
 
@@ -21,8 +20,6 @@ function RouteComponent() {
 	const { isLoading, isAuthenticated } = useConvexAuth()
 
 	createEffect(() => {
-		console.log("isLoading", isLoading())
-		console.log("isAuthenticated", isAuthenticated())
 		if (!isAuthenticated() && !isLoading()) {
 			navigate({
 				to: "/sign-in",
