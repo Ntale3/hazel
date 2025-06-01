@@ -1,6 +1,8 @@
 import { asyncMap } from "convex-helpers"
 import { paginationOptsValidator } from "convex/server"
 import { v } from "convex/values"
+import { internal } from "./_generated/api"
+import { sendNotification } from "./background"
 import { userMutation, userQuery } from "./middleware/withUser"
 
 export const getMessage = userQuery({
@@ -88,6 +90,13 @@ export const createMessage = userMutation({
 			reactions: [],
 		})
 
+		// TODO: This should be a database trigger
+		await ctx.scheduler.runAfter(0, internal.background.index.sendNotification, {
+			channelId: args.channelId,
+			accountId: ctx.user.doc.accountId,
+			messageId: messageId,
+		})
+
 		return messageId
 	},
 })
@@ -137,7 +146,11 @@ export const createReaction = userMutation({
 
 		await ctx.user.validateIsMemberOfChannel({ ctx, channelId: message.channelId })
 
-		if (message.reactions.some((reaction) => reaction.userId === args.userId && reaction.emoji === args.emoji)) {
+		if (
+			message.reactions.some(
+				(reaction) => reaction.userId === args.userId && reaction.emoji === args.emoji,
+			)
+		) {
 			throw new Error("You have already reacted to this message")
 		}
 

@@ -95,4 +95,9 @@ export default defineSchema({
 		joinedAt: v.number(),
 		deletedAt: v.optional(v.number()),
 	}).index("by_channelIdAndUserId", ["channelId", "userId"]),
+	notifications: defineTable({
+		accountId: v.id("accounts"),
+		targetedResourceId: v.optional(v.union(v.id("channels"), v.id("servers"))),
+		resourceId: v.optional(v.union(v.id("messages"))),
+	}),
 })

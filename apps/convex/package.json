@@ -34,7 +34,7 @@
 		"@tanstack/solid-router": "^1.120.13",
 		"@tanstack/solid-router-devtools": "^1.120.13",
 		"clerk-solidjs": "^2.0.10",
-		"convex": "^1.24.3",
+		"convex": "1.24.6",
 		"convex-helpers": "^0.1.89",
 		"solid-js": "^1.9.7",
 		"tailwind-merge": "^3.3.0",

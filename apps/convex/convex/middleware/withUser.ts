@@ -1,7 +1,7 @@
-import { mutation, query } from "../_generated/server"
-import { customMutation, customQuery } from "../lib/customFunctions"
-import { User } from "../lib/activeRecords/user"
 import { v } from "convex/values"
+import { mutation, query } from "../_generated/server"
+import { User } from "../lib/activeRecords/user"
+import { customMutation, customQuery } from "../lib/customFunctions"
 
 export const userQuery = customQuery(query, {
 	args: { serverId: v.id("servers") },
