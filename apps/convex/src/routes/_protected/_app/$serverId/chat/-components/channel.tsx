@@ -107,7 +107,7 @@ export function Channel(props: { channelId: Accessor<Id<"channels">>; serverId: 
 		<div class="flex flex-1 flex-col">
 			<VList
 				class="flex-1"
-				overscan={7}
+				overscan={15}
 				shift
 				data={processedMessages()}
 				ref={setVlistRef}
@@ -118,7 +118,7 @@ export function Channel(props: { channelId: Accessor<Id<"channels">>; serverId: 
 
 					setShouldStickToBottom(offset >= vlistRef()!.scrollSize - vlistRef()!.viewportSize - 120)
 
-					if (offset < 300) {
+					if (offset < 900) {
 						if (paginatedMessages.status() === "CanLoadMore") {
 							paginatedMessages.loadMore(PAGE_SIZE)
 						}

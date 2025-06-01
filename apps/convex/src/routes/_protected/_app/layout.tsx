@@ -4,19 +4,18 @@ import { api } from "convex-hazel/_generated/api"
 export const Route = createFileRoute("/_protected/_app")({
 	component: RouteComponent,
 	beforeLoad: async ({ context }) => {
+		await context.convex.awaitAuth()
 		// TOOD: there is a race condition here currentl with getting the auth token in convex
-		setTimeout(async () => {
-			const account = await context.convex.query(api.me.get)
+		const account = await context.convex.query(api.me.get)
 
-			if (!account) {
-				throw redirect({
-					to: "/onboarding",
-					search: {
-						step: "user",
-					},
-				})
-			}
-		}, 0)
+		if (!account) {
+			throw redirect({
+				to: "/onboarding",
+				search: {
+					step: "user",
+				},
+			})
+		}
 	},
 })
 

@@ -328,6 +328,10 @@ export function FloatingBar() {
 
 			const content = text.trim()
 
+			setInput("")
+			setState("replyToMessageId", null)
+			trackTyping(false)
+
 			await createMessage({
 				content: content,
 				replyToMessageId: state.replyToMessageId || undefined,
@@ -335,10 +339,6 @@ export function FloatingBar() {
 				serverId: state.serverId,
 				channelId: state.channelId,
 			})
-
-			setInput("")
-			setState("replyToMessageId", null)
-			trackTyping(false)
 		}, 0)
 	}
 

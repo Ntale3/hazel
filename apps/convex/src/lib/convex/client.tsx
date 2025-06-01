@@ -58,6 +58,9 @@ export class ConvexSolidClient {
 	private closed = false
 	private adminAuth?: string
 	private fakeUserIdentity?: UserIdentityAttributes
+	private authPromise?: Promise<boolean>
+	private authSetPromise?: Promise<void>
+	private resolveAuthSet?: () => void
 
 	constructor(address: string, options?: ConvexSolidClientOptions) {
 		if (address === undefined) {
@@ -78,6 +81,11 @@ export class ConvexSolidClient {
 		this.address = address
 		this.listeners = new Map()
 		this.options = options || {}
+
+		// Create a promise that resolves when setAuth is called
+		this.authSetPromise = new Promise((resolve) => {
+			this.resolveAuthSet = resolve
+		})
 	}
 
 	get sync() {
@@ -100,11 +108,50 @@ export class ConvexSolidClient {
 	}
 
 	setAuth(fetchToken: AuthTokenFetcher, onChange?: (isAuthenticated: boolean) => void) {
-		this.sync.setAuth(fetchToken, onChange ?? (() => {}))
+		let resolveAuthPromise: ((isAuthenticated: boolean) => void) | undefined
+
+		this.authPromise = new Promise((resolve) => {
+			resolveAuthPromise = resolve
+		})
+
+		this.sync.setAuth(fetchToken, (isAuthenticated: boolean) => {
+			if (resolveAuthPromise) {
+				resolveAuthPromise(isAuthenticated)
+				resolveAuthPromise = undefined
+			}
+			onChange?.(isAuthenticated)
+		})
+
+		// Resolve the "auth set" promise
+		if (this.resolveAuthSet) {
+			this.resolveAuthSet()
+			this.resolveAuthSet = undefined
+		}
 	}
 
 	clearAuth() {
+		this.authPromise = undefined
 		this.sync.clearAuth()
+
+		// Reset the auth set promise
+		this.authSetPromise = new Promise((resolve) => {
+			this.resolveAuthSet = resolve
+		})
+	}
+
+	async awaitAuth(): Promise<boolean> {
+		// First, wait for setAuth to be called
+		if (this.authSetPromise) {
+			await this.authSetPromise
+		}
+
+		// Then wait for the auth resolution
+		if (this.authPromise) {
+			return this.authPromise
+		}
+
+		// If we get here, auth was cleared after being set
+		return false
 	}
 
 	setAdminAuth(token: string, identity?: UserIdentityAttributes) {
@@ -219,6 +266,9 @@ export class ConvexSolidClient {
 	async close(): Promise<void> {
 		this.closed = true
 		this.listeners = new Map()
+		this.authPromise = undefined
+		this.authSetPromise = undefined
+		this.resolveAuthSet = undefined
 		if (this.cachedSync) {
 			const sync = this.cachedSync
 			this.cachedSync = undefined
@@ -238,7 +288,9 @@ export class ConvexSolidClient {
 	}
 }
 
-export const ConvexContext: Context<ConvexSolidClient | undefined> = createContext<ConvexSolidClient | undefined>()
+export const ConvexContext: Context<ConvexSolidClient | undefined> = createContext<
+	ConvexSolidClient | undefined
+>()
 
 export function ConvexProvider(props: {
 	client: ConvexSolidClient
@@ -258,6 +310,11 @@ export function useConvex(): ConvexSolidClient {
 	return client
 }
 
+export function useAwaitAuth(): () => Promise<boolean> {
+	const client = useConvex()
+	return () => client.awaitAuth()
+}
+
 function createMutationInternal<Mutation extends FunctionReference<"mutation">>(
 	mutationReference: Mutation,
 	client: ConvexSolidClient,
@@ -274,7 +331,9 @@ function createMutationInternal<Mutation extends FunctionReference<"mutation">>(
 		optimisticUpdate: OptimisticUpdate<any>,
 	): SolidMutation<Mutation> {
 		if (update !== undefined) {
-			throw new Error(`Already specified optimistic update for mutation ${getFunctionName(mutationReference)}`)
+			throw new Error(
+				`Already specified optimistic update for mutation ${getFunctionName(mutationReference)}`,
+			)
 		}
 		return createMutationInternal(mutationReference, client, optimisticUpdate)
 	}
@@ -358,7 +417,9 @@ export function createMutation<Mutation extends FunctionReference<"mutation">>(
 	return createMutationInternal(mutation, client)
 }
 
-export function createAction<Action extends FunctionReference<"action">>(action: Action): SolidAction<Action> {
+export function createAction<Action extends FunctionReference<"action">>(
+	action: Action,
+): SolidAction<Action> {
 	const client = useConvex()
 
 	return createMemo(() => createActionInternal(action, client)) as unknown as SolidAction<Action>
