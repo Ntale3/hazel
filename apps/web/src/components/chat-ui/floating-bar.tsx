@@ -308,28 +308,27 @@ export function FloatingBar() {
 		const userId = auth.userId()
 		if (!userId) return
 
-		setTimeout(async () => {
-			if (isUploading()) {
-				console.warn("Upload in progress. Please wait.")
-				return
-			}
+		if (isUploading()) {
+			console.warn("Upload in progress. Please wait.")
+			return
+		}
 
-			if (text.trim().length === 0 && successfulKeys().length === 0) return
+		if (text.trim().length === 0 && successfulKeys().length === 0) return
 
-			const content = text.trim()
+		const content = text.trim()
 
-			setState("inputText", "")
-			setState("replyToMessageId", null)
-			trackTyping(false)
+		createMessage({
+			content: content,
+			replyToMessageId: state.replyToMessageId || undefined,
+			attachedFiles: successfulKeys(),
+			serverId: state.serverId,
+			channelId: state.channelId,
+		})
 
-			await createMessage({
-				content: content,
-				replyToMessageId: state.replyToMessageId || undefined,
-				attachedFiles: successfulKeys(),
-				serverId: state.serverId,
-				channelId: state.channelId,
-			})
-		}, 0)
+		setState("replyToMessageId", null)
+
+		setState("inputText", "")
+		trackTyping(false)
 	}
 
 	return (

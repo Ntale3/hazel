@@ -1,6 +1,7 @@
 import { api } from "convex-hazel/_generated/api"
 import type { Id } from "convex-hazel/_generated/dataModel"
 import { type Accessor, Show, createEffect, createMemo, createSignal, on } from "solid-js"
+import { unwrap } from "solid-js/store"
 import { VList, type VListHandle } from "virtua/solid"
 import { ChatTypingPresence } from "~/components/chat-ui/chat-typing-presence"
 import { FloatingBar } from "~/components/chat-ui/floating-bar"
@@ -70,6 +71,8 @@ export function Channel(props: { channelId: Accessor<Id<"channels">>; serverId: 
 	const processedMessages = createMemo(() => {
 		const timeThreshold = 5 * 60 * 1000
 		const allMessages = paginatedMessages.results().reverse()
+
+		console.log("allMessages", unwrap(allMessages))
 
 		const result: Array<{
 			message: Message
