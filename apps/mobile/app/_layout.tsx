@@ -32,8 +32,6 @@ export default function RootLayout() {
 		return null
 	}
 
-	console.log("LOADED")
-
 	return (
 		<ClerkProvider tokenCache={tokenCache} publishableKey={process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY}>
 			<ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
