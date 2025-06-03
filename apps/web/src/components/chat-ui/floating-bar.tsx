@@ -278,6 +278,7 @@ export function FloatingBar() {
 					updatedAt: Date.now(),
 					authorId: author._id,
 					reactions: [],
+					threadMessages: [],
 				},
 			})
 		},

@@ -39,7 +39,9 @@ function RouteComponent() {
 			<div class="flex flex-1">
 				<Channel channelId={channelId} serverId={serverId} />
 				<Show when={state.openThreadId}>
-					<ThreadChannel channelId={state.openThreadId!} serverId={serverId()} />
+					<ChatProvider channelId={state.openThreadId!} serverId={serverId()}>
+						<ThreadChannel channelId={state.openThreadId!} serverId={serverId()} />
+					</ChatProvider>
 				</Show>
 			</div>
 			<ChatImageViewerModal />
@@ -86,7 +88,10 @@ function ChatImageViewerModal() {
 	)
 }
 
-function ThreadChannel(props: { channelId: Id<"channels">; serverId: Id<"servers"> }) {
+function ThreadChannel(props: {
+	channelId: Id<"channels">
+	serverId: Id<"servers">
+}) {
 	const { setState } = useChat()
 
 	const channelId = createMemo(() => props.channelId)
