@@ -24,6 +24,7 @@ export const sendPushNotification = internalMutation({
 	handler: async (ctx, args) => {
 		const pushId = await pushNotifications.sendPushNotification(ctx, {
 			userId: args.to,
+			allowUnregisteredTokens: true,
 			notification: {
 				title: args.title,
 				body: args.body,
