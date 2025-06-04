@@ -20,6 +20,6 @@
 - Delete Notification after it was seen (maybe just a simple cron cleanup job)
 - Improve typing presence todo less calls
 
-- Rework presence with convex component https://github.com/get-convex/presence
+- Rework presence with convex component https://github.com/get-convex/presence, probably need to fork to a typing indicator...
 
 - Improve mobile app UI and add settings in both web + mobile to mute Notifications
