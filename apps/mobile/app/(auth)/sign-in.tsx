@@ -1,9 +1,10 @@
+import { EmailSignIn } from "@/components/email-signin"
 import { useSSO } from "@clerk/clerk-expo"
 import { FontAwesome } from "@expo/vector-icons"
 import * as AuthSession from "expo-auth-session"
 import * as WebBrowser from "expo-web-browser"
 import React, { useCallback, useEffect } from "react"
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native"
+import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native"
 
 export const useWarmUpBrowser = () => {
 	useEffect(() => {
@@ -29,7 +30,9 @@ export default function Page() {
 			try {
 				const { createdSessionId, setActive } = await startSSOFlow({
 					strategy,
-					redirectUrl: AuthSession.makeRedirectUri({}),
+					redirectUrl: AuthSession.makeRedirectUri({
+						scheme: "mobile",
+					}),
 				})
 				if (createdSessionId) {
 					setActive!({ session: createdSessionId })
@@ -43,6 +46,9 @@ export default function Page() {
 
 	return (
 		<View style={styles.container}>
+			<Text>Sign in</Text>
+
+			<EmailSignIn />
 			<TouchableOpacity
 				style={[styles.button, { backgroundColor: "#fff", borderColor: "#4285F4", borderWidth: 1 }]}
 				onPress={() => handleSignIn("oauth_google")}
