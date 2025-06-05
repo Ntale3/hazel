@@ -9,22 +9,65 @@ import "./styles/root.css"
 import "./styles/code.css"
 import "./styles/toast.css"
 
+import { QueryClient, QueryClientProvider } from "@tanstack/solid-query"
 import { ClerkProvider, useAuth } from "clerk-solidjs"
 import { FpsCounter } from "./components/devtools/fps-counter"
+import { IconLoader } from "./components/icons/loader"
+import { Logo } from "./components/logo"
 import { Toaster } from "./components/ui/toaster"
 import { ConvexSolidClient } from "./lib/convex"
 import { ConvexProviderWithClerk } from "./lib/convex-clerk"
-import { NotificationManager } from "./lib/notification-manager"
+import { ConvexQueryClient } from "./lib/convex-query"
+import { ThemeProvider, applyInitialTheme } from "./lib/theme"
+
+applyInitialTheme()
+
+const convex = new ConvexSolidClient(import.meta.env.VITE_CONVEX_URL)
+
+const convexQueryClient = new ConvexQueryClient(convex)
+
+const queryClient = new QueryClient({
+	defaultOptions: {
+		queries: {
+			queryKeyHashFn: convexQueryClient.hashFn(),
+			queryFn: convexQueryClient.queryFn(),
+		},
+	},
+})
 
 const router = createRouter({
 	routeTree,
 	defaultPreload: "intent",
 	scrollRestoration: true,
-	defaultPreloadStaleTime: 30_000,
+	defaultPreloadStaleTime: 0,
+
 	context: {
 		auth: undefined!,
-		convex: undefined!,
+		convex: convex,
+		queryClient,
 	},
+	defaultErrorComponent: (err) => {
+		console.error(err)
+		return (
+			<div class="flex min-h-screen items-center justify-center">
+				<div class="flex flex-col items-center justify-center gap-3">
+					<Logo class="h-12" />
+					<div class="text-center text-red-500">
+						<h1>Error</h1>
+						<p>Something went wrong.</p>
+					</div>
+				</div>
+			</div>
+		)
+	},
+	defaultPendingComponent: () => (
+		<div class="flex min-h-screen items-center justify-center">
+			<div class="flex flex-col items-center justify-center gap-3">
+				<Logo class="h-12" />
+				<IconLoader class="animate-spin" />
+			</div>
+		</div>
+	),
 })
 
 declare module "@tanstack/solid-router" {
@@ -32,8 +75,6 @@ declare module "@tanstack/solid-router" {
 		router: typeof router
 	}
 }
-
-const convex = new ConvexSolidClient(import.meta.env.VITE_CONVEX_URL)
 
 const InnerProviders = () => {
 	const auth = useAuth()
@@ -43,7 +84,6 @@ const InnerProviders = () => {
 			router={router}
 			context={{
 				auth: auth,
-				convex: convex,
 			}}
 		/>
 	)
@@ -51,17 +91,21 @@ const InnerProviders = () => {
 
 function App() {
 	return (
-		<ClerkProvider publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}>
-			<Suspense>
-				<ConvexProviderWithClerk client={convex} useAuth={useAuth}>
-					<Toaster />
-					<InnerProviders />
-					<Show when={import.meta.env.DEV}>
-						<FpsCounter />
-					</Show>
-				</ConvexProviderWithClerk>
-			</Suspense>
-		</ClerkProvider>
+		<QueryClientProvider client={queryClient}>
+			<ThemeProvider>
+				<ClerkProvider publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}>
+					<Suspense>
+						<ConvexProviderWithClerk client={convex} useAuth={useAuth}>
+							<Toaster />
+							<InnerProviders />
+							<Show when={import.meta.env.DEV}>
+								<FpsCounter />
+							</Show>
+						</ConvexProviderWithClerk>
+					</Suspense>
+				</ClerkProvider>
+			</ThemeProvider>
+		</QueryClientProvider>
 	)
 }
 

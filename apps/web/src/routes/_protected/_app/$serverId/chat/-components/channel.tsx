@@ -1,11 +1,20 @@
 import type { Id } from "@hazel/backend"
 import { api } from "@hazel/backend/api"
-import { type Accessor, Show, createEffect, createMemo, createSignal, on } from "solid-js"
+import {
+	type Accessor,
+	ErrorBoundary,
+	Show,
+	createEffect,
+	createMemo,
+	createSignal,
+	on,
+	onMount,
+} from "solid-js"
 import { VList, type VListHandle } from "virtua/solid"
 import { ChatTypingPresence } from "~/components/chat-ui/chat-typing-presence"
 import { FloatingBar } from "~/components/chat-ui/floating-bar"
 import { ChatMessage } from "~/components/chat-ui/message/chat-message"
-import { createPaginatedQuery, createQuery } from "~/lib/convex"
+import { createCachedPaginatedQuery, createQuery, resetPaginationId } from "~/lib/convex"
 import type { Message } from "~/lib/types"
 
 const PAGE_SIZE = 30
@@ -40,13 +49,19 @@ type ListItemMessage = {
 
 type ListItemSkeleton = { type: "skeleton"; id: string; isGroupStart: boolean }
 
+// Before virtua renders
+window.addEventListener("beforeunload", () => {
+	console.log("Before unload RO:", typeof ResizeObserver)
+})
+
 export function Channel(props: { channelId: Accessor<Id<"channels">>; serverId: Accessor<Id<"servers">> }) {
+	onMount(() => resetPaginationId())
 	const channel = createQuery(api.channels.getChannel, {
 		channelId: props.channelId(),
 		serverId: props.serverId(),
 	})
 
-	const paginatedMessages = createPaginatedQuery(
+	const paginatedMessages = createCachedPaginatedQuery(
 		api.messages.getMessages,
 		{
 			channelId: props.channelId(),
@@ -55,6 +70,7 @@ export function Channel(props: { channelId: Accessor<Id<"channels">>; serverId: 
 		{
 			initialNumItems: PAGE_SIZE,
 		},
+		`messages:${props.serverId()}:${props.channelId()}`,
 	)
 
 	const [pendingLoads, setPendingLoads] = createSignal(0)
@@ -74,7 +90,8 @@ export function Channel(props: { channelId: Accessor<Id<"channels">>; serverId: 
 
 	const processedMessages = createMemo(() => {
 		const timeThreshold = 5 * 60 * 1000
-		const allMessages = paginatedMessages.results().reverse()
+		const source = paginatedMessages.results()
+		const allMessages = source.slice().reverse()
 
 		const result: Array<{
 			message: Message
@@ -192,59 +209,77 @@ export function Channel(props: { channelId: Accessor<Id<"channels">>; serverId: 
 	}
 
 	return (
-		<div class="flex flex-1 flex-col">
-			<VList
-				class="flex-1"
-				overscan={15}
-				shift
-				data={listData()}
-				ref={setVlistRef}
-				onScroll={async (offset) => {
-					if (!vlistRef()) {
-						return
-					}
-
-					setShouldStickToBottom(offset >= vlistRef()!.scrollSize - vlistRef()!.viewportSize - 120)
-
-					if (offset < 900) {
-						// Only try to load if not exhausted
-						if (
-							paginatedMessages.status() === "CanLoadMore" ||
-							paginatedMessages.status() === "LoadingMore"
-						) {
-							requestLoadMore()
+		<ErrorBoundary
+			fallback={(err, reset) => {
+				if (err.message?.includes("ResizeObserver")) {
+					// Micro-task retry - let DOM settle
+					Promise.resolve().then(() => {
+						reset()
+					})
+					return null
+				}
+				throw err
+			}}
+		>
+			<div class="flex flex-1 flex-col">
+				<VList
+					class="flex-1"
+					overscan={15}
+					shift
+					data={listData()}
+					ref={setVlistRef}
+					onScroll={async (offset) => {
+						if (!vlistRef()) {
+							return
 						}
-					}
-				}}
-			>
-				{(item) => (
-					<Show
-						when={item.type === "message"}
-						fallback={<MessageSkeleton isGroupStart={(item as ListItemSkeleton).isGroupStart} />}
-					>
-						{(() => {
-							const messageItem = item as ListItemMessage
 
-							return (
-								<ChatMessage
-									message={() => messageItem.data.message}
-									isGroupStart={() => messageItem.data.isGroupStart}
-									isGroupEnd={() => messageItem.data.isGroupEnd}
-									isFirstNewMessage={() =>
-										messageItem.data.message._id ===
-										channel()?.currentUser?.lastSeenMessageId
-									}
-									serverId={props.serverId}
-								/>
-							)
-						})()}
-					</Show>
-				)}
-			</VList>
-			<div class="mx-2 flex flex-col gap-1.5">
-				<FloatingBar />
-				<ChatTypingPresence />
+						setShouldStickToBottom(
+							offset >= vlistRef()!.scrollSize - vlistRef()!.viewportSize - 120,
+						)
+
+						if (offset < 900) {
+							// Only try to load if not exhausted
+							if (
+								paginatedMessages.status() === "CanLoadMore" ||
+								paginatedMessages.status() === "LoadingMore"
+							) {
+								requestLoadMore()
+							}
+						}
+					}}
+				>
+					{(item) => (
+						<Show
+							when={item.type === "message"}
+							fallback={
+								<MessageSkeleton isGroupStart={(item as ListItemSkeleton).isGroupStart} />
+							}
+						>
+							{(() => {
+								const messageItem = item as ListItemMessage
+
+								return (
+									<ChatMessage
+										message={() => messageItem.data.message}
+										isGroupStart={() => messageItem.data.isGroupStart}
+										isGroupEnd={() => messageItem.data.isGroupEnd}
+										isFirstNewMessage={() =>
+											messageItem.data.message._id ===
+											channel()?.currentUser?.lastSeenMessageId
+										}
+										serverId={props.serverId}
+									/>
+								)
+							})()}
+						</Show>
+					)}
+				</VList>
+
+				<div class="mx-2 flex flex-col gap-1.5">
+					<FloatingBar />
+					<ChatTypingPresence />
+				</div>
 			</div>
-		</div>
+		</ErrorBoundary>
 	)
 }

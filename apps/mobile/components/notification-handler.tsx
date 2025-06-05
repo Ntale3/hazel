@@ -7,6 +7,7 @@ import * as Notifications from "expo-notifications"
 import { useEffect, useState } from "react"
 
 import { api } from "@hazel/backend/api"
+import { ThemedText } from "./ThemedText"
 
 Notifications.setNotificationHandler({
 	handleNotification: async () => ({
@@ -64,6 +65,8 @@ async function registerForPushNotificationsAsync(channelId: string) {
 			return
 		}
 		const projectId = Constants?.expoConfig?.extra?.eas?.projectId ?? Constants?.easConfig?.projectId
+		console.log("PROJECT_ID:", projectId)
+		console.log("USER_ID:", "XD")
 		if (!projectId) {
 			handleRegistrationError("Project ID not found")
 		}
@@ -106,14 +109,20 @@ export const NotificationHandler = ({ userId }: { userId: string }) => {
 			responseListener.remove()
 		}
 	}, [userId])
+
 	return (
-		<View style={{ flex: 1, alignItems: "center", justifyContent: "space-around" }}>
-			<Text>Your Expo push token: {expoPushToken}</Text>
+		<>
+			<ThemedText>Your Expo push token: {expoPushToken}</ThemedText>
 			<View style={{ alignItems: "center", justifyContent: "center" }}>
-				<Text>Title: {notification?.request.content.title} </Text>
-				<Text>Body: {notification?.request.content.body}</Text>
-				<Text>Data: {notification && JSON.stringify(notification.request.content.data)}</Text>
+				<ThemedText>Title: {notification?.request.content.title} </ThemedText>
+				<ThemedText>Body: {notification?.request.content.body} WOW</ThemedText>
+				<ThemedText>
+					Data: {notification && JSON.stringify(notification.request.content.data)}
+				</ThemedText>
 			</View>
+
+			<Button title="Get Token" onPress={async () => registerForPushNotificationsAsync(userId)} />
+
 			<Button
 				title="Register Push Token"
 				onPress={async () => {
@@ -128,6 +137,6 @@ export const NotificationHandler = ({ userId }: { userId: string }) => {
 					await sendPushNotification(expoPushToken)
 				}}
 			/>
-		</View>
+		</>
 	)
 }

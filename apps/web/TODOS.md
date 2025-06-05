@@ -8,12 +8,18 @@
 - Add Presence (online/offline)
 - File uploads with convex
 - Readd threads
+- Readd last read message
+- Call Feature
 
-- Simple Mobile App with Push Notifications
+
 
 # Improvements 
-- Add local caching for messages 
+
 - Delete Notification after it was seen (maybe just a simple cron cleanup job)
 - Improve typing presence todo less calls
 
-- Rework presence with convex component https://github.com/get-convex/presence
+- Integrate with Tanstack Query for basic creaetQUery etc
+
+- Rework presence with convex component https://github.com/get-convex/presence, probably need to fork to a typing indicator...
+
+- Improve mobile app UI and add settings in both web + mobile to mute Notifications
