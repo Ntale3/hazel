@@ -10,17 +10,20 @@ import { ImageViewerModal } from "~/components/chat-ui/image-viewer-modal"
 import { IconX } from "~/components/icons/x"
 import { Button } from "~/components/ui/button"
 import { convexQuery } from "~/lib/convex-query"
+import { convexInfiniteQuery } from "~/lib/convex-query/infinite"
 import { ChannelNew } from "./-components/channel-new"
 
 export const Route = createFileRoute("/_protected/_app/$serverId/chat/$id")({
 	component: Root,
 	loader: async ({ context: { queryClient }, params }) => {
-		await queryClient.ensureQueryData(
-			convexQuery(api.channels.getChannel, {
-				channelId: params.id as Id<"channels">,
-				serverId: params.serverId as Id<"servers">,
-			}),
-		)
+		await Promise.all([
+			queryClient.ensureQueryData(
+				convexQuery(api.channels.getChannel, {
+					channelId: params.id as Id<"channels">,
+					serverId: params.serverId as Id<"servers">,
+				}),
+			),
+		])
 	},
 })
 

@@ -14,26 +14,14 @@ export interface ConvexPaginatedQueryOptions {
 	numItems: number
 }
 
-/**
- * A real-time, paginated query hook for Convex that integrates with TanStack Query.
- *
- * It uses `useInfiniteQuery` for state management and pagination logic,
- * while leveraging `convex.watchQuery` to subscribe to real-time updates.
- *
- * @param query - The Convex paginated query reference (e.g., `api.messages.list`).
- * @param args - The arguments for the query, or "skip" to disable.
- * @param options - Pagination options, like the number of items per page.
- * @returns The result of a `useInfiniteQuery` call, with real-time updates.
- */
-export function useConvexInfiniteQuery<Query extends PaginatedQueryReference>(
+export const convexInfiniteQuery = <Query extends PaginatedQueryReference>(
 	query: Query,
 	args: PaginatedQueryArgs<Query> | "skip",
 	options: ConvexPaginatedQueryOptions,
-): DefinedUseInfiniteQueryResult<InfiniteData<FunctionReturnType<Query>, unknown>, Error> {
+): SolidInfiniteQueryOptions<InfiniteData<FunctionReturnType<Query>, unknown>, Error> => {
 	const convex = useConvex()
-	const queryClient = useQueryClient()
-	const isDisabled = args === "skip"
 
+	const isDisabled = args === "skip"
 	const queryKey = [getFunctionName(query), isDisabled ? {} : JSON.stringify(convexToJson(args as any))]
 
 	const queryOptions: SolidInfiniteQueryOptions<any, Error, any, any, any> = {
@@ -57,6 +45,31 @@ export function useConvexInfiniteQuery<Query extends PaginatedQueryReference>(
 		initialPageParam: null,
 		enabled: !isDisabled,
 	}
+
+	return queryOptions as any
+}
+
+/**
+ * A real-time, paginated query hook for Convex that integrates with TanStack Query.
+ *
+ * It uses `useInfiniteQuery` for state management and pagination logic,
+ * while leveraging `convex.watchQuery` to subscribe to real-time updates.
+ *
+ * @param query - The Convex paginated query reference (e.g., `api.messages.list`).
+ * @param args - The arguments for the query, or "skip" to disable.
+ * @param options - Pagination options, like the number of items per page.
+ * @returns The result of a `useInfiniteQuery` call, with real-time updates.
+ */
+export function useConvexInfiniteQuery<Query extends PaginatedQueryReference>(
+	query: Query,
+	args: PaginatedQueryArgs<Query> | "skip",
+	options: ConvexPaginatedQueryOptions,
+): DefinedUseInfiniteQueryResult<InfiniteData<FunctionReturnType<Query>, unknown>, Error> {
+	const convex = useConvex()
+	const queryClient = useQueryClient()
+	const isDisabled = args === "skip"
+
+	const queryOptions = convexInfiniteQuery(query, args, options)
 
 	const queryResult = internalUseInfiniteQuery(() => queryOptions as never)
 
@@ -87,11 +100,15 @@ export function useConvexInfiniteQuery<Query extends PaginatedQueryReference>(
 				const unsubscribe = watch.onUpdate(() => {
 					const result = watch.localQueryResult()
 
-					console.debug("[Convex Real-time] Invalidating infinite query:", queryKey, result)
+					console.debug(
+						"[Convex Real-time] Invalidating infinite query:",
+						queryOptions.queryKey,
+						result,
+					)
 
 					if (result) {
 						queryClient.setQueryData(
-							queryKey,
+							queryOptions.queryKey,
 							(oldData: {
 								pages: any[]
 							}) => {
