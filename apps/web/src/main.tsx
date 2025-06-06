@@ -56,7 +56,6 @@ const router = createRouter({
 		queryClient,
 	},
 	defaultErrorComponent: (err) => {
-		console.error(err)
 		return (
 			<div class="flex min-h-screen items-center justify-center">
 				<div class="flex flex-col items-center justify-center gap-3">
