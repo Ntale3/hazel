@@ -65,8 +65,7 @@ async function registerForPushNotificationsAsync(channelId: string) {
 			return
 		}
 		const projectId = Constants?.expoConfig?.extra?.eas?.projectId ?? Constants?.easConfig?.projectId
-		console.log("PROJECT_ID:", projectId)
-		console.log("USER_ID:", "XD")
+
 		if (!projectId) {
 			handleRegistrationError("Project ID not found")
 		}
@@ -76,7 +75,6 @@ async function registerForPushNotificationsAsync(channelId: string) {
 					projectId,
 				})
 			).data
-			console.log(pushTokenString)
 			return pushTokenString
 		} catch (e: unknown) {
 			handleRegistrationError(`${e}`)

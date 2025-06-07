@@ -57,8 +57,6 @@ export function createMessageActions(props: CreateMessageActionsProps) {
 						type: "thread",
 						threadMessageId: props.message()._id,
 					})
-
-					console.log(threadChannelId)
 				}
 
 				setState("openThreadId", threadChannelId)

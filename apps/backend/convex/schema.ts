@@ -70,7 +70,7 @@ export default defineSchema({
 
 		updatedAt: v.number(),
 		deletedAt: v.optional(v.number()),
-	}),
+	}).index("by_channelId", ["channelId"]),
 	accounts: defineTable({
 		externalId: v.string(),
 		displayName: v.string(),

@@ -33,9 +33,9 @@ const convex = new ConvexSolidClient(import.meta.env.VITE_CONVEX_URL)
 
 const convexQueryClient = new ConvexQueryClient(convex)
 
-const persister = createSyncStoragePersister({
-	storage: localStorage,
-})
+// const persister = createSyncStoragePersister({
+// 	storage: localStorage,
+// })
 
 const queryClient = new QueryClient({
 	defaultOptions: {
@@ -49,10 +49,10 @@ const queryClient = new QueryClient({
 const router = createRouter({
 	routeTree,
 	defaultPreload: "intent",
-	scrollRestoration: true,
+	// scrollRestoration: true,
 	defaultPreloadStaleTime: 0,
 
-	// defaultViewTransition: true,
+	defaultViewTransition: true,
 
 	context: {
 		auth: undefined!,
@@ -92,17 +92,17 @@ declare module "@tanstack/solid-router" {
 const InnerProviders = () => {
 	const auth = useAuth()
 
-	createEffect(() => {
-		const [unsubscribe] = persistQueryClient({
-			queryClient,
-			persister,
-			maxAge: 1000 * 60 * 60 * 24,
-		})
+	// createEffect(() => {
+	// 	const [unsubscribe] = persistQueryClient({
+	// 		queryClient,
+	// 		persister,
+	// 		maxAge: 1000 * 60 * 60 * 24,
+	// 	})
 
-		onCleanup(() => {
-			unsubscribe()
-		})
-	})
+	// 	onCleanup(() => {
+	// 		unsubscribe()
+	// 	})
+	// })
 
 	return (
 		<RouterProvider

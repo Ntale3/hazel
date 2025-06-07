@@ -2,7 +2,6 @@ import { asyncMap } from "convex-helpers"
 import { paginationOptsValidator } from "convex/server"
 import { v } from "convex/values"
 import { internal } from "./_generated/api"
-import { sendNotification } from "./background"
 import { userMutation, userQuery } from "./middleware/withUser"
 
 export const getMessage = userQuery({
@@ -42,7 +41,7 @@ export const getMessages = userQuery({
 
 		const messages = await ctx.db
 			.query("messages")
-			.filter((q) => q.eq(q.field("channelId"), args.channelId))
+			.withIndex("by_channelId", (q) => q.eq("channelId", args.channelId))
 			.order("desc")
 			.paginate(args.paginationOpts)
 
@@ -86,7 +85,10 @@ export const getMessages = userQuery({
 			}
 		})
 
-		return { ...messages, page: messagesWithAuthor }
+		return {
+			...messages,
+			page: messagesWithAuthor,
+		}
 	},
 })
 
