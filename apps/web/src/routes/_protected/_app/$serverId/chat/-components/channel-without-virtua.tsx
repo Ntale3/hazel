@@ -53,6 +53,8 @@ export function ChannelWithoutVirtua(props: {
 	serverId: Accessor<Id<"servers">>
 	isThread: boolean
 }) {
+	const [isInitialRender, setIsInitialRender] = createSignal(true)
+
 	const channelQuery = useQuery(() =>
 		convexQuery(api.channels.getChannel, {
 			channelId: props.channelId(),
@@ -70,7 +72,9 @@ export function ChannelWithoutVirtua(props: {
 
 	onMount(() => {
 		setTimeout(() => {
-			bottomRef?.scrollIntoView({ behavior: "smooth" })
+			bottomRef?.scrollIntoView({ behavior: "auto" })
+
+			setIsInitialRender(false)
 		}, 1000)
 	})
 
@@ -112,15 +116,12 @@ export function ChannelWithoutVirtua(props: {
 	let bottomRef: HTMLDivElement | undefined
 	let scrollContainerRef: HTMLDivElement | undefined
 	const [shouldStickToBottom, setShouldStickToBottom] = createSignal(true)
-	const [isInitialRender, setIsInitialRender] = createSignal(true)
 
 	createEffect(
 		on(processedMessages, () => {
 			if (!shouldStickToBottom()) return
 
 			if (isInitialRender()) {
-				setIsInitialRender(true)
-
 				return
 			}
 
@@ -136,7 +137,7 @@ export function ChannelWithoutVirtua(props: {
 
 	const handleScroll = (e: Event) => {
 		const target = e.currentTarget as HTMLDivElement
-		if (!target) return
+		if (!target || isInitialRender()) return
 
 		setShouldStickToBottom(target.scrollHeight - target.scrollTop - target.clientHeight < 120)
 
@@ -202,7 +203,7 @@ interface LazyRenderProps {
 }
 
 export const LazyRender: Component<LazyRenderProps> = (props) => {
-	const [isVisible, setIsVisible] = createSignal(false)
+	const [isVisible, setIsVisible] = createSignal(true)
 	let elementRef: HTMLDivElement | undefined
 
 	onMount(() => {
