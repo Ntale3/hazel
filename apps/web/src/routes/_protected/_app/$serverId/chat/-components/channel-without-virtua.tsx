@@ -213,6 +213,8 @@ export const LazyRender: Component<LazyRenderProps> = (props) => {
 				if (entries[0].isIntersecting) {
 					setIsVisible(true)
 					observer.unobserve(elementRef!)
+				} else {
+					setIsVisible(false)
 				}
 			},
 			{
