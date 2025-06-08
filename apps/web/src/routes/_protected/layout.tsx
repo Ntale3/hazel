@@ -8,7 +8,7 @@ export const Route = createFileRoute("/_protected")({
 	beforeLoad: async ({ context }) => {
 		await Promise.race([
 			context.convex.awaitAuth(),
-			new Promise<null>((resolve) => setTimeout(() => resolve(null), 1500)),
+			new Promise<null>((resolve) => setTimeout(() => resolve(null), 1000)),
 		])
 	},
 })
