@@ -8,6 +8,7 @@ import {
 	selectPeers,
 	selectPeersScreenSharing,
 	selectScreenShareByPeerID,
+	selectVideoTrackByID,
 } from "@100mslive/hms-video-store"
 import type { Id } from "@hazel/backend"
 import { api } from "@hazel/backend/api"
@@ -29,7 +30,11 @@ export function useCallManager(props: { serverId: Id<"servers"> }) {
 	}))
 
 	const [store, setStore] = createStore({
-		peers: hmsStore.getState(selectPeers),
+		peers: hmsStore.getState(selectPeers).map((peer) => {
+			const track = hmsStore.getState(selectVideoTrackByID(peer.videoTrack))
+
+			return { ...peer, track }
+		}),
 		isConnected: hmsStore.getState(selectIsConnectedToRoom),
 		local: {
 			audio: hmsStore.getState(selectIsLocalAudioEnabled),
@@ -107,18 +112,21 @@ export function useCallManager(props: { serverId: Id<"servers"> }) {
 
 			setStore("isConnected", !!selectIsConnectedToRoom(store))
 
-			const peers = selectPeers(store)
+			const peers = selectPeers(store).map((peer) => {
+				const track = selectVideoTrackByID(peer.videoTrack)(store)
 
-			console.log("peers", peers)
+				return { ...peer, track }
+			})
 
-			setStore("peers", peers)
+			setStore("peers", reconcile(peers, { key: "id" }))
 
 			const screensharingPeers = selectPeersScreenSharing(store)
 
 			const screenshares = screensharingPeers.map((peer) => {
 				return selectScreenShareByPeerID(peer.id)(store)
 			})
-			setStore("screenshares", screenshares)
+
+			setStore("screenshares", reconcile(screenshares, { key: "id" }))
 		})
 
 		onCleanup(() => {

@@ -1,14 +1,8 @@
-import {
-	type HMSPeer,
-	type HMSScreenVideoTrack,
-	type HMSSpeaker,
-	selectSpeakers,
-	selectVideoTrackByID,
-} from "@100mslive/hms-video-store"
+import type { HMSPeer, HMSScreenVideoTrack, HMSVideoTrack } from "@100mslive/hms-video-store"
 import { Toggle } from "@ark-ui/solid"
 import type { Id } from "@hazel/backend"
 import { createFileRoute } from "@tanstack/solid-router"
-import { For, Show, createSignal, onCleanup, onMount } from "solid-js"
+import { For, Show, createEffect, createSignal } from "solid-js"
 import { IconCallCancel } from "~/components/icons/call-cancel"
 import { IconMic } from "~/components/icons/mic"
 import { IconMicOff } from "~/components/icons/mic-off"
@@ -17,7 +11,7 @@ import { IconVideo } from "~/components/icons/video"
 import { IconVideoOff } from "~/components/icons/video-off"
 import { Button, buttonVariants } from "~/components/ui/button"
 import { TextField } from "~/components/ui/text-field"
-import { hmsActions, hmsStore, useCallManager } from "~/lib/hms/use-video-manager"
+import { hmsActions, useCallManager } from "~/lib/hms/use-video-manager"
 export const Route = createFileRoute("/_protected/_app/$serverId/video")({
 	component: RouteComponent,
 })
@@ -130,35 +124,24 @@ function RouteComponent() {
 	)
 }
 
-const VideoComponent = (props: { peer: HMSPeer }) => {
+const VideoComponent = (props: { peer: HMSPeer & { track: HMSVideoTrack | null } }) => {
 	const [isSpeaking, setIsSpeaking] = createSignal(false)
 	let videoElement: HTMLVideoElement | undefined
-	onMount(() => {
-		hmsStore.subscribe((track) => {
-			if (!track || !videoElement) {
-				return
-			}
-			if (track.enabled) {
-				hmsActions.attachVideo(track.id, videoElement)
-			} else {
-				hmsActions.detachVideo(track.id, videoElement)
-			}
-		}, selectVideoTrackByID(props.peer.videoTrack))
 
-		const unsubscribeSpeakers = hmsStore.subscribe((speakers: Record<string, HMSSpeaker>) => {
-			const currentPeerSpeakerInfo = speakers[props.peer.id]
-			if (currentPeerSpeakerInfo && currentPeerSpeakerInfo.audioLevel > 5) {
-				// Threshold can be adjusted
-				setIsSpeaking(true)
-			} else {
-				setIsSpeaking(false)
-			}
-		}, selectSpeakers)
+	createEffect(() => {
+		if (!videoElement) {
+			return
+		}
 
-		onCleanup(() => {
-			unsubscribeSpeakers()
-		})
+		if (props.peer.track) {
+			if (props.peer.track.enabled) {
+				hmsActions.attachVideo(props.peer.track.id, videoElement)
+			} else {
+				hmsActions.detachVideo(props.peer.track.id, videoElement)
+			}
+		}
 	})
+
 	return (
 		<div
 			class="relative flex aspect-video items-center justify-center overflow-hidden rounded-lg bg-muted"
@@ -174,7 +157,7 @@ const VideoComponent = (props: { peer: HMSPeer }) => {
 
 const ScreenShareComponent = (props: { videoTrack: HMSScreenVideoTrack }) => {
 	let videoElement: HTMLVideoElement | undefined
-	onMount(() => {
+	createEffect(() => {
 		if (!videoElement) return
 
 		if (props.videoTrack.enabled) {
