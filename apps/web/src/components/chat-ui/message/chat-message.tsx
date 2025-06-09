@@ -1,4 +1,4 @@
-import { type Accessor, Show, createEffect, createMemo } from "solid-js"
+import { type Accessor, ErrorBoundary, Show, createEffect, createMemo } from "solid-js"
 
 import { Badge } from "~/components/ui/badge"
 
@@ -85,8 +85,13 @@ export function ChatMessage(props: ChatMessageProps) {
 				/>
 
 				<MessageHeader message={props.message} showAvatar={showAvatar} serverId={props.serverId} />
-
-				<MessageContent message={props.message} serverId={props.serverId} showAvatar={showAvatar} />
+				<ErrorBoundary fallback={<p class="text-destructive">Error Rendering Message</p>}>
+					<MessageContent
+						message={props.message}
+						serverId={props.serverId}
+						showAvatar={showAvatar}
+					/>
+				</ErrorBoundary>
 			</div>
 		</div>
 	)
