@@ -85,7 +85,7 @@ export function ChatMessage(props: ChatMessageProps) {
 				/>
 
 				<MessageHeader message={props.message} showAvatar={showAvatar} serverId={props.serverId} />
-				<ErrorBoundary fallback={<p class="text-destructive">Error Rendering Message</p>}>
+				<ErrorBoundary fallback={<p class="text-destructive">{props.message().content}</p>}>
 					<MessageContent
 						message={props.message}
 						serverId={props.serverId}
