@@ -21,6 +21,9 @@ function RouteComponent() {
 		if (!isAuthenticated() && !isLoading()) {
 			navigate({
 				to: "/sign-in",
+				search: {
+					redirectTo: window.location.pathname + window.location.search,
+				},
 			})
 		}
 	})
