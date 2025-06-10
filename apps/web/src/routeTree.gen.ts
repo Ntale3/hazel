@@ -13,6 +13,7 @@
 import { Route as rootRoute } from './routes/__root'
 import { Route as ProtectedLayoutRouteImport } from './routes/_protected/layout'
 import { Route as AuthLayoutRouteImport } from './routes/_auth/layout'
+import { Route as InviteCodeRouteImport } from './routes/invite/$code'
 import { Route as AuthSignUpRouteImport } from './routes/_auth/sign-up'
 import { Route as AuthSignInRouteImport } from './routes/_auth/sign-in'
 import { Route as ProtectedAppLayoutRouteImport } from './routes/_protected/_app/layout'
@@ -35,6 +36,12 @@ const ProtectedLayoutRoute = ProtectedLayoutRouteImport.update({
 
 const AuthLayoutRoute = AuthLayoutRouteImport.update({
   id: '/_auth',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const InviteCodeRoute = InviteCodeRouteImport.update({
+  id: '/invite/$code',
+  path: '/invite/$code',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -155,6 +162,13 @@ declare module '@tanstack/solid-router' {
       fullPath: '/sign-up'
       preLoaderRoute: typeof AuthSignUpRouteImport
       parentRoute: typeof AuthLayoutRouteImport
+    }
+    '/invite/$code': {
+      id: '/invite/$code'
+      path: '/invite/$code'
+      fullPath: '/invite/$code'
+      preLoaderRoute: typeof InviteCodeRouteImport
+      parentRoute: typeof rootRoute
     }
     '/_protected/_app/$serverId': {
       id: '/_protected/_app/$serverId'
@@ -293,6 +307,7 @@ export interface FileRoutesByFullPath {
   '': typeof ProtectedAppLayoutRouteWithChildren
   '/sign-in': typeof AuthSignInRoute
   '/sign-up': typeof AuthSignUpRoute
+  '/invite/$code': typeof InviteCodeRoute
   '/$serverId': typeof ProtectedAppServerIdLayoutRouteWithChildren
   '/': typeof ProtectedAppIndexRoute
   '/onboarding': typeof ProtectedOnboardingIndexRoute
@@ -308,6 +323,7 @@ export interface FileRoutesByTo {
   '': typeof ProtectedLayoutRouteWithChildren
   '/sign-in': typeof AuthSignInRoute
   '/sign-up': typeof AuthSignUpRoute
+  '/invite/$code': typeof InviteCodeRoute
   '/': typeof ProtectedAppIndexRoute
   '/onboarding': typeof ProtectedOnboardingIndexRoute
   '/$serverId/billing': typeof ProtectedAppServerIdBillingRoute
@@ -325,6 +341,7 @@ export interface FileRoutesById {
   '/_protected/_app': typeof ProtectedAppLayoutRouteWithChildren
   '/_auth/sign-in': typeof AuthSignInRoute
   '/_auth/sign-up': typeof AuthSignUpRoute
+  '/invite/$code': typeof InviteCodeRoute
   '/_protected/_app/$serverId': typeof ProtectedAppServerIdLayoutRouteWithChildren
   '/_protected/_app/': typeof ProtectedAppIndexRoute
   '/_protected/onboarding/': typeof ProtectedOnboardingIndexRoute
@@ -342,6 +359,7 @@ export interface FileRouteTypes {
     | ''
     | '/sign-in'
     | '/sign-up'
+    | '/invite/$code'
     | '/$serverId'
     | '/'
     | '/onboarding'
@@ -356,6 +374,7 @@ export interface FileRouteTypes {
     | ''
     | '/sign-in'
     | '/sign-up'
+    | '/invite/$code'
     | '/'
     | '/onboarding'
     | '/$serverId/billing'
@@ -371,6 +390,7 @@ export interface FileRouteTypes {
     | '/_protected/_app'
     | '/_auth/sign-in'
     | '/_auth/sign-up'
+    | '/invite/$code'
     | '/_protected/_app/$serverId'
     | '/_protected/_app/'
     | '/_protected/onboarding/'
@@ -386,11 +406,13 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AuthLayoutRoute: typeof AuthLayoutRouteWithChildren
   ProtectedLayoutRoute: typeof ProtectedLayoutRouteWithChildren
+  InviteCodeRoute: typeof InviteCodeRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   AuthLayoutRoute: AuthLayoutRouteWithChildren,
   ProtectedLayoutRoute: ProtectedLayoutRouteWithChildren,
+  InviteCodeRoute: InviteCodeRoute,
 }
 
 export const routeTree = rootRoute
@@ -404,7 +426,8 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/_auth",
-        "/_protected"
+        "/_protected",
+        "/invite/$code"
       ]
     },
     "/_auth": {
@@ -436,6 +459,9 @@ export const routeTree = rootRoute
     "/_auth/sign-up": {
       "filePath": "_auth/sign-up.tsx",
       "parent": "/_auth"
+    },
+    "/invite/$code": {
+      "filePath": "invite/$code.tsx"
     },
     "/_protected/_app/$serverId": {
       "filePath": "_protected/_app/$serverId/layout.tsx",

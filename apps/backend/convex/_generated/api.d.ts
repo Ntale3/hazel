@@ -14,6 +14,7 @@ import type * as channels from "../channels.js";
 import type * as crons from "../crons.js";
 import type * as expo from "../expo.js";
 import type * as http from "../http.js";
+import type * as invites from "../invites.js";
 import type * as lib_activeRecords_account from "../lib/activeRecords/account.js";
 import type * as lib_activeRecords_user from "../lib/activeRecords/user.js";
 import type * as lib_compare from "../lib/compare.js";
@@ -52,6 +53,7 @@ declare const fullApi: ApiFromModules<{
   crons: typeof crons;
   expo: typeof expo;
   http: typeof http;
+  invites: typeof invites;
   "lib/activeRecords/account": typeof lib_activeRecords_account;
   "lib/activeRecords/user": typeof lib_activeRecords_user;
   "lib/compare": typeof lib_compare;

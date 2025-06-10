@@ -110,4 +110,13 @@ export default defineSchema({
 		.index("by_accountId", ["channelId", "accountId"])
 		.index("by_channel_timestamp", ["channelId", "lastTyped"])
 		.index("by_timestamp", ["lastTyped"]),
+	invites: defineTable({
+		serverId: v.id("servers"),
+		creatorId: v.id("users"),
+		code: v.string(),
+		expiresAt: v.optional(v.number()),
+		revokedAt: v.optional(v.number()),
+		createdAt: v.number(),
+	})
+		.index("by_code", ["code"]),
 })
