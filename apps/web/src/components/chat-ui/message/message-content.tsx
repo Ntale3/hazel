@@ -1,4 +1,13 @@
-import { type Accessor, ErrorBoundary, For, Show, createMemo, createSignal, splitProps } from "solid-js"
+import {
+	type Accessor,
+	ErrorBoundary,
+	For,
+	Show,
+	Suspense,
+	createMemo,
+	createSignal,
+	splitProps,
+} from "solid-js"
 import { reconcile } from "solid-js/store"
 import { twJoin } from "tailwind-merge"
 
@@ -206,7 +215,9 @@ export function MessageContent(props: MessageContentProps) {
 						</For>
 					</div>
 				</Show>
-				<ReactionTags message={props.message} />
+				<Suspense>
+					<ReactionTags message={props.message} />
+				</Suspense>
 			</div>
 
 			<Show when={props.message().threadChannelId && props.message().threadMessages?.length > 0}>

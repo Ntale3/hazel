@@ -70,57 +70,51 @@ export function ReactionTags(props: ReactionTagsProps) {
 	}
 
 	return (
-		<Suspense>
-			<Show when={reactionGroups().length > 0}>
-				<div class="mt-1 flex items-center gap-2">
-					<For each={reactionGroups()}>
-						{(group) => {
-							return (
-								<button
-									type="button"
-									class="flex h-6 cursor-pointer items-center gap-1 rounded-full border border-primary bg-primary/30 px-2 hover:bg-primary/70"
-									onClick={() => {
-										const currentSelectedEmoji = currentSelectedEmojis().find(
-											(reaction) => reaction.emoji === group.emoji,
-										)
+		<Show when={reactionGroups().length > 0}>
+			<div class="mt-1 flex items-center gap-2">
+				<For each={reactionGroups()}>
+					{(group) => {
+						return (
+							<button
+								type="button"
+								class="flex h-6 cursor-pointer items-center gap-1 rounded-full border border-primary bg-primary/30 px-2 hover:bg-primary/70"
+								onClick={() => {
+									const currentSelectedEmoji = currentSelectedEmojis().find(
+										(reaction) => reaction.emoji === group.emoji,
+									)
 
-										if (currentSelectedEmoji) {
-											removeReaction({
-												id: props.message()._id,
-												serverId: state.serverId,
-												emoji: group.emoji,
-											})
-										} else {
-											addReaction({
-												messageId: props.message()._id,
-												serverId: state.serverId,
-												emoji: group.emoji,
-											})
-										}
-									}}
-								>
-									{group.emoji} <span class="ml-1 text-xs">{group.reactions.length}</span>
-								</button>
-							)
-						}}
-					</For>
-					<Popover
-						open={openPopover()}
-						onOpenChange={(value) => setOpenPopover(value.open)}
-						lazyMount
-					>
-						<Popover.Trigger>
-							<Button class="flex items-center justify-center" intent="ghost" size="icon">
-								<IconEmojiAdd class="size-4!" />
-							</Button>
-						</Popover.Trigger>
+									if (currentSelectedEmoji) {
+										removeReaction({
+											id: props.message()._id,
+											serverId: state.serverId,
+											emoji: group.emoji,
+										})
+									} else {
+										addReaction({
+											messageId: props.message()._id,
+											serverId: state.serverId,
+											emoji: group.emoji,
+										})
+									}
+								}}
+							>
+								{group.emoji} <span class="ml-1 text-xs">{group.reactions.length}</span>
+							</button>
+						)
+					}}
+				</For>
+				<Popover open={openPopover()} onOpenChange={(value) => setOpenPopover(value.open)} lazyMount>
+					<Popover.Trigger>
+						<Button class="flex items-center justify-center" intent="ghost" size="icon">
+							<IconEmojiAdd class="size-4!" />
+						</Button>
+					</Popover.Trigger>
 
-						<Popover.UnstyledContent>
-							<EmojiPicker onSelect={createReaction} />
-						</Popover.UnstyledContent>
-					</Popover>
-				</div>
-			</Show>
-		</Suspense>
+					<Popover.UnstyledContent>
+						<EmojiPicker onSelect={createReaction} />
+					</Popover.UnstyledContent>
+				</Popover>
+			</div>
+		</Show>
 	)
 }
