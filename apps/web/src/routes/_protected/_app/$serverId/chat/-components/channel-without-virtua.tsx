@@ -22,6 +22,7 @@ import { ChatMessage } from "~/components/chat-ui/message/chat-message"
 import { convexQuery } from "~/lib/convex-query"
 import { useConvexInfiniteQuery } from "~/lib/convex-query/infinite"
 import type { Message } from "~/lib/types"
+import { MessageOnScreen } from "./messages-onscreen"
 
 const PAGE_SIZE = 35
 
@@ -79,7 +80,7 @@ export function ChannelWithoutVirtua(props: {
 		setTimeout(() => {
 			bottomRef?.scrollIntoView({ behavior: "auto" })
 			setIsInitialRender(false)
-		}, 400)
+		}, 0)
 	})
 
 	createEffect(
@@ -156,6 +157,12 @@ export function ChannelWithoutVirtua(props: {
 		}),
 	)
 
+	onMount(() => {
+		if (scrollContainerRef) {
+			scrollContainerRef.scrollTop = scrollContainerRef.scrollHeight
+		}
+	})
+
 	const handleScroll = (e: Event) => {
 		const target = e.currentTarget as HTMLDivElement
 		if (!target || isInitialRender()) return
@@ -205,16 +212,18 @@ export function ChannelWithoutVirtua(props: {
 
 					<For each={processedMessages()}>
 						{(item) => (
-							<ChatMessage
-								message={() => item.message}
-								isGroupStart={item.isGroupStart}
-								isGroupEnd={item.isGroupEnd}
-								isFirstNewMessage={() =>
-									item.message._id === channelQuery.data?.currentUser?.lastSeenMessageId
-								}
-								serverId={props.serverId}
-								isThread={props.isThread}
-							/>
+							<MessageOnScreen estimatedHeight="70px">
+								<ChatMessage
+									message={() => item.message}
+									isGroupStart={item.isGroupStart}
+									isGroupEnd={item.isGroupEnd}
+									isFirstNewMessage={() =>
+										item.message._id === channelQuery.data?.currentUser?.lastSeenMessageId
+									}
+									serverId={props.serverId}
+									isThread={props.isThread}
+								/>
+							</MessageOnScreen>
 						)}
 					</For>
 				</Show>

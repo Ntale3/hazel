@@ -1,4 +1,4 @@
-import { type Accessor, ErrorBoundary, Show, createEffect, createMemo } from "solid-js"
+import { type Accessor, ErrorBoundary, Show, Suspense, createEffect, createMemo } from "solid-js"
 
 import { Badge } from "~/components/ui/badge"
 
@@ -76,13 +76,15 @@ export function ChatMessage(props: ChatMessageProps) {
 			</Show>
 
 			<div class="flex gap-4">
-				<MessageActions
-					message={props.message}
-					serverId={props.serverId}
-					isGroupStart={props.isGroupStart}
-					isPinned={isPinned}
-					isThread={props.isThread}
-				/>
+				<Suspense>
+					<MessageActions
+						message={props.message}
+						serverId={props.serverId}
+						isGroupStart={props.isGroupStart}
+						isPinned={isPinned}
+						isThread={props.isThread}
+					/>
+				</Suspense>
 
 				<MessageHeader message={props.message} showAvatar={showAvatar} serverId={props.serverId} />
 				<MessageContent message={props.message} serverId={props.serverId} showAvatar={showAvatar} />

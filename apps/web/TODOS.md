@@ -13,10 +13,11 @@
     - Start call in channel
     - Show active call in channel + show call history
 
-- Add Invite Link
 
 # Fixes
 - Closing Image Dialog rerenders/refetches the whole page
+- Fix convex client not seeming to be authed in route loaders
+- Investigate previous cursor (maybe this guys solution helps https://discord.com/channels/1019350475847499849/1019350478817079338/1255262027731964016)
 
 
 

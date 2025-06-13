@@ -1,7 +1,7 @@
 import type { Id } from "@hazel/backend"
 import { api } from "@hazel/backend/api"
 
-import { useQuery } from "@tanstack/solid-query"
+import { useQuery, useQueryClient } from "@tanstack/solid-query"
 import { Outlet, createFileRoute } from "@tanstack/solid-router"
 import { Suspense, createEffect } from "solid-js"
 import { Sidebar } from "~/components/ui/sidebar"
@@ -20,20 +20,27 @@ export const Route = createFileRoute("/_protected/_app/$serverId")({
 })
 
 function RouteComponent() {
+	const queryClient = useQueryClient()
 	const params = Route.useParams()
 	const navigate = Route.useNavigate()
 	const serverQuery = useQuery(() =>
 		convexQuery(api.servers.getServerForUser, { serverId: params().serverId as Id<"servers"> }),
 	)
 
-	// createEffect(async () => {
-	// 	await Promise.all([
-	// 		convexQuery(api.servers.getServerForUser, { serverId: params().serverId as Id<"servers"> }),
-	// 		convexQuery(api.me.getUser, { serverId: params().serverId as Id<"servers"> }),
-	// 		convexQuery(api.me.get, {}),
-	// 		convexQuery(api.channels.getChannels, { serverId: params().serverId as Id<"servers"> }),
-	// 	])
-	// })
+	createEffect(async () => {
+		await Promise.all([
+			queryClient.prefetchQuery(
+				convexQuery(api.servers.getServerForUser, { serverId: params().serverId as Id<"servers"> }),
+			),
+			queryClient.prefetchQuery(
+				convexQuery(api.me.getUser, { serverId: params().serverId as Id<"servers"> }),
+			),
+			queryClient.prefetchQuery(convexQuery(api.me.get, {})),
+			queryClient.prefetchQuery(
+				convexQuery(api.channels.getChannels, { serverId: params().serverId as Id<"servers"> }),
+			),
+		])
+	})
 
 	createEffect(() => {
 		if (serverQuery.isPending) {

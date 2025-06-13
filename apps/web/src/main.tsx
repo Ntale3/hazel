@@ -32,9 +32,11 @@ const convex = new ConvexSolidClient(import.meta.env.VITE_CONVEX_URL)
 
 const convexQueryClient = new ConvexQueryClient(convex)
 
-// const persister = createSyncStoragePersister({
-// 	storage: localStorage,
-// })
+const persister = createSyncStoragePersister({
+	storage: localStorage,
+
+	throttleTime: 1000,
+})
 
 const queryClient = new QueryClient({
 	defaultOptions: {
