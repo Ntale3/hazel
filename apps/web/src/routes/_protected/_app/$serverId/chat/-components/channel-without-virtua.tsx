@@ -212,18 +212,16 @@ export function ChannelWithoutVirtua(props: {
 
 					<For each={processedMessages()}>
 						{(item) => (
-							<MessageOnScreen estimatedHeight="70px">
-								<ChatMessage
-									message={() => item.message}
-									isGroupStart={item.isGroupStart}
-									isGroupEnd={item.isGroupEnd}
-									isFirstNewMessage={() =>
-										item.message._id === channelQuery.data?.currentUser?.lastSeenMessageId
-									}
-									serverId={props.serverId}
-									isThread={props.isThread}
-								/>
-							</MessageOnScreen>
+							<ChatMessage
+								message={() => item.message}
+								isGroupStart={item.isGroupStart}
+								isGroupEnd={item.isGroupEnd}
+								isFirstNewMessage={() =>
+									item.message._id === channelQuery.data?.currentUser?.lastSeenMessageId
+								}
+								serverId={props.serverId}
+								isThread={props.isThread}
+							/>
 						)}
 					</For>
 				</Show>

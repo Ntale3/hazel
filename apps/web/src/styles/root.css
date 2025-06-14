@@ -179,60 +179,27 @@
 	body {
 		@apply bg-background text-foreground;
 	}
+
+	/* Chrome, Edge, Safari */
+  ::-webkit-scrollbar {
+    width: 12px;
+    background: var(--muted);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--muted-foreground);
+    border-radius: 6px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
+  }
+
+  /* Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--muted-foreground) var(--muted);
+  }
 }
 
-/* Code styling */
-.hljs-comment,
-.hljs-quote {
-	color: #616161;
-}
-
-.hljs-variable,
-.hljs-template-variable,
-.hljs-attribute,
-.hljs-tag,
-.hljs-name,
-.hljs-regexp,
-.hljs-link,
-.hljs-name,
-.hljs-selector-id,
-.hljs-selector-class {
-	color: #f98181;
-}
-
-.hljs-number,
-.hljs-meta,
-.hljs-built_in,
-.hljs-builtin-name,
-.hljs-literal,
-.hljs-type,
-.hljs-params {
-	color: #fbbc88;
-}
-
-.hljs-string,
-.hljs-symbol,
-.hljs-bullet {
-	color: #b9f18d;
-}
-
-.hljs-title,
-.hljs-section {
-	color: #faf594;
-}
-
-.hljs-keyword,
-.hljs-selector-tag {
-	color: #70cff8;
-}
-
-.hljs-emphasis {
-	font-style: italic;
-}
-
-.hljs-strong {
-	font-weight: 700;
-}
 
 .sh__line {
 	display: block;

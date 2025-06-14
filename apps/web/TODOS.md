@@ -7,6 +7,7 @@
 - Replace Reaction Badges with Pills
 
 # Features
+- CMDK for quick actions
 - File uploads with convex
 - Readd last read message
 - Call Feature
@@ -23,7 +24,7 @@
 
 # Improvements 
 
-
+- Custom Scrollbar
 
 - Delete Notification after it was seen (maybe just a simple cron cleanup job)
 - Move all mutations to tanstack query
