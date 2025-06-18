@@ -7,7 +7,6 @@
 - Replace Reaction Badges with Pills
 
 # Features
-- CMDK for quick actions
 - File uploads with convex
 - Readd last read message
 - Call Feature
