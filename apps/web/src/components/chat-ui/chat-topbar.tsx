@@ -2,7 +2,7 @@ import type { Id } from "@hazel/backend"
 import { api } from "@hazel/backend/api"
 import { useQuery } from "@tanstack/solid-query"
 import { useParams } from "@tanstack/solid-router"
-import { For, Match, Show, Suspense, Switch, createMemo } from "solid-js"
+import { For, Index, Match, Show, Suspense, Switch, createMemo } from "solid-js"
 import { convexQuery } from "~/lib/convex-query"
 import { useChat } from "../chat-state/chat-store"
 import { IconGroup } from "../icons/group"
@@ -84,12 +84,27 @@ export function ChatTopbar() {
 									<IconPhone />
 								</Button>
 								<PinnedModal />
-								<Button size="square" intent="ghost">
-									<IconUserPlus />
-								</Button>
-								<Button size="square" intent="ghost">
-									<IconGroup />
-								</Button>
+								<div class="flex items-center">
+									<div class="flex items-center gap-2 rounded-md border p-1">
+										<div class="-space-x-4 flex items-center justify-center">
+											<Index each={filteredMembers().slice(0, 3)}>
+												{(member) => (
+													<div class="inline-block">
+														<Avatar
+															class="size-6 rounded-sm"
+															src={member().user.avatarUrl}
+															name={member().user.displayName}
+														/>
+													</div>
+												)}
+											</Index>
+										</div>
+										<div class="inline-block pr-1 text-muted-foreground text-sm">
+											{channelQuery.data?.members?.length}
+										</div>
+									</div>
+								</div>
+
 								<div>
 									<TextField
 										aria-label="Search"
