@@ -1,7 +1,8 @@
 import type { Id } from "@hazel/backend"
 import { api } from "@hazel/backend/api"
+import { Label } from "@kobalte/core/text-field"
 import { useQuery } from "@tanstack/solid-query"
-import { Link, useParams } from "@tanstack/solid-router"
+import { Link, useLocation, useMatchRoute, useParams } from "@tanstack/solid-router"
 import type { FunctionReturnType } from "convex/server"
 import {
 	type Accessor,
@@ -15,10 +16,13 @@ import {
 } from "solid-js"
 import { IconAudio } from "~/components/icons/audio"
 import { IconMutedAudio } from "~/components/icons/audio-muted"
+import { IconBubbles } from "~/components/icons/bubbles"
+import { IconDashboardLayout } from "~/components/icons/dashboard-layout"
 import { IconHashtag } from "~/components/icons/hashtag"
 import { IconHorizontalDots } from "~/components/icons/horizontal-dots"
 import { IconPaperPlane } from "~/components/icons/paper-plane"
 import { IconPhone } from "~/components/icons/phone"
+import { IconPlus } from "~/components/icons/plus"
 import { IconPlusSmall } from "~/components/icons/plus-small"
 import { IconSupport } from "~/components/icons/support"
 import { IconX } from "~/components/icons/x"
@@ -32,7 +36,7 @@ import { Skeleton } from "~/components/ui/skeleton"
 import { Tabs } from "~/components/ui/tabs"
 import { UserAvatar } from "~/components/ui/user-avatar"
 import { createMutation } from "~/lib/convex"
-import { createPresence, usePresenceState } from "~/lib/convex-presence"
+import { usePresenceState } from "~/lib/convex-presence"
 import { convexQuery } from "~/lib/convex-query"
 import { cn } from "~/lib/utils"
 import { CreateChannelForm } from "./create-channel-form"
@@ -41,13 +45,17 @@ import { JoinPublicChannel } from "./join-public-channel"
 import { NavUser } from "./nav-user"
 import { WorkspaceSwitcher } from "./workspace-switcher"
 
-export interface SidebarProps {
-	class?: string
-}
-
-export const AppSidebar = (props: SidebarProps) => {
+export const AppSidebar = () => {
 	const params = useParams({ from: "/_protected/_app/$serverId" })
 	const serverId = createMemo(() => params().serverId as Id<"servers">)
+
+	const location = useLocation()
+
+	const currentPath = createMemo(() => {
+		const pathSegments = location().pathname.split("/").filter(Boolean)
+
+		return pathSegments[pathSegments.length - 1]
+	})
 
 	const meQuery = useQuery(() => ({
 		...convexQuery(api.me.getUser, { serverId: serverId() }),
@@ -62,110 +70,139 @@ export const AppSidebar = (props: SidebarProps) => {
 	const presenceState = usePresenceState()
 
 	return (
-		<Sidebar {...props}>
-			<Sidebar.Header>
-				<Suspense fallback={<Skeleton class="h-12 w-full rounded-md bg-muted" />}>
-					<WorkspaceSwitcher />
-				</Suspense>
-			</Sidebar.Header>
-			<Sidebar.Content>
-				<Suspense
-					fallback={
-						<div class="flex flex-col gap-2 p-3">
-							<Sidebar.MenuSkeleton showIcon />
-							<Sidebar.MenuSkeleton showIcon />
-							<Sidebar.MenuSkeleton showIcon />
-							<Sidebar.MenuSkeleton showIcon />
-						</div>
-					}
-				>
+		<Sidebar collapsible="icon" class="overflow-hidden *:data-[sidebar=sidebar]:flex-row">
+			<Sidebar collapsible="none" class="w-[calc(var(--sidebar-width-icon)+1px)]! border-r">
+				<Sidebar.Header>
+					<Suspense fallback={<Skeleton class="h-12 w-full rounded-md bg-muted" />}>
+						<WorkspaceSwitcher />
+					</Suspense>
+				</Sidebar.Header>
+				<Sidebar.Content>
 					<Sidebar.Group>
-						<Sidebar.GroupLabel>Text Channels</Sidebar.GroupLabel>
-						<Sidebar.GroupAction>
-							<Dialog
-								open={createChannelModalOpen()}
-								onOpenChange={(details) => setCreateChannelModalOpen(details.open)}
-							>
-								<Dialog.Trigger
-									class="text-muted-foreground"
-									asChild={(props) => (
-										<Button intent="ghost" size="icon" {...props}>
-											<IconPlusSmall />
-										</Button>
-									)}
-								/>
-								<Dialog.Content>
-									<Tabs defaultValue={"join"}>
-										<Tabs.List>
-											<Tabs.Trigger value="join">Join</Tabs.Trigger>
-											<Tabs.Trigger value="create">Create New</Tabs.Trigger>
-										</Tabs.List>
-										<Tabs.Content value="join">
-											<JoinPublicChannel
-												serverId={serverId}
-												onSuccess={() => setCreateChannelModalOpen(false)}
-											/>
-										</Tabs.Content>
-										<Tabs.Content value="create">
-											<CreateChannelForm
-												serverId={serverId}
-												onSuccess={() => setCreateChannelModalOpen(false)}
-											/>
-										</Tabs.Content>
-									</Tabs>
-								</Dialog.Content>
-							</Dialog>
-						</Sidebar.GroupAction>
-						<Sidebar.Menu>
-							<Index each={channelsQuery.data?.serverChannels}>
-								{(channel) => <ChannelItem channel={channel} serverId={serverId} />}
-							</Index>
-						</Sidebar.Menu>
-					</Sidebar.Group>
-					<Sidebar.Group>
-						<Sidebar.GroupLabel>DM's</Sidebar.GroupLabel>
-						<Sidebar.GroupAction>
-							<CreateDmDialog serverId={serverId} />
-						</Sidebar.GroupAction>
-						<Sidebar.Menu>
-							<Index each={dmChannels()}>
-								{(channel) => (
-									<DmChannelLink
-										userPresence={presenceState.presenceList}
-										channel={channel}
-										serverId={serverId}
-									/>
-								)}
-							</Index>
-						</Sidebar.Menu>
-					</Sidebar.Group>
-					<Sidebar.Group class="mt-auto">
-						<Sidebar.GroupContent>
-							<Sidebar.Menu>
-								<Sidebar.MenuItem>
-									<Sidebar.MenuButton>
-										<IconSupport />
-										Support
-									</Sidebar.MenuButton>
-								</Sidebar.MenuItem>
-							</Sidebar.Menu>
-							<Sidebar.Menu>
-								<Sidebar.MenuItem>
-									<Sidebar.MenuButton>
-										<IconPaperPlane />
-										Feedback
-									</Sidebar.MenuButton>
-								</Sidebar.MenuItem>
-							</Sidebar.Menu>
+						<Sidebar.GroupContent class="px-1.5 md:px-0">
+							<Sidebar.MenuItem>
+								<Sidebar.MenuButton
+									class="px-2.5 md:px-2"
+									as={Link}
+									to="/$serverId"
+									activeOptions={{
+										exact: true,
+									}}
+									params={
+										{
+											serverId: serverId(),
+										} as any
+									}
+								>
+									<IconDashboardLayout />
+									<span>Home</span>
+								</Sidebar.MenuButton>
+							</Sidebar.MenuItem>
+							<Sidebar.MenuItem>
+								<Sidebar.MenuButton
+									class="px-2.5 md:px-2"
+									as={Link}
+									to="/$serverId/chat"
+									params={
+										{
+											serverId: serverId(),
+										} as any
+									}
+								>
+									<IconBubbles />
+									<span>Chat</span>
+								</Sidebar.MenuButton>
+							</Sidebar.MenuItem>
 						</Sidebar.GroupContent>
 					</Sidebar.Group>
-				</Suspense>
-			</Sidebar.Content>
-			<Sidebar.Footer>
-				<Suspense fallback={<Skeleton class="h-12 w-full rounded-md bg-muted" />}>
-					<NavUser serverId={serverId} />
-				</Suspense>
-			</Sidebar.Footer>
+				</Sidebar.Content>
+				<Sidebar.Footer>
+					<Suspense fallback={<Skeleton class="h-12 w-full rounded-md bg-muted" />}>
+						<NavUser serverId={serverId} />
+					</Suspense>
+				</Sidebar.Footer>
+			</Sidebar>
+			<Sidebar collapsible="none" class="hidden flex-1 md:flex">
+				<Sidebar.Header class="gap-3.5 p-4">
+					<div class="flex w-full items-center justify-between">
+						<ActiveServer />
+						{/* <IconPlus class="size-4" /> */}
+					</div>
+				</Sidebar.Header>
+				<Sidebar.Content>
+					<Suspense
+						fallback={
+							<div class="flex flex-col gap-2 p-3">
+								<Sidebar.MenuSkeleton showIcon />
+								<Sidebar.MenuSkeleton showIcon />
+								<Sidebar.MenuSkeleton showIcon />
+								<Sidebar.MenuSkeleton showIcon />
+							</div>
+						}
+					>
+						<Sidebar.Group>
+							<Sidebar.GroupLabel>Text Channels</Sidebar.GroupLabel>
+							<Sidebar.GroupAction>
+								<Dialog
+									open={createChannelModalOpen()}
+									onOpenChange={(details) => setCreateChannelModalOpen(details.open)}
+								>
+									<Dialog.Trigger
+										class="text-muted-foreground"
+										asChild={(props) => (
+											<Button intent="ghost" size="icon" {...props}>
+												<IconPlusSmall />
+											</Button>
+										)}
+									/>
+									<Dialog.Content>
+										<Tabs defaultValue={"join"}>
+											<Tabs.List>
+												<Tabs.Trigger value="join">Join</Tabs.Trigger>
+												<Tabs.Trigger value="create">Create New</Tabs.Trigger>
+											</Tabs.List>
+											<Tabs.Content value="join">
+												<JoinPublicChannel
+													serverId={serverId}
+													onSuccess={() => setCreateChannelModalOpen(false)}
+												/>
+											</Tabs.Content>
+											<Tabs.Content value="create">
+												<CreateChannelForm
+													serverId={serverId}
+													onSuccess={() => setCreateChannelModalOpen(false)}
+												/>
+											</Tabs.Content>
+										</Tabs>
+									</Dialog.Content>
+								</Dialog>
+							</Sidebar.GroupAction>
+							<Sidebar.Menu>
+								<Index each={channelsQuery.data?.serverChannels}>
+									{(channel) => <ChannelItem channel={channel} serverId={serverId} />}
+								</Index>
+							</Sidebar.Menu>
+						</Sidebar.Group>
+						<Sidebar.Group>
+							<Sidebar.GroupLabel>DM's</Sidebar.GroupLabel>
+							<Sidebar.GroupAction>
+								<CreateDmDialog serverId={serverId} />
+							</Sidebar.GroupAction>
+							<Sidebar.Menu>
+								<Index each={dmChannels()}>
+									{(channel) => (
+										<DmChannelLink
+											userPresence={presenceState.presenceList}
+											channel={channel}
+											serverId={serverId}
+										/>
+									)}
+								</Index>
+							</Sidebar.Menu>
+						</Sidebar.Group>
+					</Suspense>
+				</Sidebar.Content>
+			</Sidebar>
 		</Sidebar>
 	)
 }
@@ -391,5 +428,21 @@ const MuteMenuItem = (props: {
 			{props.isMuted() ? <IconAudio class="size-4" /> : <IconMutedAudio class="size-4" />}
 			{props.isMuted() ? "Unmute" : "Mute"}
 		</Menu.Item>
+	)
+}
+
+const ActiveServer = () => {
+	const params = useParams({ from: "/_protected/_app/$serverId" })
+
+	const serversQuery = useQuery(() => convexQuery(api.servers.getServersForUser, {}))
+
+	const activeServer = createMemo(() =>
+		serversQuery.data?.find((server) => server._id === params().serverId),
+	)
+
+	return (
+		<Suspense>
+			<div class="font-semibold text-foreground text-lg">{activeServer()?.name}</div>
+		</Suspense>
 	)
 }

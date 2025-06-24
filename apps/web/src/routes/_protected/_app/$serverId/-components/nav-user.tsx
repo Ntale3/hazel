@@ -3,7 +3,9 @@ import { useAuth, useUser } from "clerk-solidjs"
 import type { Accessor } from "solid-js"
 import { IconChevronUpDown } from "~/components/icons/chevron-up-down"
 import { IconCreditCard } from "~/components/icons/credit-card"
+import { IconPaperPlane } from "~/components/icons/paper-plane"
 import { IconSettings } from "~/components/icons/settings"
+import { IconSupport } from "~/components/icons/support"
 import { Avatar } from "~/components/ui/avatar"
 import { Menu } from "~/components/ui/menu"
 import { Sidebar } from "~/components/ui/sidebar"
@@ -23,7 +25,7 @@ export const NavUser = (props: NavUserProps) => {
 			<Sidebar.MenuItem>
 				<Menu positioning={{ placement: "right" }}>
 					<Menu.Trigger
-						class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+						class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground md:h-8 md:p-0"
 						asChild={(props) => (
 							<Sidebar.MenuButton size="lg" {...props()}>
 								{props().children}
@@ -31,11 +33,6 @@ export const NavUser = (props: NavUserProps) => {
 						)}
 					>
 						<Avatar size="sm" src={user()?.imageUrl} name={user()?.username!} />
-						<div class="grid flex-1 text-left text-sm leading-tight">
-							<span class="truncate font-semibold">{user()?.username}</span>
-							<span class="truncate text-xs">{user()?.primaryEmailAddress?.emailAddress}</span>
-						</div>
-						<IconChevronUpDown class="ml-auto size-4" />
 					</Menu.Trigger>
 					<Menu.Content>
 						<Menu.ItemGroup>
@@ -82,6 +79,17 @@ export const NavUser = (props: NavUserProps) => {
 							>
 								<IconCreditCard class="size-4" />
 								Billing
+							</Menu.Item>
+						</Menu.ItemGroup>
+						<Menu.Separator />
+						<Menu.ItemGroup>
+							<Menu.Item value="support">
+								<IconSupport class="size-4" />
+								Support
+							</Menu.Item>
+							<Menu.Item value="help">
+								<IconPaperPlane class="size-4" />
+								Feedback
 							</Menu.Item>
 						</Menu.ItemGroup>
 						<Menu.Separator />

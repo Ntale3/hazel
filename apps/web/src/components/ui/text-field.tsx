@@ -5,6 +5,18 @@ import { type JSXElement, mergeProps, Show, splitProps, type ValidComponent } fr
 import { cn } from "~/lib/utils"
 import { FieldErrorText, FieldGroup, FieldHelperText, FieldInput, FieldLabel, FieldRoot } from "./field"
 
+type KobaltTextFieldTextFieldRootProps<T extends ValidComponent = "div"> =
+	TextFieldPrimitive.TextFieldRootProps<T> & {
+		class?: string | undefined
+	}
+
+export const KobaltTextField = <T extends ValidComponent = "div">(
+	props: PolymorphicProps<T, KobaltTextFieldTextFieldRootProps<T>>,
+) => {
+	const [local, others] = splitProps(props as KobaltTextFieldTextFieldRootProps, ["class"])
+	return <TextFieldPrimitive.Root class={cn("flex flex-col gap-1", local.class)} {...others} />
+}
+
 export interface TextFieldProps extends Omit<Field.InputProps, "prefix"> {
 	label?: string
 	helperText?: string

@@ -1,7 +1,7 @@
 import { api } from "@hazel/backend/api"
 import { useQuery } from "@tanstack/solid-query"
 import { Link, useParams } from "@tanstack/solid-router"
-import { For, Show, createEffect, createMemo, createSignal } from "solid-js"
+import { createEffect, createMemo, createSignal, For, Show } from "solid-js"
 import { IconChevronUpDown } from "~/components/icons/chevron-up-down"
 import { IconCopy } from "~/components/icons/copy"
 import { IconLoader } from "~/components/icons/loader"
@@ -41,21 +41,14 @@ export const WorkspaceSwitcher = () => {
 				<Sidebar.MenuItem>
 					<Menu>
 						<Menu.Trigger
+							class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground md:h-8 md:p-0"
 							asChild={(props) => (
-								<Sidebar.MenuButton
-									size="lg"
-									class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-									{...props()}
-								>
+								<Sidebar.MenuButton size="lg" {...props()}>
 									<Avatar
-										size="xs"
+										size="sm"
 										src={activeServer()?.imageUrl}
 										name={activeServer()?.name!}
 									/>
-									<div class="grid flex-1 text-left text-sm leading-tight">
-										<span class="truncate font-semibold">{activeServer()?.name}</span>
-									</div>
-									<IconChevronUpDown class="ml-auto" />
 								</Sidebar.MenuButton>
 							)}
 						/>

@@ -24,6 +24,7 @@ import { Route as ProtectedAppServerIdTestRouteImport } from './routes/_protecte
 import { Route as ProtectedAppServerIdSettingsRouteImport } from './routes/_protected/_app/$serverId/settings'
 import { Route as ProtectedAppServerIdNotificationsRouteImport } from './routes/_protected/_app/$serverId/notifications'
 import { Route as ProtectedAppServerIdBillingRouteImport } from './routes/_protected/_app/$serverId/billing'
+import { Route as ProtectedAppServerIdChatIndexRouteImport } from './routes/_protected/_app/$serverId/chat/index'
 import { Route as ProtectedAppServerIdProfileIdRouteImport } from './routes/_protected/_app/$serverId/profile/$id'
 import { Route as ProtectedAppServerIdChatIdRouteImport } from './routes/_protected/_app/$serverId/chat/$id'
 
@@ -107,6 +108,12 @@ const ProtectedAppServerIdBillingRoute =
     path: '/billing',
     getParentRoute: () => ProtectedAppServerIdLayoutRoute,
   } as any)
+const ProtectedAppServerIdChatIndexRoute =
+  ProtectedAppServerIdChatIndexRouteImport.update({
+    id: '/chat/',
+    path: '/chat/',
+    getParentRoute: () => ProtectedAppServerIdLayoutRoute,
+  } as any)
 const ProtectedAppServerIdProfileIdRoute =
   ProtectedAppServerIdProfileIdRouteImport.update({
     id: '/profile/$id',
@@ -135,6 +142,7 @@ export interface FileRoutesByFullPath {
   '/$serverId/': typeof ProtectedAppServerIdIndexRoute
   '/$serverId/chat/$id': typeof ProtectedAppServerIdChatIdRoute
   '/$serverId/profile/$id': typeof ProtectedAppServerIdProfileIdRoute
+  '/$serverId/chat': typeof ProtectedAppServerIdChatIndexRoute
 }
 export interface FileRoutesByTo {
   '/sign-in': typeof AuthSignInRoute
@@ -150,6 +158,7 @@ export interface FileRoutesByTo {
   '/$serverId': typeof ProtectedAppServerIdIndexRoute
   '/$serverId/chat/$id': typeof ProtectedAppServerIdChatIdRoute
   '/$serverId/profile/$id': typeof ProtectedAppServerIdProfileIdRoute
+  '/$serverId/chat': typeof ProtectedAppServerIdChatIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -170,6 +179,7 @@ export interface FileRoutesById {
   '/_protected/_app/$serverId/': typeof ProtectedAppServerIdIndexRoute
   '/_protected/_app/$serverId/chat/$id': typeof ProtectedAppServerIdChatIdRoute
   '/_protected/_app/$serverId/profile/$id': typeof ProtectedAppServerIdProfileIdRoute
+  '/_protected/_app/$serverId/chat/': typeof ProtectedAppServerIdChatIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -188,6 +198,7 @@ export interface FileRouteTypes {
     | '/$serverId/'
     | '/$serverId/chat/$id'
     | '/$serverId/profile/$id'
+    | '/$serverId/chat'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/sign-in'
@@ -203,6 +214,7 @@ export interface FileRouteTypes {
     | '/$serverId'
     | '/$serverId/chat/$id'
     | '/$serverId/profile/$id'
+    | '/$serverId/chat'
   id:
     | '__root__'
     | '/_auth'
@@ -222,6 +234,7 @@ export interface FileRouteTypes {
     | '/_protected/_app/$serverId/'
     | '/_protected/_app/$serverId/chat/$id'
     | '/_protected/_app/$serverId/profile/$id'
+    | '/_protected/_app/$serverId/chat/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -336,6 +349,13 @@ declare module '@tanstack/solid-router' {
       preLoaderRoute: typeof ProtectedAppServerIdBillingRouteImport
       parentRoute: typeof ProtectedAppServerIdLayoutRoute
     }
+    '/_protected/_app/$serverId/chat/': {
+      id: '/_protected/_app/$serverId/chat/'
+      path: '/chat'
+      fullPath: '/$serverId/chat'
+      preLoaderRoute: typeof ProtectedAppServerIdChatIndexRouteImport
+      parentRoute: typeof ProtectedAppServerIdLayoutRoute
+    }
     '/_protected/_app/$serverId/profile/$id': {
       id: '/_protected/_app/$serverId/profile/$id'
       path: '/profile/$id'
@@ -376,6 +396,7 @@ interface ProtectedAppServerIdLayoutRouteChildren {
   ProtectedAppServerIdIndexRoute: typeof ProtectedAppServerIdIndexRoute
   ProtectedAppServerIdChatIdRoute: typeof ProtectedAppServerIdChatIdRoute
   ProtectedAppServerIdProfileIdRoute: typeof ProtectedAppServerIdProfileIdRoute
+  ProtectedAppServerIdChatIndexRoute: typeof ProtectedAppServerIdChatIndexRoute
 }
 
 const ProtectedAppServerIdLayoutRouteChildren: ProtectedAppServerIdLayoutRouteChildren =
@@ -389,6 +410,7 @@ const ProtectedAppServerIdLayoutRouteChildren: ProtectedAppServerIdLayoutRouteCh
     ProtectedAppServerIdIndexRoute: ProtectedAppServerIdIndexRoute,
     ProtectedAppServerIdChatIdRoute: ProtectedAppServerIdChatIdRoute,
     ProtectedAppServerIdProfileIdRoute: ProtectedAppServerIdProfileIdRoute,
+    ProtectedAppServerIdChatIndexRoute: ProtectedAppServerIdChatIndexRoute,
   }
 
 const ProtectedAppServerIdLayoutRouteWithChildren =
