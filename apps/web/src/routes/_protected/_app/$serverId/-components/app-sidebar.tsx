@@ -307,6 +307,7 @@ const DmChannelLink = (props: DmChannelLinkProps) => {
 						<Match when={props.channel().type === "single" && filteredMembers().length === 1}>
 							<div class="flex items-center justify-center gap-3">
 								<UserAvatar
+									class="size-6"
 									avatarUrl={filteredMembers()[0].user.avatarUrl}
 									displayName={filteredMembers()[0].user.displayName}
 									status={
