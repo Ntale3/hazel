@@ -2,14 +2,11 @@ import type { Id } from "@hazel/backend"
 import { api } from "@hazel/backend/api"
 import { useQuery } from "@tanstack/solid-query"
 import { useParams } from "@tanstack/solid-router"
-import { For, Index, Match, Show, Suspense, Switch, createMemo } from "solid-js"
+import { createMemo, For, Index, Match, Show, Suspense, Switch } from "solid-js"
 import { convexQuery } from "~/lib/convex-query"
 import { useChat } from "../chat-state/chat-store"
-import { IconGroup } from "../icons/group"
-import { IconHashtag } from "../icons/hashtag"
-import { IconPhone } from "../icons/phone"
-import { IconSearch } from "../icons/search"
-import { IconUserPlus } from "../icons/user-plus"
+
+import { IconHashtagStroke, IconPhone2, IconSearch1 } from "../iconsv2"
 import { Avatar } from "../ui/avatar"
 import { Button } from "../ui/button"
 import { TextField } from "../ui/text-field"
@@ -73,7 +70,7 @@ export function ChatTopbar() {
 									</Match>
 									<Match when={channel().type === "private" || channel().type === "public"}>
 										<div class="flex items-center gap-1">
-											<IconHashtag class="size-5" />
+											<IconHashtagStroke class="size-5" />
 											<p class="max-w-[120px] truncate">{channel()?.name}</p>
 										</div>
 									</Match>
@@ -81,7 +78,7 @@ export function ChatTopbar() {
 							</div>
 							<div class="flex gap-2">
 								<Button size="square" intent="ghost">
-									<IconPhone />
+									<IconPhone2 />
 								</Button>
 								<PinnedModal />
 								<div class="flex items-center">
@@ -109,7 +106,7 @@ export function ChatTopbar() {
 									<TextField
 										aria-label="Search"
 										placeholder="Search"
-										suffix={<IconSearch class="mr-2 size-5 text-muted-foreground" />}
+										suffix={<IconSearch1 class="mr-2 size-5 text-muted-foreground" />}
 									/>
 								</div>
 							</div>

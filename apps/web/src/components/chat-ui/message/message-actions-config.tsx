@@ -8,6 +8,7 @@ import { IconPin } from "~/components/icons/pin"
 import { IconReply } from "~/components/icons/reply"
 import { IconThread } from "~/components/icons/thread"
 import { IconTrash } from "~/components/icons/trash"
+import { IconArrowBigTurnLeft1, IconCopy1, IconDeleteDustbin021, IconPinSlant1 } from "~/components/iconsv2"
 
 import { createMutation } from "~/lib/convex"
 import type { Message } from "~/lib/types"
@@ -56,7 +57,7 @@ export function createMessageActions(props: CreateMessageActionsProps) {
 		{
 			key: "reply",
 			label: "Reply",
-			icon: <IconReply class="size-4" />,
+			icon: <IconArrowBigTurnLeft1 class="size-4" />,
 			onAction: () => {
 				setState("replyToMessageId", props.message()._id)
 			},
@@ -74,7 +75,7 @@ export function createMessageActions(props: CreateMessageActionsProps) {
 		{
 			key: "pin",
 			label: props.isPinned() ? "Unpin" : "Pin",
-			icon: <IconPin class="size-4" />,
+			icon: <IconPinSlant1 class="size-4" />,
 			onAction: async () => {
 				if (props.isPinned()) {
 					await unpinMessageMutation({
@@ -97,7 +98,7 @@ export function createMessageActions(props: CreateMessageActionsProps) {
 		{
 			key: "copy-text",
 			label: "Copy Text",
-			icon: <IconCopy class="size-4" />,
+			icon: <IconCopy1 class="size-4" />,
 			onAction: () => navigator.clipboard.writeText(props.message().content),
 			hotkey: "c",
 			showMenu: true,
@@ -105,7 +106,7 @@ export function createMessageActions(props: CreateMessageActionsProps) {
 		{
 			key: "delete",
 			label: "Delete",
-			icon: <IconTrash class="size-4" />,
+			icon: <IconDeleteDustbin021 class="size-4" />,
 			onAction: async () =>
 				deleteMessageMutation({
 					id: props.message()._id,

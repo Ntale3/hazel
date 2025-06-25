@@ -1,38 +1,23 @@
 import type { Id } from "@hazel/backend"
 import { api } from "@hazel/backend/api"
-import { Label } from "@kobalte/core/text-field"
 import { useQuery } from "@tanstack/solid-query"
-import { Link, useLocation, useMatchRoute, useParams } from "@tanstack/solid-router"
+import { Link, useLocation, useParams } from "@tanstack/solid-router"
 import type { FunctionReturnType } from "convex/server"
-import {
-	type Accessor,
-	createEffect,
-	createMemo,
-	createSignal,
-	Index,
-	Match,
-	Suspense,
-	Switch,
-} from "solid-js"
-import { IconAudio } from "~/components/icons/audio"
-import { IconMutedAudio } from "~/components/icons/audio-muted"
-import { IconBubbles } from "~/components/icons/bubbles"
-import { IconDashboardLayout } from "~/components/icons/dashboard-layout"
-import { IconHashtag } from "~/components/icons/hashtag"
-import { IconHorizontalDots } from "~/components/icons/horizontal-dots"
+import { type Accessor, createMemo, createSignal, Index, Match, Suspense, Switch } from "solid-js"
 
-import { IconPhone } from "~/components/icons/phone"
-
-import { IconPlusSmall } from "~/components/icons/plus-small"
-
-import { IconX } from "~/components/icons/x"
 import {
 	IconChatChatting1,
-	IconChatChattingDuoSolid,
 	IconGridDashboard01DuoSolid,
+	IconHashtagStroke,
+	IconMultipleCrossCancelStroke,
+	IconPhone2,
+	IconPlusStroke,
+	IconThreeDotsMenuHorizontalStroke,
+	IconVolumeMute1,
+	IconVolumeOne1,
 } from "~/components/iconsv2"
 import { Avatar } from "~/components/ui/avatar"
-import { Button } from "~/components/ui/button"
+import { IconButton } from "~/components/ui/button"
 import { Dialog } from "~/components/ui/dialog"
 import { Menu } from "~/components/ui/menu"
 import { Sidebar } from "~/components/ui/sidebar"
@@ -132,7 +117,6 @@ export const AppSidebar = () => {
 				<Sidebar.Header class="gap-3.5 p-4">
 					<div class="flex w-full items-center justify-between">
 						<ActiveServer />
-						{/* <IconPlus class="size-4" /> */}
 					</div>
 				</Sidebar.Header>
 				<Sidebar.Content>
@@ -158,11 +142,10 @@ export const AppSidebar = () => {
 									onOpenChange={(details) => setCreateChannelModalOpen(details.open)}
 								>
 									<Dialog.Trigger
-										class="text-muted-foreground"
 										asChild={(props) => (
-											<Button intent="ghost" size="icon" {...props}>
-												<IconPlusSmall />
-											</Button>
+											<IconButton class="size-4.5" {...props}>
+												<IconPlusStroke />
+											</IconButton>
 										)}
 									/>
 									<Dialog.Content>
@@ -233,7 +216,7 @@ export const ChannelItem = (props: ChannelItemProps) => {
 	return (
 		<Sidebar.MenuItem>
 			<Sidebar.MenuButton as={Link} to="/$serverId/chat/$id" params={params() as any}>
-				<IconHashtag class="size-5 text-muted-foreground" />
+				<IconHashtagStroke class="size-5 text-muted-foreground" />
 				<p
 					class={cn(
 						"text-ellipsis text-nowrap text-muted-foreground group-hover/sidebar-item:text-foreground",
@@ -251,7 +234,7 @@ export const ChannelItem = (props: ChannelItemProps) => {
 							class="rounded-sm text-foreground data-[state=open]:bg-muted"
 							{...props()}
 						>
-							<IconHorizontalDots class="text-foreground" />
+							<IconThreeDotsMenuHorizontalStroke class="text-foreground" />
 							<span class="sr-only">More</span>
 						</Sidebar.MenuAction>
 					)}
@@ -376,7 +359,7 @@ const DmChannelLink = (props: DmChannelLinkProps) => {
 							class="rounded-sm text-foreground data-[state=open]:bg-muted"
 							{...props()}
 						>
-							<IconHorizontalDots class="text-foreground" />
+							<IconThreeDotsMenuHorizontalStroke class="text-foreground" />
 							<span class="sr-only">More</span>
 						</Sidebar.MenuAction>
 					)}
@@ -389,7 +372,7 @@ const DmChannelLink = (props: DmChannelLinkProps) => {
 							console.log("TODO: Implement call")
 						}}
 					>
-						<IconPhone class="size-4" />
+						<IconPhone2 class="size-4" />
 						Call
 					</Menu.Item>
 					<Menu.Separator />
@@ -409,7 +392,7 @@ const DmChannelLink = (props: DmChannelLinkProps) => {
 							})
 						}}
 					>
-						<IconX class="size-4" />
+						<IconMultipleCrossCancelStroke class="size-4" />
 						Close
 					</Menu.Item>
 				</Menu.Content>
@@ -436,7 +419,7 @@ const MuteMenuItem = (props: {
 				})
 			}}
 		>
-			{props.isMuted() ? <IconAudio class="size-4" /> : <IconMutedAudio class="size-4" />}
+			{props.isMuted() ? <IconVolumeOne1 class="size-4" /> : <IconVolumeMute1 class="size-4" />}
 			{props.isMuted() ? "Unmute" : "Mute"}
 		</Menu.Item>
 	)
