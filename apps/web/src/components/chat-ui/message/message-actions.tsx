@@ -6,7 +6,7 @@ import { twMerge } from "tailwind-merge"
 import { useChat } from "~/components/chat-state/chat-store"
 import { IconEmojiAdd } from "~/components/icons/emoji-add"
 import { IconHorizontalDots } from "~/components/icons/horizontal-dots"
-import { IconPlus } from "~/components/icons/plus"
+
 import { Button, buttonVariants } from "~/components/ui/button"
 import { Menu } from "~/components/ui/menu"
 import { Popover } from "~/components/ui/popover"

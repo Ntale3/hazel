@@ -20,12 +20,17 @@ import { IconBubbles } from "~/components/icons/bubbles"
 import { IconDashboardLayout } from "~/components/icons/dashboard-layout"
 import { IconHashtag } from "~/components/icons/hashtag"
 import { IconHorizontalDots } from "~/components/icons/horizontal-dots"
-import { IconPaperPlane } from "~/components/icons/paper-plane"
+
 import { IconPhone } from "~/components/icons/phone"
-import { IconPlus } from "~/components/icons/plus"
+
 import { IconPlusSmall } from "~/components/icons/plus-small"
-import { IconSupport } from "~/components/icons/support"
+
 import { IconX } from "~/components/icons/x"
+import {
+	IconChatChatting1,
+	IconChatChattingDuoSolid,
+	IconGridDashboard01DuoSolid,
+} from "~/components/iconsv2"
 import { Avatar } from "~/components/ui/avatar"
 import { Button } from "~/components/ui/button"
 import { Dialog } from "~/components/ui/dialog"
@@ -94,7 +99,7 @@ export const AppSidebar = () => {
 										} as any
 									}
 								>
-									<IconDashboardLayout />
+									<IconGridDashboard01DuoSolid />
 									<span>Home</span>
 								</Sidebar.MenuButton>
 							</Sidebar.MenuItem>
@@ -109,7 +114,8 @@ export const AppSidebar = () => {
 										} as any
 									}
 								>
-									<IconBubbles />
+									<IconChatChatting1 />
+									{/* <IconChatChattingDuoSolid /> */}
 									<span>Chat</span>
 								</Sidebar.MenuButton>
 							</Sidebar.MenuItem>

@@ -2,11 +2,11 @@ import { api } from "@hazel/backend/api"
 import { useQuery } from "@tanstack/solid-query"
 import { Link, useParams } from "@tanstack/solid-router"
 import { createEffect, createMemo, createSignal, For, Show } from "solid-js"
-import { IconChevronUpDown } from "~/components/icons/chevron-up-down"
+
 import { IconCopy } from "~/components/icons/copy"
 import { IconLoader } from "~/components/icons/loader"
 import { IconPeopleAdd } from "~/components/icons/people-add"
-import { IconPlus } from "~/components/icons/plus"
+import { IconPlusStroke } from "~/components/iconsv2"
 import { Avatar } from "~/components/ui/avatar"
 import { Button } from "~/components/ui/button"
 import { Dialog } from "~/components/ui/dialog"
@@ -85,7 +85,7 @@ export const WorkspaceSwitcher = () => {
 									class="gap-2 p-2"
 									onSelect={() => setCreateDialogOpen(true)}
 								>
-									<IconPlus class="size-4" />
+									<IconPlusStroke class="size-4" />
 									<div class="font-medium text-muted-foreground">Add Server</div>
 								</Menu.Item>
 								<Menu.Item
