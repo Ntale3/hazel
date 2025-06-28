@@ -83,11 +83,6 @@ export const sendNotification = internalMutation({
 
 			if (!account) return
 
-			await ctx.db.patch(member._id, {
-				notificationCount: member.notificationCount + 1,
-				lastSeenMessageId: member.lastSeenMessageId ?? message._id,
-			})
-
 			await ctx.db.insert("notifications", {
 				accountId: account._id,
 				targetedResourceId: args.channelId,
@@ -102,6 +97,11 @@ export const sendNotification = internalMutation({
 
 		await asyncMap(filteredChannelMembers, async (member) => {
 			if (!onlineUsers.find((user) => user.userId === member.userId)) return
+
+			await ctx.db.patch(member._id, {
+				notificationCount: member.notificationCount + 1,
+				lastSeenMessageId: member.lastSeenMessageId ?? message._id,
+			})
 
 			const user = await ctx.db.get(member.userId)
 
