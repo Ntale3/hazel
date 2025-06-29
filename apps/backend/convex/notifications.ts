@@ -1,30 +1,40 @@
-import { v } from "convex/values"
-import { asyncMap } from "convex-helpers"
-import { Account } from "./lib/activeRecords/account"
-import { userMutation } from "./middleware/withUser"
+import { Id } from "confect-plus/server"
+import { Effect, Option, Schema } from "effect"
+import { ConfectMutationCtx } from "./confect"
+import { userMutation } from "./middleware/withUserEffect"
 
 export const setNotifcationAsRead = userMutation({
-	args: {
-		serverId: v.id("servers"),
-		channelId: v.id("channels"),
-	},
-	handler: async (ctx, { channelId }) => {
-		const channelMember = await ctx.db
+	args: Schema.Struct({
+		channelId: Id.Id("channels"),
+	}),
+	returns: Schema.Null,
+	handler: Effect.fn(function* ({ channelId, userData }) {
+		const ctx = yield* ConfectMutationCtx
+
+		const channelMember = yield* ctx.db
 			.query("channelMembers")
-			.withIndex("by_channelIdAndUserId", (q) => q.eq("channelId", channelId).eq("userId", ctx.user.id))
+			.withIndex("by_channelIdAndUserId", (q) =>
+				q.eq("channelId", channelId).eq("userId", userData.user._id),
+			)
 			.first()
+			.pipe(Effect.map(Option.getOrThrowWith(() => new Error("You are not a member of this channel"))))
 
-		if (!channelMember) throw new Error("You are not a member of this channel")
-
-		const notifications = await ctx.db
+		const notifications = yield* ctx.db
 			.query("notifications")
 			.withIndex("by_accountId_targetedResourceId", (q) =>
-				q.eq("accountId", ctx.user.accountId).eq("targetedResourceId", channelId),
+				q.eq("accountId", userData.account._id).eq("targetedResourceId", channelId),
 			)
 			.collect()
 
-		await asyncMap(notifications, async (notification) => ctx.db.delete(notification._id))
+		yield* Effect.forEach(
+			notifications,
+			Effect.fn(function* (notification) {
+				yield* ctx.db.delete(notification._id)
+			}),
+		)
 
-		await ctx.db.patch(channelMember._id, { notificationCount: 0, lastSeenMessageId: undefined })
-	},
+		yield* ctx.db.patch(channelMember._id, { notificationCount: 0, lastSeenMessageId: undefined })
+
+		return null
+	}),
 })
