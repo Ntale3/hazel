@@ -1,7 +1,7 @@
 import type { Id as IdType } from "@hazel/backend"
 import { Id } from "confect-plus/server"
 import { Effect, Option, Schema } from "effect"
-import { ConfectMutationCtx, ConfectQueryCtx } from "./confect"
+import { ConfectQueryCtx, ConfectMutationCtx } from "./confect"
 import { userMutation, userQuery } from "./middleware/withUserEffect"
 
 export const getChannels = userQuery({
@@ -197,15 +197,7 @@ export const createChannel = userMutation({
 		threadMessageId: Schema.optional(Id.Id("messages")),
 	}),
 	returns: Id.Id("channels"),
-	handler: Effect.fn(function* ({
-		name,
-		type,
-		userIds,
-		parentChannelId,
-		threadMessageId,
-		userData,
-		serverId,
-	}) {
+	handler: Effect.fn(function* ({ name, type, userIds, parentChannelId, threadMessageId, userData, serverId }) {
 		const ctx = yield* ConfectMutationCtx
 
 		const channelId = yield* ctx.db.insert("channels", {
@@ -389,9 +381,7 @@ export const updateChannelPreferences = userMutation({
 
 		const channelMemberOption = yield* ctx.db
 			.query("channelMembers")
-			.withIndex("by_channelIdAndUserId", (q) =>
-				q.eq("channelId", channelId).eq("userId", userData.user._id),
-			)
+			.withIndex("by_channelIdAndUserId", (q) => q.eq("channelId", channelId).eq("userId", userData.user._id))
 			.first()
 
 		if (Option.isNone(channelMemberOption)) {

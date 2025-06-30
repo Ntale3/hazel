@@ -1,4 +1,5 @@
-import { defineSchema, defineTable, Id } from "confect-plus/server"
+import { defineSchema, defineTable, Id } from "@rjdellecese/confect/server"
+import { v } from "convex/values"
 import { Schema } from "effect"
 
 export const confectSchema = defineSchema({
