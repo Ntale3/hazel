@@ -23,22 +23,20 @@ import { convexQuery } from "~/lib/convex-query"
 import { cn } from "~/lib/utils"
 
 export interface ChannelItemProps {
-	channel: Accessor<FunctionReturnType<typeof api.channels.getChannels>["serverChannels"][0]>
-	serverId: Accessor<string>
+	channel: Accessor<FunctionReturnType<typeof api.channels.getChannelsForOrganization>["serverChannels"][0]>
 }
 
 export const ChannelItem = (props: ChannelItemProps) => {
 	const params = createMemo(() => ({
-		serverId: props.serverId(),
 		id: props.channel()._id,
 	}))
 
-	const leaveChannel = createMutation(api.channels.leaveChannel)
-	const _updateChannelPreferences = createMutation(api.channels.updateChannelPreferences)
+	const leaveChannel = createMutation(api.channels.leaveChannelForOrganization)
+	const _updateChannelPreferences = createMutation(api.channels.updateChannelPreferencesForOrganization)
 
 	return (
 		<Sidebar.MenuItem>
-			<Sidebar.MenuButton as={Link} to="/$serverId/chat/$id" params={params() as any}>
+			<Sidebar.MenuButton as={Link} to="/app/chat/$id" params={params() as any}>
 				<IconHashtagStroke class="size-5" />
 				<p class={cn("text-ellipsis text-nowrap", props.channel().isMuted && "opacity-60")}>
 					{props.channel().name}
@@ -65,12 +63,10 @@ export const ChannelItem = (props: ChannelItemProps) => {
 				<Menu.Content>
 					<MuteMenuItem
 						channelId={() => props.channel()._id}
-						serverId={props.serverId}
 						isMuted={() => props.channel().isMuted}
 					/>
 					<FavoriteChannelMenuItem
 						channelId={() => props.channel()._id}
-						serverId={props.serverId}
 						isFavorite={() => props.channel().isFavorite}
 					/>
 					<Menu.Item
@@ -79,7 +75,6 @@ export const ChannelItem = (props: ChannelItemProps) => {
 						onSelect={() => {
 							leaveChannel({
 								channelId: props.channel()._id as Id<"channels">,
-								serverId: props.serverId() as Id<"servers">,
 							})
 						}}
 					>
@@ -95,9 +90,8 @@ export const ChannelItem = (props: ChannelItemProps) => {
 const MuteMenuItem = (props: {
 	channelId: Accessor<string>
 	isMuted: Accessor<boolean>
-	serverId: Accessor<string>
 }) => {
-	const updateChannelPreferences = createMutation(api.channels.updateChannelPreferences)
+	const updateChannelPreferences = createMutation(api.channels.updateChannelPreferencesForOrganization)
 
 	return (
 		<Menu.Item
@@ -105,7 +99,6 @@ const MuteMenuItem = (props: {
 			onSelect={async () => {
 				await updateChannelPreferences({
 					channelId: props.channelId() as Id<"channels">,
-					serverId: props.serverId() as Id<"servers">,
 					isMuted: !props.isMuted(),
 				})
 			}}
@@ -119,9 +112,8 @@ const MuteMenuItem = (props: {
 const FavoriteChannelMenuItem = (props: {
 	channelId: Accessor<string>
 	isFavorite: Accessor<boolean>
-	serverId: Accessor<string>
 }) => {
-	const updateChannelPreferences = createMutation(api.channels.updateChannelPreferences)
+	const updateChannelPreferences = createMutation(api.channels.updateChannelPreferencesForOrganization)
 
 	return (
 		<Menu.Item
@@ -129,7 +121,6 @@ const FavoriteChannelMenuItem = (props: {
 			onSelect={async () => {
 				await updateChannelPreferences({
 					channelId: props.channelId() as Id<"channels">,
-					serverId: props.serverId() as Id<"servers">,
 					isFavorite: !props.isFavorite(),
 				})
 			}}
@@ -141,8 +132,7 @@ const FavoriteChannelMenuItem = (props: {
 }
 
 interface DmChannelLinkProps {
-	channel: Accessor<FunctionReturnType<typeof api.channels.getChannels>["dmChannels"][0]>
-	serverId: Accessor<Id<"servers">>
+	channel: Accessor<FunctionReturnType<typeof api.channels.getChannelsForOrganization>["dmChannels"][0]>
 	userPresence: Accessor<
 		{
 			userId: string
@@ -154,15 +144,14 @@ interface DmChannelLinkProps {
 
 export const DmChannelLink = (props: DmChannelLinkProps) => {
 	const meQuery = useQuery(() => ({
-		...convexQuery(api.me.getUser, { serverId: props.serverId() }),
+		...convexQuery(api.me.getCurrentUser, {}),
 	}))
 
 	const params = createMemo(() => ({
-		serverId: props.serverId(),
 		id: props.channel()._id,
 	}))
 
-	const updateChannelPreferences = createMutation(api.channels.updateChannelPreferences)
+	const updateChannelPreferences = createMutation(api.channels.updateChannelPreferencesForOrganization)
 
 	const filteredMembers = createMemo(() =>
 		props.channel().members.filter((member) => member.userId !== meQuery.data?._id),
@@ -170,7 +159,7 @@ export const DmChannelLink = (props: DmChannelLinkProps) => {
 
 	return (
 		<Sidebar.MenuItem>
-			<Sidebar.MenuButton as={Link} to="/$serverId/chat/$id" params={params() as any}>
+			<Sidebar.MenuButton as={Link} to="/app/chat/$id" params={params() as any}>
 				<div class="-space-x-4 flex items-center justify-center">
 					<Switch>
 						<Match when={props.channel().type === "single" && filteredMembers().length === 1}>
@@ -250,12 +239,10 @@ export const DmChannelLink = (props: DmChannelLinkProps) => {
 
 					<MuteMenuItem
 						channelId={() => props.channel()._id}
-						serverId={props.serverId}
 						isMuted={() => props.channel().isMuted}
 					/>
 					<FavoriteChannelMenuItem
 						channelId={() => props.channel()._id}
-						serverId={props.serverId}
 						isFavorite={() => props.channel().isFavorite}
 					/>
 					<Menu.Item
@@ -264,7 +251,6 @@ export const DmChannelLink = (props: DmChannelLinkProps) => {
 						onSelect={async () => {
 							await updateChannelPreferences({
 								channelId: props.channel()._id as Id<"channels">,
-								serverId: props.serverId() as Id<"servers">,
 								isHidden: true,
 							})
 						}}

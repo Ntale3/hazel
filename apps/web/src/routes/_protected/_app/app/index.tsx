@@ -15,43 +15,31 @@ import { TextField } from "~/components/ui/text-field"
 import { createMutation } from "~/lib/convex"
 import { convexQuery } from "~/lib/convex-query"
 
-export const Route = createFileRoute("/_protected/_app/$serverId/")({
+export const Route = createFileRoute("/_protected/_app/app/")({
 	component: RouteComponent,
 })
 
 function RouteComponent() {
 	const navigate = Route.useNavigate()
-	const params = Route.useParams()
 
 	const [searchQuery, setSearchQuery] = createSignal("")
 
-	const membersQuery = useQuery(() =>
-		convexQuery(api.social.getMembers, {
-			serverId: params().serverId as Id<"servers">,
-		}),
-	)
+	const membersQuery = useQuery(() => convexQuery(api.social.getMembersForOrganization, {}))
 
 	const currentUserQuery = useQuery(() => convexQuery(api.me.get, {}))
 
-	const createDmChannel = createMutation(api.channels.creatDmChannel)
+	const createDmChannel = createMutation(api.channels.createDmChannelForOrganization)
 
-	const handleOpenChat = async ({
-		targetUserId,
-		serverId,
-	}: {
-		targetUserId: Id<"users">
-		serverId: Id<"servers">
-	}) => {
+	const handleOpenChat = async ({ targetUserId }: { targetUserId: Id<"users"> }) => {
 		if (!targetUserId) {
 			return
 		}
 
 		const channelId = await createDmChannel({
-			serverId: serverId,
 			userId: targetUserId,
 		})
 
-		navigate({ to: "/$serverId/chat/$id" as const, params: { id: channelId, serverId } })
+		navigate({ to: "/app/chat/$id", params: { id: channelId } })
 	}
 
 	return (
@@ -91,7 +79,6 @@ function RouteComponent() {
 											onClick={() =>
 												handleOpenChat({
 													targetUserId: member._id,
-													serverId: params().serverId as Id<"servers">,
 												})
 											}
 										>

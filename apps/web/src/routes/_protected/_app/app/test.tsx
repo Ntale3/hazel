@@ -3,7 +3,7 @@ import { createVirtualizer, type VirtualItem } from "@tanstack/solid-virtual"
 
 import { type Accessor, createEffect, createMemo, createSignal, For, type JSX } from "solid-js"
 
-export const Route = createFileRoute("/_protected/_app/$serverId/test")({
+export const Route = createFileRoute("/_protected/_app/app/test")({
 	component: RouteComponent,
 })
 

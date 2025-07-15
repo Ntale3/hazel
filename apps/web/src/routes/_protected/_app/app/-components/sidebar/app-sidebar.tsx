@@ -39,12 +39,13 @@ import { ChannelItem, DmChannelLink } from "./channel-item"
 import { SidebarFavoriteGroup } from "./sidebar-favorite-group"
 
 export const AppSidebar = () => {
-	const params = useParams({ from: "/_protected/_app/$serverId" })
-	const serverId = createMemo(() => params().serverId as Id<"servers">)
+	const serverQuery = useQuery(() =>
+		convexQuery(api.servers.getCurrentServer, {}),
+	)
+	const serverId = createMemo(() => serverQuery.data?._id as Id<"servers">)
 
 	const channelsQuery = useQuery(() =>
-		convexQuery(api.channels.getChannels, {
-			serverId: serverId(),
+		convexQuery(api.channels.getChannelsForOrganization, {
 			favoriteFilter: {
 				favorite: false,
 			},
@@ -72,15 +73,10 @@ export const AppSidebar = () => {
 								<Sidebar.MenuButton
 									class="px-2.5 md:px-2"
 									as={Link}
-									to="/$serverId"
+									to="/app"
 									activeOptions={{
 										exact: true,
 									}}
-									params={
-										{
-											serverId: serverId(),
-										} as any
-									}
 								>
 									<IconGridDashboard01DuoSolid />
 									<span>Home</span>
@@ -90,12 +86,7 @@ export const AppSidebar = () => {
 								<Sidebar.MenuButton
 									class="px-2.5 md:px-2"
 									as={Link}
-									to="/$serverId/chat"
-									params={
-										{
-											serverId: serverId(),
-										} as any
-									}
+									to="/app/chat"
 								>
 									<IconChatChatting1 />
 									{/* <IconChatChattingDuoSolid /> */}
@@ -133,8 +124,7 @@ export const AppSidebar = () => {
 								<Sidebar.MenuItem>
 									<Sidebar.MenuButton
 										as={Link}
-										to="/$serverId/notifications"
-										params={params() as any}
+										to="/app/notifications"
 									>
 										<IconNotificationBellOn1 /> Notifications
 										<Sidebar.MenuBadge class="rounded-full bg-destructive">
@@ -144,7 +134,7 @@ export const AppSidebar = () => {
 								</Sidebar.MenuItem>
 							</Sidebar.GroupContent>
 						</Sidebar.Group>
-						<SidebarFavoriteGroup serverId={() => params().serverId as Id<"servers">} />
+						<SidebarFavoriteGroup />
 						<Sidebar.Group>
 							<Sidebar.GroupLabel>Channels</Sidebar.GroupLabel>
 							<Sidebar.GroupAction>
@@ -167,13 +157,11 @@ export const AppSidebar = () => {
 											</Tabs.List>
 											<Tabs.Content value="join">
 												<JoinPublicChannel
-													serverId={serverId}
 													onSuccess={() => setCreateChannelModalOpen(false)}
 												/>
 											</Tabs.Content>
 											<Tabs.Content value="create">
 												<CreateChannelForm
-													serverId={serverId}
 													onSuccess={() => setCreateChannelModalOpen(false)}
 												/>
 											</Tabs.Content>
@@ -184,7 +172,7 @@ export const AppSidebar = () => {
 							<Sidebar.GroupContent>
 								<Sidebar.Menu>
 									<Index each={channelsQuery.data?.serverChannels}>
-										{(channel) => <ChannelItem channel={channel} serverId={serverId} />}
+										{(channel) => <ChannelItem channel={channel} />}
 									</Index>
 								</Sidebar.Menu>
 							</Sidebar.GroupContent>
@@ -192,7 +180,7 @@ export const AppSidebar = () => {
 						<Sidebar.Group>
 							<Sidebar.GroupLabel>Direct Messages</Sidebar.GroupLabel>
 							<Sidebar.GroupAction>
-								<CreateDmDialog serverId={serverId} />
+								<CreateDmDialog />
 							</Sidebar.GroupAction>
 							<Sidebar.Menu>
 								<Index each={dmChannels()}>
@@ -200,7 +188,6 @@ export const AppSidebar = () => {
 										<DmChannelLink
 											userPresence={presenceState.presenceList}
 											channel={channel}
-											serverId={serverId}
 										/>
 									)}
 								</Index>
@@ -214,17 +201,13 @@ export const AppSidebar = () => {
 }
 
 const ActiveServer = () => {
-	const params = useParams({ from: "/_protected/_app/$serverId" })
-
-	const serversQuery = useQuery(() => convexQuery(api.servers.getServersForUser, {}))
-
-	const activeServer = createMemo(() =>
-		serversQuery.data?.find((server) => server._id === params().serverId),
+	const serverQuery = useQuery(() =>
+		convexQuery(api.servers.getCurrentServer, {}),
 	)
 
 	return (
 		<Suspense>
-			<div class="font-semibold text-foreground text-lg">{activeServer()?.name}</div>
+			<div class="font-semibold text-foreground text-lg">{serverQuery.data?.name}</div>
 		</Suspense>
 	)
 }

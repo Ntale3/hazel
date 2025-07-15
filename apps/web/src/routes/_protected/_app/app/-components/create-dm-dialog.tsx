@@ -17,15 +17,11 @@ import { createMutation } from "~/lib/convex"
 import { convexQuery } from "~/lib/convex-query"
 import { cn } from "~/lib/utils"
 
-export interface CreateDmDialogProps {
-	serverId: Accessor<Id<"servers">>
-}
 
-export const CreateDmDialog = (props: CreateDmDialogProps) => {
-	const friendsQuery = useQuery(() => convexQuery(api.social.getFriends, { serverId: props.serverId() }))
+export const CreateDmDialog = () => {
+	const friendsQuery = useQuery(() => convexQuery(api.social.getFriendsForOrganization, {}))
 
-	const createChannelMutation = createMutation(api.channels.createChannel)
-	const createDmChannelMutation = createMutation(api.channels.creatDmChannel)
+	const createDmChannelMutation = createMutation(api.channels.createDmChannelForOrganization)
 
 	const [friendFilter, setFriendFilter] = createSignal<string>("")
 
@@ -162,16 +158,11 @@ export const CreateDmDialog = (props: CreateDmDialogProps) => {
 
 							if (selectFriends().length === 1) {
 								channelId = await createDmChannelMutation({
-									serverId: props.serverId() as Id<"servers">,
 									userId: selectFriends()[0]._id as Id<"users">,
 								})
 							} else {
-								channelId = await createChannelMutation({
-									serverId: props.serverId() as Id<"servers">,
-									userIds: selectFriends().map((friend) => friend._id as Id<"users">),
-									type: "direct",
-									name: "Dm Channel",
-								})
+								// Multi-user DM not implemented yet
+								throw new Error("Multi-user DM channels not supported")
 							}
 
 							setDialogOpen(false)
@@ -180,8 +171,8 @@ export const CreateDmDialog = (props: CreateDmDialogProps) => {
 							setFriendFilter("")
 
 							navigate({
-								to: "/$serverId/chat/$id" as const,
-								params: { id: channelId, serverId: props.serverId() },
+								to: "/app/chat/$id",
+								params: { id: channelId },
 							})
 						}}
 					>

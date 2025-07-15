@@ -8,7 +8,6 @@ import { createMutation } from "~/lib/convex"
 import { convexQuery } from "~/lib/convex-query"
 
 export interface JoinPublicChannelProps {
-	serverId: Accessor<Id<"servers">>
 	onSuccess?: () => void
 }
 
@@ -16,14 +15,12 @@ export const JoinPublicChannel = (props: JoinPublicChannelProps) => {
 	const navigate = useNavigate()
 
 	const unjoinedChannelsQuery = useQuery(() =>
-		convexQuery(api.channels.getUnjoinedPublicChannels, {
-			serverId: props.serverId(),
-		}),
+		convexQuery(api.channels.getUnjoinedPublicChannelsForOrganization, {}),
 	)
 
 	const computedUnjoinedChannels = createMemo(() => unjoinedChannelsQuery.data || [])
 
-	const joinChannel = createMutation(api.channels.joinChannel)
+	const joinChannel = createMutation(api.channels.joinChannelForOrganization)
 
 	return (
 		<Show
@@ -38,13 +35,12 @@ export const JoinPublicChannel = (props: JoinPublicChannelProps) => {
 						onClick={async () => {
 							await joinChannel({
 								channelId: channel._id as Id<"channels">,
-								serverId: props.serverId() as Id<"servers">,
 							})
 
 							props.onSuccess?.()
 							navigate({
-								to: "/$serverId/chat/$id",
-								params: { id: channel._id, serverId: props.serverId() },
+								to: "/app/chat/$id",
+								params: { id: channel._id },
 							})
 						}}
 					>

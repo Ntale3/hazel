@@ -9,7 +9,7 @@ import { UserAvatar } from "~/components/ui/user-avatar"
 import { usePresenceState } from "~/lib/convex-presence"
 import { convexQuery } from "~/lib/convex-query"
 
-export const Route = createFileRoute("/_protected/_app/$serverId/profile/$id")({
+export const Route = createFileRoute("/_protected/_app/app/profile/$id")({
 	component: RouteComponent,
 })
 
@@ -17,9 +17,8 @@ function RouteComponent() {
 	const params = Route.useParams()
 	const nav = useNavigate()
 	const userQuery = useQuery(() =>
-		convexQuery(api.users.getUser, {
+		convexQuery(api.users.getUserForOrganization, {
 			userId: params().id as Id<"users">,
-			serverId: params().serverId as Id<"servers">,
 		}),
 	)
 

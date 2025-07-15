@@ -3,7 +3,7 @@ import { EmojiPicker } from "~/components/chat-ui/message/emoji-picker"
 import { Button } from "~/components/ui/button"
 import { Popover } from "~/components/ui/popover"
 
-export const Route = createFileRoute("/_protected/_app/$serverId/billing")({
+export const Route = createFileRoute("/_protected/_app/app/billing")({
 	component: RouteComponent,
 })
 

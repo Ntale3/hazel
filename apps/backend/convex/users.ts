@@ -1,6 +1,7 @@
 import { v } from "convex/values"
 import { accountMutation } from "./middleware/withAccount"
 import { userQuery } from "./middleware/withUser"
+import { organizationServerQuery } from "./middleware/withOrganizationServer"
 
 export const getUsers = userQuery({
 	args: {},
@@ -9,6 +10,18 @@ export const getUsers = userQuery({
 			.query("users")
 			.withIndex("by_server_id", (q) => q.eq("serverId", args.serverId))
 			.collect()
+	},
+})
+
+export const getUserForOrganization = organizationServerQuery({
+	args: {
+		userId: v.id("users"),
+	},
+	handler: async (ctx, args) => {
+		const user = await ctx.db.get(args.userId)
+		if (!user) throw new Error("User not found")
+		if (user.serverId !== ctx.serverId) throw new Error("User not in this server")
+		return user
 	},
 })
 

@@ -12,13 +12,12 @@ import { convexQuery } from "~/lib/convex-query"
 import { removeCurrentServerId, setCurrentServerId } from "~/lib/helpers/localstorage"
 import { AppSidebar } from "./-components/sidebar/app-sidebar"
 
-export const Route = createFileRoute("/_protected/_app/$serverId")({
+export const Route = createFileRoute("/_protected/_app/app")({
 	component: RouteComponent,
-	loader: ({ context: { queryClient }, params }) =>
+	loader: ({ context: { queryClient } }) =>
 		queryClient
 			.ensureQueryData(
-				convexQuery(api.channels.getChannels, {
-					serverId: params.serverId as Id<"servers">,
+				convexQuery(api.channels.getChannelsForOrganization, {
 					favoriteFilter: {
 						favorite: false,
 					},
@@ -29,29 +28,27 @@ export const Route = createFileRoute("/_protected/_app/$serverId")({
 
 function RouteComponent() {
 	const queryClient = useQueryClient()
-	const params = Route.useParams()
 	const navigate = Route.useNavigate()
 
 	const serverQuery = useQuery(() =>
-		convexQuery(api.servers.getServerForUser, { serverId: params().serverId as Id<"servers"> }),
+		convexQuery(api.servers.getCurrentServer, {}),
 	)
 
 	const meQuery = useQuery(() =>
-		convexQuery(api.me.getUser, { serverId: params().serverId as Id<"servers"> }),
+		convexQuery(api.me.getCurrentUser, {}),
 	)
 
 	createEffect(async () => {
 		await Promise.all([
 			queryClient.prefetchQuery(
-				convexQuery(api.servers.getServerForUser, { serverId: params().serverId as Id<"servers"> }),
+				convexQuery(api.servers.getCurrentServer, {}),
 			),
 			queryClient.prefetchQuery(
-				convexQuery(api.me.getUser, { serverId: params().serverId as Id<"servers"> }),
+				convexQuery(api.me.getCurrentUser, {}),
 			),
 			queryClient.prefetchQuery(convexQuery(api.me.get, {})),
 			queryClient.prefetchQuery(
-				convexQuery(api.channels.getChannels, {
-					serverId: params().serverId as Id<"servers">,
+				convexQuery(api.channels.getChannelsForOrganization, {
 					favoriteFilter: {
 						favorite: false,
 					},
@@ -77,10 +74,10 @@ function RouteComponent() {
 	return (
 		<Suspense>
 			<PresenceProvider
-				roomId={() => params().serverId as Id<"servers">}
+				roomId={() => serverQuery.data?._id as Id<"servers">}
 				userId={() => meQuery.data?._id!}
 			>
-				<CommandBar serverId={() => params().serverId as Id<"servers">} />
+				<CommandBar serverId={() => serverQuery.data?._id as Id<"servers">} />
 				<Sidebar.Provider>
 					<AppSidebar />
 					<Sidebar.Inset>

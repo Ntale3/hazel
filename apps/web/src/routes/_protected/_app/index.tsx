@@ -1,33 +1,29 @@
 import { api } from "@hazel/backend/api"
 import { useQuery } from "@tanstack/solid-query"
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/solid-router"
-import { useAuth } from "authkit-solidjs"
 import { For } from "solid-js"
 import { Card } from "~/components/ui/card"
 import { convexQuery } from "~/lib/convex-query"
 
 export const Route = createFileRoute("/_protected/_app/")({
 	component: App,
-	beforeLoad: async ({ context }) => {
-		await context.convex.awaitAuth()
+	// beforeLoad: async ({ context }) => {
+	// 	await context.convex.awaitAuth()
 
-		const res = await context.convex.query(api.me.getOrganization, {})
+	// 	const res = await context.convex.query(api.me.getOrganization, {})
 
-		if (res.directive === "redirect") {
-			throw redirect({
-				to: res.to,
-			})
-		}
+	// 	if (res.directive === "redirect") {
+	// 		throw redirect({
+	// 			to: res.to,
+	// 		})
+	// 	}
 
-		if (res.directive === "success") {
-			throw redirect({
-				to: "/$serverId",
-				params: {
-					serverId: res.data._id,
-				},
-			})
-		}
-	},
+	// 	if (res.directive === "success") {
+	// 		throw redirect({
+	// 			to: "/app",
+	// 		})
+	// 	}
+	// },
 })
 
 function App() {
@@ -47,7 +43,7 @@ function App() {
 			<div class="flex flex-row gap-3">
 				<For each={serversQuery.data}>
 					{(server) => (
-						<Link to="/$serverId" params={{ serverId: server._id }}>
+						<Link to="/app">
 							<Card>
 								<Card.Header>
 									<Card.Title>{server.name}</Card.Title>

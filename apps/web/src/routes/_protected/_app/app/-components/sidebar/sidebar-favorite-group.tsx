@@ -7,10 +7,9 @@ import { usePresenceState } from "~/lib/convex-presence"
 import { convexQuery } from "~/lib/convex-query"
 import { ChannelItem, DmChannelLink } from "./channel-item"
 
-export const SidebarFavoriteGroup = (props: { serverId: Accessor<Id<"servers">> }) => {
+export const SidebarFavoriteGroup = () => {
 	const favoritedChannelsQuery = useQuery(() =>
-		convexQuery(api.channels.getChannels, {
-			serverId: props.serverId(),
+		convexQuery(api.channels.getChannelsForOrganization, {
 			favoriteFilter: {
 				favorite: true,
 			},
@@ -35,13 +34,12 @@ export const SidebarFavoriteGroup = (props: { serverId: Accessor<Id<"servers">> 
 								{(channel) => (
 									<Switch>
 										<Match when={channel.type === "private" || channel.type === "public"}>
-											<ChannelItem channel={() => channel} serverId={props.serverId} />
+											<ChannelItem channel={() => channel} />
 										</Match>
 										<Match when={true}>
 											<DmChannelLink
 												userPresence={userPresenceState.presenceList}
 												channel={() => channel}
-												serverId={props.serverId}
 											/>
 										</Match>
 									</Switch>

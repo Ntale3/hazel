@@ -1,10 +1,29 @@
 import { v } from "convex/values"
 import { accountQuery } from "./middleware/withAccount"
+import { organizationServerQuery } from "./middleware/withOrganizationServer"
 
 export const get = accountQuery({
 	args: {},
 	handler: async (ctx) => {
 		return ctx.account.doc
+	},
+})
+
+export const getCurrentUser = organizationServerQuery({
+	args: {},
+	handler: async (ctx) => {
+		const user = await ctx.db
+			.query("users")
+			.withIndex("by_accountId_serverId", (q) =>
+				q.eq("accountId", ctx.account.doc._id).eq("serverId", ctx.serverId),
+			)
+			.first()
+
+		if (!user) {
+			throw new Error("User not found in this server")
+		}
+
+		return user
 	},
 })
 

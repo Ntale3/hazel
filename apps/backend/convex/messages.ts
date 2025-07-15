@@ -3,6 +3,42 @@ import { v } from "convex/values"
 import { asyncMap } from "convex-helpers"
 import { internal } from "./_generated/api"
 import { userMutation, userQuery } from "./middleware/withUser"
+import { organizationServerMutation, organizationServerQuery } from "./middleware/withOrganizationServer"
+
+export const getMessageForOrganization = organizationServerQuery({
+	args: {
+		channelId: v.id("channels"),
+		id: v.id("messages"),
+	},
+	handler: async (ctx, args) => {
+		const user = await ctx.db
+			.query("users")
+			.withIndex("by_accountId_serverId", (q) =>
+				q.eq("accountId", ctx.account.doc._id).eq("serverId", ctx.serverId),
+			)
+			.first()
+
+		if (!user) {
+			throw new Error("User not found in this server")
+		}
+
+		// Validate user can view the channel
+		const channel = await ctx.db.get(args.channelId)
+		if (!channel) throw new Error("Channel not found")
+		if (channel.serverId !== ctx.serverId) throw new Error("Channel not in this server")
+
+		const message = await ctx.db.get(args.id)
+		if (!message) throw new Error("Message not found")
+
+		const messageAuthor = await ctx.db.get(message.authorId)
+		if (!messageAuthor) throw new Error("Message author not found")
+
+		return {
+			...message,
+			author: messageAuthor,
+		}
+	},
+})
 
 export const getMessage = userQuery({
 	args: {
@@ -22,6 +58,70 @@ export const getMessage = userQuery({
 		return {
 			...message,
 			author: messageAuthor,
+		}
+	},
+})
+
+export const getMessagesForOrganization = organizationServerQuery({
+	args: {
+		channelId: v.id("channels"),
+		paginationOpts: paginationOptsValidator,
+	},
+	handler: async (ctx, args) => {
+		const user = await ctx.db
+			.query("users")
+			.withIndex("by_accountId_serverId", (q) =>
+				q.eq("accountId", ctx.account.doc._id).eq("serverId", ctx.serverId),
+			)
+			.first()
+
+		if (!user) {
+			throw new Error("User not found in this server")
+		}
+
+		const channel = await ctx.db.get(args.channelId)
+		if (!channel) throw new Error("Channel not found")
+		if (channel.serverId !== ctx.serverId) throw new Error("Channel not in this server")
+
+		// Validate user can view the channel
+		// TODO: Add proper channel permission check here
+
+		const messages = await ctx.db
+			.query("messages")
+			.withIndex("by_channelId", (q) => q.eq("channelId", args.channelId))
+			.order("desc")
+			.paginate(args.paginationOpts)
+
+		const messagesWithThreadMessages = await asyncMap(messages.page, async (message) => {
+			if (message.threadChannelId) {
+				const threadMessages = await ctx.db
+					.query("messages")
+					.withIndex("by_channelId", (q) => q.eq("channelId", message.threadChannelId!))
+					.order("desc")
+					.collect()
+
+				return {
+					...message,
+					threadMessages,
+				}
+			}
+
+			return message
+		})
+
+		const messagesWithAuthors = await asyncMap(messagesWithThreadMessages, async (message) => {
+			const author = await ctx.db.get(message.authorId)
+			if (!author) throw new Error("Message author not found")
+
+			return {
+				...message,
+				author,
+			}
+		})
+
+		return {
+			...messages,
+			page: messagesWithAuthors,
 		}
 	},
 })
@@ -88,6 +188,60 @@ export const getMessages = userQuery({
 			...messages,
 			page: messagesWithAuthor,
 		}
+	},
+})
+
+export const createMessageForOrganization = organizationServerMutation({
+	args: {
+		content: v.string(),
+		channelId: v.id("channels"),
+		threadChannelId: v.optional(v.id("channels")),
+		replyToMessageId: v.optional(v.id("messages")),
+		attachedFiles: v.array(v.string()),
+	},
+	handler: async (ctx, args) => {
+		if (args.content.trim() === "") {
+			throw new Error("Message content cannot be empty")
+		}
+
+		const user = await ctx.db
+			.query("users")
+			.withIndex("by_accountId_serverId", (q) =>
+				q.eq("accountId", ctx.account.doc._id).eq("serverId", ctx.serverId),
+			)
+			.first()
+
+		if (!user) {
+			throw new Error("User not found in this server")
+		}
+
+		// Validate channel belongs to this server
+		const channel = await ctx.db.get(args.channelId)
+		if (!channel) throw new Error("Channel not found")
+		if (channel.serverId !== ctx.serverId) throw new Error("Channel not in this server")
+
+		// TODO: Add proper channel membership validation
+
+		const messageId = await ctx.db.insert("messages", {
+			channelId: args.channelId,
+			content: args.content,
+			threadChannelId: args.threadChannelId,
+			authorId: user._id,
+			replyToMessageId: args.replyToMessageId,
+			attachedFiles: args.attachedFiles,
+			updatedAt: Date.now(),
+			reactions: [],
+		})
+
+		// TODO: This should be a database trigger
+		await ctx.scheduler.runAfter(0, internal.background.index.sendNotification, {
+			channelId: args.channelId,
+			accountId: user.accountId,
+			messageId: messageId,
+			userId: user._id,
+		})
+
+		return messageId
 	},
 })
 

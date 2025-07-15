@@ -1,4 +1,28 @@
 import { userQuery } from "./middleware/withUser"
+import { organizationServerQuery } from "./middleware/withOrganizationServer"
+
+export const getFriendsForOrganization = organizationServerQuery({
+	args: {},
+	handler: async (ctx) => {
+		const user = await ctx.db
+			.query("users")
+			.withIndex("by_accountId_serverId", (q) =>
+				q.eq("accountId", ctx.account.doc._id).eq("serverId", ctx.serverId),
+			)
+			.first()
+
+		if (!user) {
+			throw new Error("User not found in this server")
+		}
+
+		const friends = await ctx.db
+			.query("users")
+			.withIndex("by_server_id", (q) => q.eq("serverId", ctx.serverId))
+			.collect()
+
+		return friends.filter((f) => f._id !== user._id)
+	},
+})
 
 export const getFriends = userQuery({
 	args: {},
@@ -21,5 +45,17 @@ export const getMembers = userQuery({
 			.collect()
 
 		return friends
+	},
+})
+
+export const getMembersForOrganization = organizationServerQuery({
+	args: {},
+	handler: async (ctx) => {
+		const members = await ctx.db
+			.query("users")
+			.withIndex("by_server_id", (q) => q.eq("serverId", ctx.serverId))
+			.collect()
+
+		return members
 	},
 })

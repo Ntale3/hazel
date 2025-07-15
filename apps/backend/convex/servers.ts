@@ -2,6 +2,7 @@ import { paginationOptsValidator } from "convex/server"
 import { v } from "convex/values"
 import { query } from "./_generated/server"
 import { accountMutation, accountQuery } from "./middleware/withAccount"
+import { organizationServerQuery } from "./middleware/withOrganizationServer"
 
 export const getServer = accountQuery({
 	args: {
@@ -85,6 +86,13 @@ export const getServerFromOrganization = accountQuery({
 		if (!serverMember) return null
 
 		return server
+	},
+})
+
+export const getCurrentServer = organizationServerQuery({
+	args: {},
+	handler: async (ctx) => {
+		return ctx.server
 	},
 })
 

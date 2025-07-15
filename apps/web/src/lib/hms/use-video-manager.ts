@@ -28,9 +28,9 @@ hms.triggerOnSubscribe()
 export const hmsActions = hms.getActions()
 export const hmsStore = hms.getStore()
 
-export function useCallManager(props: { serverId: Id<"servers"> }) {
+export function useCallManager() {
 	const meQuery = useQuery(() => ({
-		...convexQuery(api.me.getUser, { serverId: props.serverId }),
+		...convexQuery(api.me.getCurrentUser, {}),
 	}))
 
 	const [store, setStore] = createStore({

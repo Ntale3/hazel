@@ -12,16 +12,13 @@ import { IconVideoOff } from "~/components/icons/video-off"
 import { Button, buttonVariants } from "~/components/ui/button"
 import { TextField } from "~/components/ui/text-field"
 import { hmsActions, useCallManager } from "~/lib/hms/use-video-manager"
-export const Route = createFileRoute("/_protected/_app/$serverId/video")({
+export const Route = createFileRoute("/_protected/_app/app/video")({
 	component: RouteComponent,
 })
 
 function RouteComponent() {
-	const params = Route.useParams()
 	const { store, joinCall, leaveCall, setLocalAudio, setLocalVideo, toggleScreenShare, setPeerVolume } =
-		useCallManager({
-			serverId: params().serverId as Id<"servers">,
-		})
+		useCallManager()
 	const [roomCode, setRoomCode] = createSignal("ahf-hxjo-caw")
 
 	const handleJoinCall = async () => {

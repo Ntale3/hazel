@@ -10,14 +10,13 @@ import { TextField } from "~/components/ui/text-field"
 import { createMutation } from "~/lib/convex"
 
 export interface CreateChannelFormProps {
-	serverId: Accessor<string>
 	onSuccess?: () => void
 }
 
 export const CreateChannelForm = (props: CreateChannelFormProps) => {
 	const navigate = useNavigate()
 
-	const createChannel = createMutation(api.channels.createChannel)
+	const createChannel = createMutation(api.channels.createChannelForOrganization)
 
 	const form = createForm(() => ({
 		defaultValues: {
@@ -32,7 +31,6 @@ export const CreateChannelForm = (props: CreateChannelFormProps) => {
 		},
 		onSubmit: async ({ value, formApi }) => {
 			const channelId = await createChannel({
-				serverId: props.serverId() as Id<"servers">,
 				name: value.name,
 				type: value.channelType as "public" | "private",
 			})
@@ -40,7 +38,7 @@ export const CreateChannelForm = (props: CreateChannelFormProps) => {
 			formApi.reset()
 			props.onSuccess?.()
 
-			navigate({ to: "/$serverId/chat/$id", params: { id: channelId, serverId: props.serverId() } })
+			navigate({ to: "/app/chat/$id", params: { id: channelId } })
 		},
 	}))
 

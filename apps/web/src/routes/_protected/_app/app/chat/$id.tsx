@@ -9,32 +9,32 @@ import { ImageViewerModal } from "~/components/chat-ui/image-viewer-modal"
 import { IconXComStroke } from "~/components/iconsv2"
 import { Button } from "~/components/ui/button"
 import { convexQuery } from "~/lib/convex-query"
-import { ChannelWithoutVirtua } from "./-components/channel-without-virtua"
+import { ChannelWithoutVirtua } from "../../$serverId/chat/-components/channel-without-virtua"
 
-export const Route = createFileRoute("/_protected/_app/$serverId/chat/$id")({
+export const Route = createFileRoute("/_protected/_app/app/chat/$id")({
 	component: Root,
 	loader: async ({ context: { queryClient }, params }) => {
-		queryClient
-			.ensureQueryData(
-				convexQuery(api.channels.getChannel, {
-					channelId: params.id as Id<"channels">,
-					serverId: params.serverId as Id<"servers">,
-				}),
-			)
-			.catch(() => undefined)
+		// We can't use the organization-based query in the loader since it needs auth context
+		// The component will handle loading the channel data
 	},
 })
 
 function Root() {
 	const params = Route.useParams()
-
-	const serverId = createMemo(() => params().serverId as Id<"servers">)
+	
+	const serverQuery = useQuery(() =>
+		convexQuery(api.servers.getCurrentServer, {}),
+	)
+	
+	const serverId = createMemo(() => serverQuery.data?._id as Id<"servers">)
 	const channelId = createMemo(() => params().id as Id<"channels">)
 
 	return (
-		<ChatProvider channelId={channelId} serverId={serverId}>
-			<RouteComponent />
-		</ChatProvider>
+		<Show when={serverQuery.data}>
+			<ChatProvider channelId={channelId} serverId={serverId}>
+				<RouteComponent />
+			</ChatProvider>
+		</Show>
 	)
 }
 
@@ -43,7 +43,12 @@ function RouteComponent() {
 	const openThreadId = createMemo(() => state.openThreadId!)
 
 	const params = Route.useParams()
-	const serverId = createMemo(() => params().serverId as Id<"servers">)
+	
+	const serverQuery = useQuery(() =>
+		convexQuery(api.servers.getCurrentServer, {}),
+	)
+	
+	const serverId = createMemo(() => serverQuery.data?._id as Id<"servers">)
 	const channelId = createMemo(() => params().id as Id<"channels">)
 
 	return (
@@ -80,13 +85,12 @@ function ChatImageViewerModal() {
 
 	const messageQuery = useQuery(() => ({
 		...convexQuery(
-			api.messages.getMessage,
+			api.messages.getMessageForOrganization,
 			!messageId()
 				? "skip"
 				: {
 						id: messageId(),
 						channelId: state.channelId,
-						serverId: state.serverId,
 					},
 		),
 		enabled: !!messageId(),

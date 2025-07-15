@@ -9,7 +9,7 @@ import { convexQuery } from "~/lib/convex-query"
 import { useTheme } from "~/lib/theme"
 import { useKeyboardSounds } from "~/lib/keyboard-sounds"
 
-export const Route = createFileRoute("/_protected/_app/$serverId/settings")({
+export const Route = createFileRoute("/_protected/_app/app/settings")({
 	component: RouteComponent,
 })
 
