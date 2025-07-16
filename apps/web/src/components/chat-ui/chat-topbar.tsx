@@ -23,9 +23,8 @@ export function ChatTopbar() {
 	}))
 
 	const channelQuery = useQuery(() =>
-		convexQuery(api.channels.getChannel, {
+		convexQuery(api.channels.getChannelForOrganization, {
 			channelId: state.channelId,
-			serverId: params.serverId as Id<"servers">,
 		}),
 	)
 

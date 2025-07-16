@@ -13,7 +13,7 @@
 		"@convex-dev/presence": "^0.1.5",
 		"@rjdellecese/confect": "^0.0.26",
 		"@workos-inc/node": "^7.57.0",
-		"convex": "^1.25.0",
+		"convex": "^1.25.4",
 		"effect": "^3.16.10"
 	},
 	"devDependencies": {

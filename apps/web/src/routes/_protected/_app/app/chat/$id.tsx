@@ -9,23 +9,17 @@ import { ImageViewerModal } from "~/components/chat-ui/image-viewer-modal"
 import { IconXComStroke } from "~/components/iconsv2"
 import { Button } from "~/components/ui/button"
 import { convexQuery } from "~/lib/convex-query"
-import { ChannelWithoutVirtua } from "../../$serverId/chat/-components/channel-without-virtua"
+import { ChannelWithoutVirtua } from "./-components/channel-without-virtua"
 
 export const Route = createFileRoute("/_protected/_app/app/chat/$id")({
 	component: Root,
-	loader: async ({ context: { queryClient }, params }) => {
-		// We can't use the organization-based query in the loader since it needs auth context
-		// The component will handle loading the channel data
-	},
 })
 
 function Root() {
 	const params = Route.useParams()
-	
-	const serverQuery = useQuery(() =>
-		convexQuery(api.servers.getCurrentServer, {}),
-	)
-	
+
+	const serverQuery = useQuery(() => convexQuery(api.servers.getCurrentServer, {}))
+
 	const serverId = createMemo(() => serverQuery.data?._id as Id<"servers">)
 	const channelId = createMemo(() => params().id as Id<"channels">)
 
@@ -43,11 +37,9 @@ function RouteComponent() {
 	const openThreadId = createMemo(() => state.openThreadId!)
 
 	const params = Route.useParams()
-	
-	const serverQuery = useQuery(() =>
-		convexQuery(api.servers.getCurrentServer, {}),
-	)
-	
+
+	const serverQuery = useQuery(() => convexQuery(api.servers.getCurrentServer, {}))
+
 	const serverId = createMemo(() => serverQuery.data?._id as Id<"servers">)
 	const channelId = createMemo(() => params().id as Id<"channels">)
 

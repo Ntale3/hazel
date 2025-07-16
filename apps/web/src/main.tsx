@@ -23,6 +23,7 @@ import { applyInitialTheme, ThemeProvider } from "./lib/theme"
 
 import "@fontsource-variable/geist-mono/index.css"
 import "@fontsource-variable/geist/index.css"
+import { createMemo } from "solid-js"
 import { ConvexProviderWithWorkOS } from "./lib/convex-workos"
 
 applyInitialTheme()
@@ -91,6 +92,10 @@ declare module "@tanstack/solid-router" {
 const InnerProviders = () => {
 	const auth = useAuth()
 
+	createMemo(() => {
+		console.log("auth1", auth.isLoading, !!auth.user)
+	})
+
 	return (
 		<RouterProvider
 			router={router}
@@ -118,15 +123,13 @@ function App() {
 						}}
 					>
 						<ConvexProviderWithWorkOS client={convex} useAuth={useAuth}>
-							<Suspense fallback={<div>Loading...</div>}>
-								<HotkeyProvider>
-									<Toaster />
-									<InnerProviders />
-									<Show when={import.meta.env.DEV}>
-										<FpsCounter />
-									</Show>
-								</HotkeyProvider>
-							</Suspense>
+							<HotkeyProvider>
+								<Toaster />
+								<InnerProviders />
+								<Show when={import.meta.env.DEV}>
+									<FpsCounter />
+								</Show>
+							</HotkeyProvider>
 						</ConvexProviderWithWorkOS>
 					</AuthKitProvider>
 				</KeyboardSoundsProvider>

@@ -60,6 +60,7 @@ export function ConvexProviderWithAuth(props: {
 
 		if (auth.isAuthenticated()) {
 			props.client.setAuth(auth.fetchAccessToken, (backendReportsIsAuthenticated) => {
+				console.log("backendReportsIsAuthenticated", backendReportsIsAuthenticated)
 				if (isThisEffectRelevant) {
 					setIsConvexAuthenticated(backendReportsIsAuthenticated)
 				}
@@ -82,9 +83,7 @@ export function ConvexProviderWithAuth(props: {
 	})
 
 	const isLoading = createMemo(() => isConvexAuthenticated() === null)
-	const isAuthenticated = createMemo(
-		() => props.createAuth().isAuthenticated() && (isConvexAuthenticated() ?? false),
-	)
+	const isAuthenticated = createMemo(() => auth.isAuthenticated() && (isConvexAuthenticated() ?? false))
 
 	const authContextValue = {
 		isLoading: isLoading,

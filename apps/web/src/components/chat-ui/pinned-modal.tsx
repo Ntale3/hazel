@@ -13,7 +13,7 @@ import { Popover } from "../ui/popover"
 import { chatMessageStyles } from "./message/message-styles"
 
 export function PinnedModal() {
-	const params = useParams({ from: "/_protected/_app/$serverId/chat/$id" })()
+	const params = useParams({ from: "/_protected/_app/app/chat/$id" })()
 	const channelId = createMemo(() => params.id)
 	const serverId = createMemo(() => params.serverId)
 
