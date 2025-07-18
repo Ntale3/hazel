@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { Attachment01, FaceSmile, Recording02 } from "@untitledui/icons"
+import { Attachment01, BarChartSquare02, FaceSmile, HomeLine, Recording02 } from "@untitledui/icons"
 import type { FormEvent } from "react"
+import { SidebarNavigationSlim } from "@/components/application/app-navigation/sidebar-navigation/sidebar-slim"
 import { type Message, MessageItem } from "@/components/application/messaging/messaging"
 import { Button } from "@/components/base/buttons/button"
 import { ButtonUtility } from "@/components/base/buttons/button-utility"
@@ -81,18 +82,35 @@ export const Route = createFileRoute("/")({
 
 function App() {
 	return (
-		<div className="text-center">
-			<CommandMenuActions />
-			<ol className="flex h-full flex-col gap-4 overflow-y-auto px-4 py-6 md:px-6 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-primary [&::-webkit-scrollbar]:w-2">
-				{messages.slice(0, 4).map((msg) => (
-					<MessageItem key={msg.id} msg={msg} />
-				))}
+		<div className="flex flex-col bg-primary lg:flex-row">
+			<SidebarNavigationSlim
+				activeUrl="/dashboard"
+				items={[
+					{
+						label: "Home",
+						href: "/",
+						icon: HomeLine,
+					},
+					{
+						label: "Dashboard",
+						href: "/dashboard",
+						icon: BarChartSquare02,
+					},
+				]}
+			/>
+			<div className="text-center">
+				<CommandMenuActions />
+				<ol className="flex h-full flex-col gap-4 overflow-y-auto px-4 py-6 md:px-6 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-primary [&::-webkit-scrollbar]:w-2">
+					{messages.slice(0, 4).map((msg) => (
+						<MessageItem key={msg.id} msg={msg} />
+					))}
 
-				{messages.slice(4, 6).map((msg) => (
-					<MessageItem key={msg.id} msg={msg} />
-				))}
-			</ol>
-			<MessageActionTextarea />
+					{messages.slice(4, 6).map((msg) => (
+						<MessageItem key={msg.id} msg={msg} />
+					))}
+				</ol>
+				<MessageActionTextarea />
+			</div>
 		</div>
 	)
 }

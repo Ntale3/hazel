@@ -1,13 +1,13 @@
 import { createRouter, RouterProvider } from "@tanstack/react-router"
+import { AuthKitProvider } from "@workos-inc/authkit-react"
 import { StrictMode } from "react"
 import ReactDOM from "react-dom/client"
 
 import { routeTree } from "./routeTree.gen"
 
-import "./styles.css"
+import "./styles/globals.css"
 import reportWebVitals from "./reportWebVitals.ts"
 
-// Create a new router instance
 const router = createRouter({
 	routeTree,
 	context: {},
@@ -28,7 +28,16 @@ if (rootElement && !rootElement.innerHTML) {
 	const root = ReactDOM.createRoot(rootElement)
 	root.render(
 		<StrictMode>
-			<RouterProvider router={router} />
+			<AuthKitProvider
+				clientId={import.meta.env.VITE_WORKOS_CLIENT_ID || "client_01HGZR2CV5G9VPBYK6XFA8YG17"}
+				onRedirectCallback={({ state }) => {
+					if (state?.returnTo) {
+						window.location.href = state.returnTo
+					}
+				}}
+			>
+				<RouterProvider router={router} />
+			</AuthKitProvider>
 		</StrictMode>,
 	)
 }
