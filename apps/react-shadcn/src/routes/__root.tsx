@@ -1,0 +1,21 @@
+import type { ConvexQueryClient } from "@convex-dev/react-query"
+import type { QueryClient } from "@tanstack/react-query"
+import { createRootRouteWithContext, Outlet } from "@tanstack/react-router"
+import { TanStackRouterDevtools } from "@tanstack/react-router-devtools"
+import type { ConvexReactClient } from "convex/react"
+import Header from "../components/Header"
+
+export const Route = createRootRouteWithContext<{
+	queryClient: QueryClient
+	convexClient: ConvexReactClient
+	convexQueryClient: ConvexQueryClient
+}>()({
+	component: () => (
+		<>
+			<Header />
+
+			<Outlet />
+			<TanStackRouterDevtools />
+		</>
+	),
+})
