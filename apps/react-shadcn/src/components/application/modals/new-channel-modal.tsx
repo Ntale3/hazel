@@ -41,7 +41,7 @@ export const NewProjectModal = () => {
 		defaultValues: {
 			name: "",
 			type: "public" as "public" | "private",
-		} satisfies ChannelFormData,
+		} as ChannelFormData,
 		validators: {
 			onChange: channelSchema,
 		},
@@ -113,7 +113,9 @@ export const NewProjectModal = () => {
 												size="sm"
 												placeholderIcon={User01}
 												selectedKey={fiield.state.value}
-												onSelectionChange={(key) => fiield.handleChange(key as any)}
+												onSelectionChange={(key) =>
+													fiield.handleChange(key as "public" | "private")
+												}
 												hint={fiield.state.meta.errors?.[0]?.message}
 												isInvalid={!!fiield.state.meta.errors?.length}
 												items={[
