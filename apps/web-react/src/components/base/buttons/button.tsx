@@ -1,3 +1,4 @@
+import { Slot } from "@radix-ui/themes"
 import type { AnchorHTMLAttributes, ButtonHTMLAttributes, DetailedHTMLProps, FC, ReactNode } from "react"
 import React, { isValidElement } from "react"
 import type { ButtonProps as AriaButtonProps } from "react-aria-components"
@@ -290,5 +291,26 @@ export const Button = ({
 				<IconTrailing data-icon="trailing" className={styles.common.icon} />
 			)}
 		</Component>
+	)
+}
+
+export const IconButton = ({
+	className,
+	asChild,
+	...props
+}: ButtonProps & {
+	asChild?: boolean
+}) => {
+	const Comp = asChild ? Slot : AriaButton
+
+	return (
+		<Comp
+			{...props}
+			className={cn(
+				`flex size-6 items-center justify-center gap-2 whitespace-nowrap text-muted-foreground hover:text-primary`,
+				className,
+			)}
+			aria-trigger="true"
+		/>
 	)
 }

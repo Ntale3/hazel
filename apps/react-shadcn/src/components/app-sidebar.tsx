@@ -8,9 +8,7 @@ import { ChannelItem, DmChannelLink } from "./channel-item"
 import IconChatChatting1 from "./icons/IconChatChatting1"
 import IconGridDashboard01DuoSolid from "./icons/IconGridDashboard01DuoSolid"
 import IconNotificationBellOn1 from "./icons/IconNotificationBellOn1"
-import IconPlusStroke from "./icons/IconPlusStroke"
-import { IconButton } from "./ui/button"
-import { Dialog, DialogContent, DialogTrigger } from "./ui/dialog"
+
 import {
 	Sidebar,
 	SidebarContent,

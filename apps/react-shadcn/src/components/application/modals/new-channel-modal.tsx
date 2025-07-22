@@ -7,12 +7,11 @@ import { useState } from "react"
 import { DialogTrigger as AriaDialogTrigger, Heading as AriaHeading } from "react-aria-components"
 import { toast } from "sonner"
 import { Dialog, Modal, ModalOverlay } from "~/components/application/modals/modal"
-import { Button } from "~/components/base/buttons/button"
+import { Button, IconButton } from "~/components/base/buttons/button"
 import { CloseButton } from "~/components/base/buttons/close-button"
 import { Input } from "~/components/base/input/input"
 import { Select } from "~/components/base/select/select"
 import { IconDoorOpen, IconHashtagStroke, IconPlusStroke } from "~/components/icons"
-import { IconButton } from "~/components/ui/button"
 
 const channelSchema = type({
 	name: "string > 2",
