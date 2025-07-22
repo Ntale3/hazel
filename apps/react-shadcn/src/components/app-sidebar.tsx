@@ -8,6 +8,7 @@ import { ChannelItem, DmChannelLink } from "./channel-item"
 import IconChatChatting1 from "./icons/IconChatChatting1"
 import IconGridDashboard01DuoSolid from "./icons/IconGridDashboard01DuoSolid"
 import IconNotificationBellOn1 from "./icons/IconNotificationBellOn1"
+import { SidebarFavoriteGroup } from "./sidebar-favorite-group"
 
 import {
 	Sidebar,
@@ -102,7 +103,7 @@ export const AppSidebar = () => {
 							</SidebarMenuItem>
 						</SidebarGroupContent>
 					</SidebarGroup>
-					{/* <SidebarFavoriteGroup /> */}
+					<SidebarFavoriteGroup />
 					<SidebarGroup>
 						<SidebarGroupLabel>Channels</SidebarGroupLabel>
 						<SidebarGroupAction>
