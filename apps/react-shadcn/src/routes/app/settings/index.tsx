@@ -14,6 +14,7 @@ import { Form } from "~/components/base/form/form"
 import { InputBase } from "~/components/base/input/input"
 import { RadioButtonBase } from "~/components/base/radio-buttons/radio-buttons"
 import { Select } from "~/components/base/select/select"
+import { type Theme, useTheme } from "~/components/theme-provider"
 
 import { cx } from "~/utils/cx"
 
@@ -38,6 +39,8 @@ function AppearanceSettings() {
 	const [uploadedAvatar, setUploadedAvatar] = useState<string | undefined>(
 		"https://www.untitledui.com/logos/images/ContrastAI.jpg",
 	)
+
+	const { theme, setTheme } = useTheme()
 
 	const handleAvatarUpload = (files: FileList | null) => {
 		const file = files?.[0]
@@ -220,6 +223,8 @@ function AppearanceSettings() {
 							aria-label="Display preference"
 							defaultValue="system"
 							className="flex gap-5"
+							value={theme}
+							onChange={(value) => setTheme(value as Theme)}
 						>
 							{themes.map((theme) => (
 								<Radio

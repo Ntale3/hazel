@@ -12,7 +12,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { AuthKitProvider, useAuth } from "@workos-inc/authkit-react"
 import { ConvexReactClient } from "convex/react"
 import { ConvexProviderWithAuthKit } from "./components/convex-provider-with-authkit.tsx"
-
+import { ThemeProvider } from "./components/theme-provider.tsx"
 import reportWebVitals from "./reportWebVitals.ts"
 
 const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL)
@@ -38,16 +38,18 @@ const router = createRouter({
 	defaultStructuralSharing: true,
 	defaultPreloadStaleTime: 0,
 	Wrap: ({ children }) => (
-		<QueryClientProvider client={queryClient}>
-			<AuthKitProvider
-				clientId={import.meta.env.VITE_WORKOS_CLIENT_ID || "client_01HGZR2CV5G9VPBYK6XFA8YG17"}
-				redirectUri={import.meta.env.VITE_WORKOS_REDIRECT_URI}
-			>
-				<ConvexProviderWithAuthKit client={convexQueryClient.convexClient} useAuth={useAuth}>
-					{children}
-				</ConvexProviderWithAuthKit>
-			</AuthKitProvider>
-		</QueryClientProvider>
+		<ThemeProvider>
+			<QueryClientProvider client={queryClient}>
+				<AuthKitProvider
+					clientId={import.meta.env.VITE_WORKOS_CLIENT_ID || "client_01HGZR2CV5G9VPBYK6XFA8YG17"}
+					redirectUri={import.meta.env.VITE_WORKOS_REDIRECT_URI}
+				>
+					<ConvexProviderWithAuthKit client={convexQueryClient.convexClient} useAuth={useAuth}>
+						{children}
+					</ConvexProviderWithAuthKit>
+				</AuthKitProvider>
+			</QueryClientProvider>
+		</ThemeProvider>
 	),
 })
 
