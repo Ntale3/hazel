@@ -34,20 +34,11 @@ function AppearanceSettings() {
 
 	const [customColor, setCustomColor] = useState<Color>(parseColor("#7F56D9"))
 	const [color, setColor] = useState<Color>(customColor)
-	const [_uploadedAvatar, setUploadedAvatar] = useState<string | undefined>(
+	const [_uploadedAvatar, _setUploadedAvatar] = useState<string | undefined>(
 		"https://www.untitledui.com/logos/images/ContrastAI.jpg",
 	)
 
 	const { theme, setTheme } = useTheme()
-
-	const _handleAvatarUpload = (files: FileList | null) => {
-		const file = files?.[0]
-
-		if (!file) return
-
-		console.log("File uploaded:", file)
-		setUploadedAvatar(URL.createObjectURL(file))
-	}
 
 	const handleCustomColorChange = (value: Color | null) => {
 		if (!value) return

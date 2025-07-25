@@ -18,7 +18,6 @@ import IconThreeDotsMenuHorizontalStroke from "../icons/IconThreeDotsMenuHorizon
 import IconVolumeMute1 from "../icons/IconVolumeMute1"
 import IconVolumeOne1 from "../icons/IconVolumeOne1"
 import { SidebarMenuAction, SidebarMenuButton, SidebarMenuItem } from "../ui/sidebar"
-import { UserAvatar } from "../ui/user-avatar"
 
 type ChannelsResponse = FunctionReturnType<typeof api.channels.getChannelsForOrganization>
 
