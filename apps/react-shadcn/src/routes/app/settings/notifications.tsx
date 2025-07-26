@@ -16,7 +16,7 @@ export const Route = createFileRoute("/app/settings/notifications")({
 })
 
 function NotificationsSettings() {
-	const { isLoading, user, getAccessToken, switchToOrganization } = useAuth()
+	const { getAccessToken, switchToOrganization } = useAuth()
 
 	return (
 		<Form
