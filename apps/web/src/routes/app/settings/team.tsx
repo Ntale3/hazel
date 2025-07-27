@@ -254,7 +254,6 @@ function RouteComponent() {
 								allowsSorting
 								className="w-full"
 							/>
-							<Table.Head id="role" label="Role" allowsSorting />
 							<Table.Head id="invitedBy" label="Invited by" allowsSorting />
 							<Table.Head id="status" label="Status" />
 							<Table.Head id="expiry" label="Expiration" allowsSorting />
@@ -266,20 +265,7 @@ function RouteComponent() {
 									<Table.Cell>
 										<p className="font-medium text-primary text-sm">{invitation.email}</p>
 									</Table.Cell>
-									<Table.Cell>
-										<Badge
-											color={
-												roleToBadgeColorsMap[
-													invitation.role as keyof typeof roleToBadgeColorsMap
-												] ?? "gray"
-											}
-											type="pill-color"
-											size="sm"
-										>
-											{invitation.role.charAt(0).toUpperCase() +
-												invitation.role.slice(1)}
-										</Badge>
-									</Table.Cell>
+
 									<Table.Cell>
 										<p className="text-tertiary text-sm">
 											{invitation.inviterName || "System"}

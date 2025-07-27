@@ -69,7 +69,6 @@ export const resendInvitation = organizationServerMutation({
 		await ctx.scheduler.runAfter(0, internal.workosActions.sendInvitation, {
 			email: invitation.email,
 			organizationId: ctx.organization.workosId,
-			role: invitation.role,
 			inviterUserId: ctx.account.doc.externalId,
 		})
 

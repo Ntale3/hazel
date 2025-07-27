@@ -39,7 +39,6 @@ export const confectSchema = defineSchema({
 			workosInvitationId: Schema.String,
 			organizationId: Id.Id("organizations"),
 			email: Schema.String,
-			role: Schema.String,
 			invitedBy: Schema.optional(Id.Id("users")),
 			invitedAt: Schema.Number,
 			expiresAt: Schema.Number,

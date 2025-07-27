@@ -1,6 +1,7 @@
 import type { Event } from "@workos-inc/node"
 import { v } from "convex/values"
 import { internal } from "./_generated/api"
+import type { Id } from "./_generated/dataModel"
 import { internalAction, internalMutation } from "./_generated/server"
 
 export const processWorkosEvents = internalMutation({
@@ -205,22 +206,29 @@ export const processWorkosEvents = internalMutation({
 				default: {
 					// Handle invitation.created event which isn't in the WorkOS TypeScript types yet
 					if (typedEvent.event === "invitation.created") {
-						const eventData = event.data
+						const eventData = typedEvent.data
+
+						const organizationId = eventData.organizationId
+
+						if (!organizationId) {
+							throw new Error("Organization ID not found in invitation.created event")
+						}
+
 						const organization = await ctx.db
 							.query("organizations")
-							.withIndex("by_workosId", (q) => q.eq("workosId", eventData.organizationId))
+							.withIndex("by_workosId", (q) => q.eq("workosId", organizationId))
 							.first()
 
 						if (!organization) {
 							throw new Error(`Organization ${eventData.organizationId} not found`)
 						}
 
-						let invitedBy
+						let invitedBy: Id<"users"> | undefined
 						if (eventData.inviterUserId) {
 							const inviter = await ctx.db
 								.query("users")
 								.withIndex("by_externalId", (q) =>
-									q.eq("externalId", eventData.inviterUserId),
+									q.eq("externalId", eventData.inviterUserId as string),
 								)
 								.first()
 							if (inviter) {
@@ -232,7 +240,6 @@ export const processWorkosEvents = internalMutation({
 							workosInvitationId: eventData.id,
 							organizationId: organization._id,
 							email: eventData.email,
-							role: eventData.role?.slug || "member",
 							invitedBy,
 							invitedAt: new Date(eventData.createdAt).getTime(),
 							expiresAt: new Date(eventData.expiresAt).getTime(),
@@ -566,12 +573,10 @@ export const syncInvitations = internalMutation({
 							results.updated++
 						}
 					} else {
-						// Create new invitation
 						await ctx.db.insert("invitations", {
 							workosInvitationId: workosInvitation.id,
 							organizationId,
 							email: workosInvitation.email,
-							role: workosInvitation.role?.slug || "member",
 							invitedBy,
 							invitedAt: new Date(workosInvitation.createdAt).getTime(),
 							expiresAt: new Date(workosInvitation.expiresAt).getTime(),

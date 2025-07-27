@@ -194,9 +194,7 @@ export const revokeWorkosInvitation = internalAction({
 	}),
 	handler: async (_ctx, { invitationId }) => {
 		try {
-			await workos.userManagement.revokeInvitation({
-				id: invitationId,
-			})
+			await workos.userManagement.revokeInvitation(invitationId)
 
 			return { success: true }
 		} catch (err: any) {
