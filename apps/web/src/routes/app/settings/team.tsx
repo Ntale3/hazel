@@ -6,17 +6,23 @@ import { Form } from "~/components/base/form/form"
 import "@workos-inc/widgets/styles.css"
 
 import type { Id } from "@hazel/backend"
-import { Edit01, Plus, RefreshCcw02, Trash01, XClose } from "@untitledui/icons"
+import { Plus, RefreshCcw02, Trash01, XClose, User02, AlertTriangle } from "@untitledui/icons"
 import { useState } from "react"
 import type { SortDescriptor } from "react-aria-components"
 import { toast } from "sonner"
 import { EmailInviteModal } from "~/components/application/modals/email-invite-modal"
+import { ChangeRoleModal } from "~/components/application/modals/change-role-modal"
+import { Dialog, Modal, ModalOverlay } from "~/components/application/modals/modal"
+import { DialogTrigger as AriaDialogTrigger, Heading as AriaHeading } from "react-aria-components"
+import { CloseButton } from "~/components/base/buttons/close-button"
+import { FeaturedIcon } from "~/components/foundations/featured-icon/featured-icons"
 import { PaginationCardDefault } from "~/components/application/pagination/pagination"
 import { Table, TableCard } from "~/components/application/table/table"
 import { Avatar } from "~/components/base/avatar/avatar"
 import { Badge, type BadgeColor, BadgeWithDot } from "~/components/base/badges/badges"
 import { Button } from "~/components/base/buttons/button"
 import { ButtonUtility } from "~/components/base/buttons/button-utility"
+import { Dropdown } from "~/components/base/dropdown/dropdown"
 import { usePresence } from "~/components/presence/presence-provider"
 
 export const Route = createFileRoute("/app/settings/team")({
@@ -33,16 +39,24 @@ function RouteComponent() {
 		direction: "ascending",
 	})
 	const [showInviteModal, setShowInviteModal] = useState(false)
+	const [changeRoleUser, setChangeRoleUser] = useState<{ id: Id<"users">, name: string, role: string } | null>(null)
+	const [removeUserId, setRemoveUserId] = useState<Id<"users"> | null>(null)
 
 	const teamMembersQuery = useConvexQuery(api.users.getUsers, {})
 	const invitationsQuery = useConvexQuery(api.invitations.getInvitations, {})
 	const resendInvitationMutation = useConvexMutation(api.invitations.resendInvitation)
 	const revokeInvitationMutation = useConvexMutation(api.invitations.revokeInvitation)
+	const removeMemberMutation = useConvexMutation(api.organizations.removeMember)
+	const currentUserQuery = useConvexQuery(api.me.get)
+	const organizationQuery = useConvexQuery(api.me.getOrganization)
 
 	const { isUserOnline } = usePresence()
 
 	const isLoading = teamMembersQuery === undefined
 	const isInvitationsLoading = invitationsQuery === undefined
+	const currentUser = currentUserQuery
+	const organization = organizationQuery?.directive === "success" ? organizationQuery.data : null
+	const organizationId = organization?._id
 
 	const teamMembers =
 		teamMembersQuery?.map((user) => ({
@@ -106,6 +120,38 @@ function RouteComponent() {
 				description: error instanceof Error ? error.message : "An error occurred",
 			})
 		}
+	}
+
+	const handleRemoveUser = async (userId: Id<"users">) => {
+		if (!organizationId) return
+		
+		try {
+			await removeMemberMutation({ organizationId, userId })
+			toast.success("Member removed", {
+				description: "The member has been removed from the organization.",
+			})
+			setRemoveUserId(null)
+		} catch (error) {
+			toast.error("Failed to remove member", {
+				description: error instanceof Error ? error.message : "An error occurred",
+			})
+		}
+	}
+
+	const canManageUser = (_userRole: string, targetUserRole: string) => {
+		if (!currentUser) return false
+		const currentUserMember = teamMembers.find(m => m.id === currentUser._id)
+		if (!currentUserMember) return false
+		
+		const currentRole = currentUserMember.role
+		
+		// Owners can manage everyone
+		if (currentRole === "owner") return true
+		
+		// Admins can only manage members
+		if (currentRole === "admin" && targetUserRole === "member") return true
+		
+		return false
 	}
 
 	return (
@@ -199,20 +245,29 @@ function RouteComponent() {
 									</Table.Cell>
 
 									<Table.Cell className="px-4">
-										<div className="flex justify-end gap-0.5">
-											<ButtonUtility
-												size="xs"
-												color="tertiary"
-												tooltip="Delete"
-												icon={Trash01}
-											/>
-											<ButtonUtility
-												size="xs"
-												color="tertiary"
-												tooltip="Edit"
-												icon={Edit01}
-											/>
-										</div>
+										{currentUser && member.id !== currentUser._id && canManageUser(member.role, member.role) && (
+											<Dropdown.Root>
+												<Dropdown.DotsButton />
+												<Dropdown.Popover>
+													<Dropdown.Menu onAction={(key) => {
+														const action = key as string
+														if (action === "change-role") {
+															setChangeRoleUser({ id: member.id, name: member.name, role: member.role })
+														} else if (action === "remove") {
+															setRemoveUserId(member.id)
+														}
+													}}>
+														<Dropdown.Item id="change-role" label="Change role" icon={User02} />
+														<Dropdown.Separator />
+														<Dropdown.Item 
+															id="remove" 
+															label="Remove from team" 
+															icon={Trash01}
+														/>
+													</Dropdown.Menu>
+												</Dropdown.Popover>
+											</Dropdown.Root>
+										)}
 									</Table.Cell>
 								</Table.Row>
 							)}
@@ -312,6 +367,64 @@ function RouteComponent() {
 			</TableCard.Root>
 
 			<EmailInviteModal isOpen={showInviteModal} onOpenChange={setShowInviteModal} />
+			
+			{changeRoleUser && organizationId && currentUser && (
+				<ChangeRoleModal
+					isOpen={!!changeRoleUser}
+					onOpenChange={(open) => !open && setChangeRoleUser(null)}
+					user={changeRoleUser}
+					organizationId={organizationId}
+					currentUserRole={teamMembers.find(m => m.id === currentUser._id)?.role || "member"}
+				/>
+			)}
+
+			{removeUserId && (
+				<AriaDialogTrigger isOpen={!!removeUserId} onOpenChange={(open) => !open && setRemoveUserId(null)}>
+					<ModalOverlay isDismissable>
+						<Modal>
+							<Dialog>
+								<div className="relative w-full overflow-hidden rounded-2xl bg-primary shadow-xl transition-all sm:max-w-md">
+									<CloseButton
+										onClick={() => setRemoveUserId(null)}
+										theme="light"
+										size="lg"
+										className="absolute right-3 top-3"
+									/>
+									<div className="flex flex-col gap-4 px-4 pt-5 sm:px-6 sm:pt-6">
+										<div className="relative w-max">
+											<FeaturedIcon color="error" size="lg" theme="modern" icon={AlertTriangle} />
+										</div>
+										<div className="z-10 flex flex-col gap-0.5">
+											<AriaHeading slot="title" className="text-md font-semibold text-primary">
+												Remove team member
+											</AriaHeading>
+											<p className="text-sm text-tertiary">
+												Are you sure you want to remove this member from your team? They will lose access to all channels and messages.
+											</p>
+										</div>
+									</div>
+									<div className="z-10 flex flex-1 flex-col-reverse gap-3 p-4 pt-6 *:grow sm:grid sm:grid-cols-2 sm:px-6 sm:pb-6 sm:pt-8">
+										<Button
+											color="secondary"
+											size="lg"
+											onClick={() => setRemoveUserId(null)}
+										>
+											Cancel
+										</Button>
+										<Button
+											color="primary-destructive"
+											size="lg"
+											onClick={() => removeUserId && handleRemoveUser(removeUserId)}
+										>
+											Remove member
+										</Button>
+									</div>
+								</div>
+							</Dialog>
+						</Modal>
+					</ModalOverlay>
+				</AriaDialogTrigger>
+			)}
 		</Form>
 	)
 }
