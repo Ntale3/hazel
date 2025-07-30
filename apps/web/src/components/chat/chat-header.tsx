@@ -42,12 +42,9 @@ export function ChatHeader() {
 					</>
 				) : (
 					<>
-						<IconHashtagStroke className="size-5 text-muted-foreground" />
+						<IconHashtagStroke className="size-5 text-secondary" />
 						<div>
 							<h2 className="font-semibold text-sm">{channel.name}</h2>
-							<p className="text-muted-foreground text-xs">
-								{onlineCount} of {memberCount} online
-							</p>
 						</div>
 					</>
 				)}

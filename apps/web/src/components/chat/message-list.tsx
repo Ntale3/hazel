@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef } from "react"
 import { useChat } from "~/hooks/use-chat"
 
-import { MessageItem } from "./message-item"
 import { MessageItem2 } from "./message-itemv2"
 
 export function MessageList() {
@@ -9,58 +8,22 @@ export function MessageList() {
 	const scrollContainerRef = useRef<HTMLDivElement>(null)
 	const lastMessageRef = useRef<HTMLDivElement>(null)
 
-	// Auto-scroll to bottom on new messages
-	useEffect(() => {
-		if (lastMessageRef.current) {
-			lastMessageRef.current.scrollIntoView({ behavior: "smooth" })
-		}
-	}, [])
-
-	// Handle scroll for pagination
-	const handleScroll = () => {
-		const container = scrollContainerRef.current
-		if (!container || !hasMoreMessages) return
-
-		// Load more when scrolled to top
-		if (container.scrollTop === 0) {
-			loadMoreMessages()
-		}
-	}
-
-	if (isLoadingMessages) {
-		return (
-			<div className="flex h-full items-center justify-center">
-				<div className="text-muted-foreground text-sm">Loading messages...</div>
-			</div>
-		)
-	}
-
-	if (messages.length === 0) {
-		return (
-			<div className="flex h-full items-center justify-center">
-				<div className="text-center">
-					<p className="text-muted-foreground text-sm">No messages yet</p>
-					<p className="text-muted-foreground text-xs">Start the conversation!</p>
-				</div>
-			</div>
-		)
-	}
-
-	// Process messages to determine grouping
 	const processedMessages = useMemo(() => {
-		const timeThreshold = 5 * 60 * 1000 // 5 minutes
+		const timeThreshold = 5 * 60 * 1000
 
-		return messages.map((message, index) => {
+		return messages.reverse().map((message, index) => {
 			// Determine isGroupStart
 			const prevMessage = index > 0 ? messages[index - 1] : null
-			const isGroupStart = !prevMessage || 
+			const isGroupStart =
+				!prevMessage ||
 				message.authorId !== prevMessage.authorId ||
 				message._creationTime - prevMessage._creationTime > timeThreshold ||
 				!!prevMessage.replyToMessageId
 
 			// Determine isGroupEnd
 			const nextMessage = index < messages.length - 1 ? messages[index + 1] : null
-			const isGroupEnd = !nextMessage ||
+			const isGroupEnd =
+				!nextMessage ||
 				message.authorId !== nextMessage.authorId ||
 				nextMessage._creationTime - message._creationTime > timeThreshold
 
@@ -93,19 +56,16 @@ export function MessageList() {
 		)
 	}, [processedMessages])
 
-	// Auto-scroll to bottom on new messages
 	useEffect(() => {
 		if (lastMessageRef.current) {
 			lastMessageRef.current.scrollIntoView({ behavior: "smooth" })
 		}
 	}, [])
 
-	// Handle scroll for pagination
 	const handleScroll = () => {
 		const container = scrollContainerRef.current
 		if (!container || !hasMoreMessages) return
 
-		// Load more when scrolled to top
 		if (container.scrollTop === 0) {
 			loadMoreMessages()
 		}
@@ -121,11 +81,15 @@ export function MessageList() {
 
 	if (messages.length === 0) {
 		return (
-			<div className="flex h-full items-center justify-center">
-				<div className="text-center">
-					<p className="text-muted-foreground text-sm">No messages yet</p>
-					<p className="text-muted-foreground text-xs">Start the conversation!</p>
+			<div className="flex size-full flex-col items-center justify-center p-4 sm:p-8">
+				<div className="mask-radial-at-center mask-radial-from-black mask-radial-to-transparent relative aspect-square w-full max-w-sm">
+					<img
+						src="/images/squirrle_ocean.png"
+						alt="squirrel"
+						className="mask-size-[110%_90%] mask-linear-to-r mask-from-black mask-to-transparent mask-center mask-no-repeat mask-[url(/images/image-mask.png)] h-full w-full rounded-md bg-center bg-cover bg-no-repeat object-cover"
+					/>
 				</div>
+				<p className="font-bold font-mono text-xl">Quiet as an ocean gazing squirrel...</p>
 			</div>
 		)
 	}
@@ -156,7 +120,13 @@ export function MessageList() {
 										: undefined
 								}
 							>
-								<MessageItem2 message={message} />
+								<MessageItem2
+									message={processedMessage.message}
+									isGroupStart={processedMessage.isGroupStart}
+									isGroupEnd={processedMessage.isGroupEnd}
+									isFirstNewMessage={processedMessage.isFirstNewMessage}
+									isPinned={processedMessage.isPinned}
+								/>
 							</div>
 						))}
 					</div>
