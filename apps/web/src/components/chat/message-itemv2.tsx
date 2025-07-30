@@ -1,9 +1,14 @@
-import type { api } from "@hazel/backend/api"
+import { convexQuery } from "@convex-dev/react-query"
+import { api } from "@hazel/backend/api"
+import { useQuery } from "@tanstack/react-query"
 import type { FunctionReturnType } from "convex/server"
 import { format } from "date-fns"
+import { Button } from "react-aria-components"
+import { useChat } from "~/hooks/use-chat"
 import { cx } from "~/utils/cx"
 import { Avatar } from "../base/avatar/avatar"
-import { Badge, BadgeIcon } from "../base/badges/badges"
+import { Badge, BadgeIcon, BadgeWithIcon } from "../base/badges/badges"
+import { Dropdown } from "../base/dropdown/dropdown"
 import { TextEditor } from "./read-only-message"
 
 type Message = FunctionReturnType<typeof api.messages.getMessages>["page"][0]
@@ -23,17 +28,36 @@ export function MessageItem2({
 	isFirstNewMessage = false,
 	isPinned = false,
 }: MessageItemProps) {
+	const { editMessage, deleteMessage, addReaction, removeReaction } = useChat()
+
+	const { data: currentUser } = useQuery(convexQuery(api.me.getCurrentUser, {}))
+
 	const showAvatar = isGroupStart || !!message.replyToMessageId
 	const isRepliedTo = !!message.replyToMessageId
+
+	const handleReaction = (emoji: string) => {
+		const existingReaction = message.reactions?.find(
+			(r) => r.emoji === emoji && r.userId === currentUser?._id,
+		)
+		if (existingReaction) {
+			removeReaction(message._id, emoji)
+		} else {
+			addReaction(message._id, emoji)
+		}
+	}
 
 	return (
 		<div
 			id={`message-${message._id}`}
-			className={cx(`group relative flex flex-col px-4 py-0.5 transition-colors hover:bg-muted/50 rounded-l-none${isGroupStart ? "mt-2" : ""}
-				${isGroupEnd ? "mb-2" : ""}
-				${isFirstNewMessage ? "border-emerald-500 border-l-2 bg-emerald-500/20 hover:bg-emerald-500/15" : ""}
-				${isPinned ? "border-primary border-l-2 bg-primary/20 hover:bg-primary/15" : ""}
-			`)}
+			className={cx(
+				`group relative flex flex-col rounded-md rounded-l-none px-4 py-0.5 transition-colors hover:bg-secondary`,
+				isGroupStart ? "mt-2" : "",
+				isGroupEnd ? "mb-2" : "",
+				isFirstNewMessage
+					? "border-emerald-500 border-l-2 bg-emerald-500/20 hover:bg-emerald-500/15"
+					: "",
+				isPinned ? "border-primary border-l-2 bg-primary/20 hover:bg-primary/15" : "",
+			)}
 			data-id={message._id}
 		>
 			{/* Reply Section */}
@@ -133,17 +157,55 @@ export function MessageItem2({
 						</div>
 					)}
 
-					{/* Reactions Placeholder */}
-					<div className="mt-1 flex flex-wrap gap-1">
-						{message.reactions.map((reaction) => (
-							<BadgeIcon
-								key={reaction.emoji}
-								color="brand"
-								size="lg"
-								icon={(props) => <span {...props}>{reaction.emoji}</span>}
-							/>
-						))}
-					</div>
+					{/* Reactions */}
+					{message.reactions && message.reactions.length > 0 && (
+						<div className="mt-2 flex flex-wrap gap-1">
+							{Object.entries(
+								message.reactions.reduce(
+									(acc, reaction) => {
+										if (!acc[reaction.emoji]) {
+											acc[reaction.emoji] = { count: 0, users: [], hasReacted: false }
+										}
+										acc[reaction.emoji].count++
+										acc[reaction.emoji].users.push(reaction.userId)
+										if (reaction.userId === currentUser?._id) {
+											acc[reaction.emoji].hasReacted = true
+										}
+										return acc
+									},
+									{} as Record<
+										string,
+										{ count: number; users: string[]; hasReacted: boolean }
+									>,
+								),
+							).map(([emoji, data]) => (
+								<Button onPress={() => handleReaction(emoji)}>
+									<Badge
+										type="pill-color"
+										color={data.hasReacted ? "brand" : "gray"}
+										size="md"
+									>
+										{emoji} {data.count}
+									</Badge>
+								</Button>
+							))}
+						</div>
+					)}
+
+					{/* <Dropdown.Root>
+						<Button>
+							<span className="text-xs">+</span>
+						</Button>
+						<Dropdown.Popover>
+							<Dropdown.Menu>
+								{["👍", "❤️", "😂", "🎉", "🤔", "👎"].map((emoji) => (
+									<Dropdown.Item key={emoji} onAction={() => handleReaction(emoji)}>
+										{emoji}
+									</Dropdown.Item>
+								))}
+							</Dropdown.Menu>
+						</Dropdown.Popover>
+					</Dropdown.Root> */}
 
 					{/* Thread Button Placeholder */}
 					{message.threadChannelId && (

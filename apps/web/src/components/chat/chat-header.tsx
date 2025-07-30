@@ -16,8 +16,8 @@ export function ChatHeader() {
 	}
 
 	const isDirectMessage = channel.type === "direct" || channel.type === "single"
-	const memberCount = channel.members?.length || 0
-	const onlineCount = channel.members?.filter((member) => isUserOnline(member.userId)).length || 0
+	const _memberCount = channel.members?.length || 0
+	const _onlineCount = channel.members?.filter((member) => isUserOnline(member.userId)).length || 0
 
 	return (
 		<div className="flex h-14 items-center justify-between border-sidebar-border border-b bg-sidebar px-4">

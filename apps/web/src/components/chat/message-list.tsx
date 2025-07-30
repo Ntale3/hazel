@@ -98,14 +98,14 @@ export function MessageList() {
 		<div
 			ref={scrollContainerRef}
 			onScroll={handleScroll}
-			className="flex h-full flex-col-reverse overflow-y-auto px-4 py-2"
+			className="flex h-full flex-col-reverse overflow-y-auto py-2 pr-4"
 		>
 			{Object.entries(groupedMessages)
 				.reverse()
 				.map(([date, dateMessages]) => (
 					<div key={date}>
 						<div className="sticky top-0 z-10 my-4 flex items-center justify-center">
-							<span className="rounded-full bg-muted px-3 py-1 text-muted-foreground text-xs">
+							<span className="rounded-full bg-muted px-3 py-1 text-secondary text-xs">
 								{date}
 							</span>
 						</div>
