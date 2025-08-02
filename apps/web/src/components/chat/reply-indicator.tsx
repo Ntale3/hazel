@@ -4,7 +4,6 @@ import { api } from "@hazel/backend/api"
 import { useQuery } from "@tanstack/react-query"
 import { X } from "@untitledui/icons"
 import { useChat } from "~/providers/chat-provider"
-import { cx } from "~/utils/cx"
 import { Button } from "../base/buttons/button"
 
 interface ReplyIndicatorProps {
@@ -14,7 +13,7 @@ interface ReplyIndicatorProps {
 
 export function ReplyIndicator({ replyToMessageId, onClose }: ReplyIndicatorProps) {
 	const { channelId } = useChat()
-	
+
 	const { data: organization } = useQuery(convexQuery(api.me.getOrganization, {}))
 	const organizationId = organization?.directive === "success" ? organization.data._id : undefined
 
@@ -35,7 +34,7 @@ export function ReplyIndicator({ replyToMessageId, onClose }: ReplyIndicatorProp
 		return (
 			<div className="flex items-center justify-between gap-2 rounded-t-lg border border-border border-b-0 bg-secondary px-3 py-2">
 				<div className="animate-pulse">
-					<div className="h-4 w-32 rounded bg-muted" />
+					<div className="h-4 w-32 rounded bg-quaternary" />
 				</div>
 			</div>
 		)
@@ -46,7 +45,7 @@ export function ReplyIndicator({ replyToMessageId, onClose }: ReplyIndicatorProp
 	}
 
 	return (
-		<div className="flex items-center justify-between gap-2 rounded-t-lg border border-border border-b-0 bg-secondary px-3 py-2">
+		<div className="flex items-center justify-between gap-2 rounded-t-lg border border-primary border-b-0 bg-secondary px-3 py-2">
 			<div className="flex items-center gap-2 text-sm">
 				<span className="text-secondary">Replying to</span>
 				<span className="font-semibold text-primary">

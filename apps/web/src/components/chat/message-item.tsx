@@ -1,7 +1,6 @@
 import { convexQuery } from "@convex-dev/react-query"
 import { api } from "@hazel/backend/api"
 import { useQuery } from "@tanstack/react-query"
-import { DownloadCloud02, RefreshCcw02 } from "@untitledui/icons"
 import type { FunctionReturnType } from "convex/server"
 import { format } from "date-fns"
 import { useState } from "react"
@@ -9,8 +8,9 @@ import { Button } from "react-aria-components"
 import { useChat } from "~/hooks/use-chat"
 import { cx } from "~/utils/cx"
 import { Avatar } from "../base/avatar/avatar"
-import { Badge, BadgeIcon, BadgeWithIcon } from "../base/badges/badges"
+import { Badge } from "../base/badges/badges"
 import { Button as StyledButton } from "../base/buttons/button"
+import { MessageReplySection } from "./message-reply-section"
 import { MessageToolbar } from "./message-toolbar"
 import { TextEditor } from "./read-only-message"
 
@@ -82,38 +82,22 @@ export function MessageItem({
 			data-id={message._id}
 		>
 			{/* Reply Section */}
-			{isRepliedTo && (
-				<div className="relative">
-					{/* Reply curve SVG */}
-					<svg
-						className="absolute top-2 left-8 rotate-180 text-secondary"
-						xmlns="http://www.w3.org/2000/svg"
-						width="24"
-						height="24"
-						viewBox="0 0 24 24"
-						fill="none"
-					>
-						<path
-							d="M12 2 L12 8 Q12 12 8 12 L2 12"
-							stroke="currentColor"
-							strokeWidth="2"
-							strokeLinecap="round"
-							fill="none"
-						/>
-					</svg>
-
-					{/* Reply content placeholder */}
-					<button
-						type="button"
-						className="flex w-fit items-center gap-1 pl-12 text-left hover:bg-transparent"
-					>
-						<div className="size-4 rounded-full bg-muted" />
-						<span className="text-secondary text-sm hover:underline">@ReplyAuthor</span>
-						<span className="text-ellipsis text-foreground text-xs">
-							Reply content preview...
-						</span>
-					</button>
-				</div>
+			{isRepliedTo && message.replyToMessageId && (
+				<MessageReplySection
+					replyToMessageId={message.replyToMessageId}
+					channelId={message.channelId}
+					onClick={() => {
+						const replyElement = document.getElementById(`message-${message.replyToMessageId}`)
+						if (replyElement) {
+							replyElement.scrollIntoView({ behavior: "smooth", block: "center" })
+							// Add a highlight effect
+							replyElement.classList.add("bg-highlight")
+							setTimeout(() => {
+								replyElement.classList.remove("bg-highlight")
+							}, 2000)
+						}
+					}}
+				/>
 			)}
 
 			{/* Main Content Row */}
