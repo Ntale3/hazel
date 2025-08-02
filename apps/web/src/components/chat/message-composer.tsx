@@ -2,6 +2,7 @@ import type { Editor } from "@tiptap/react"
 import { useRef, useState } from "react"
 
 import { useChat } from "~/providers/chat-provider"
+import { cx } from "~/utils/cx"
 import { TextEditor } from "../base/text-editor/text-editor"
 import { MessageComposerActions } from "./message-composer-actions"
 import { ReplyIndicator } from "./reply-indicator"
@@ -64,7 +65,7 @@ export const MessageComposer = () => {
 				)}
 				<TextEditor.Root
 					className="relative w-full gap-2"
-					inputClassName="p-4"
+					inputClassName={cx("p-4", replyToMessageId && "rounded-t-none")}
 					onSubmit={handleSubmit}
 				>
 					{(_editor) => (
@@ -72,7 +73,7 @@ export const MessageComposer = () => {
 							<TextEditor.Tooltip />
 
 							<div className="relative flex flex-col gap-2">
-								<TextEditor.Content ref={textareaRef} />
+								<TextEditor.Content className="rounded-none" ref={textareaRef} />
 								<MessageComposerActions onSubmit={handleSubmit} />
 							</div>
 						</>
