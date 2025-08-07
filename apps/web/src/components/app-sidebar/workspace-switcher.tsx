@@ -1,6 +1,8 @@
 import { convexQuery } from "@convex-dev/react-query"
+import type { Id } from "@hazel/backend"
 import { api } from "@hazel/backend/api"
 import { useQuery } from "@tanstack/react-query"
+import { useNavigate, useParams } from "@tanstack/react-router"
 import { useAuth } from "@workos-inc/authkit-react"
 import { useState } from "react"
 import { Button as AriaButton } from "react-aria-components"
@@ -16,20 +18,40 @@ export const WorkspaceSwitcher = () => {
 	const [inviteModalOpen, setInviteModalOpen] = useState(false)
 	const [createOrgModalOpen, setCreateOrgModalOpen] = useState(false)
 	const { switchToOrganization } = useAuth()
+	const navigate = useNavigate()
+	const params = useParams({ strict: false })
 
-	// Get current organization
-	const organizationQuery = useQuery(convexQuery(api.me.getOrganization, {}))
+	const organizationId = params.orgId as Id<"organizations"> | undefined
+
+	const organizationByIdQuery = useQuery(
+		convexQuery(api.organizations.getOrganizationById, organizationId ? { organizationId } : "skip"),
+	)
 
 	const userOrganizationsQuery = useQuery(convexQuery(api.organizations.getUserOrganizations, {}))
 
-	const currentOrg = organizationQuery.data?.directive === "success" ? organizationQuery.data.data : null
+	const currentOrg = organizationId ? organizationByIdQuery.data : null
 	const organizations = userOrganizationsQuery.data || []
 
 	const handleOrganizationSwitch = async (workosOrgId: string) => {
 		try {
-			await switchToOrganization({ organizationId: workosOrgId })
-			// Reload the page to refresh the session and update the UI
-			window.location.reload()
+			const targetOrg = organizations.find((org) => org.workosId === workosOrgId)
+			if (targetOrg) {
+				const currentPath = window.location.pathname
+				const pathSegments = currentPath.split("/")
+
+				let targetRoute = `/app/${targetOrg._id}`
+
+				if (pathSegments.length > 3 && pathSegments[1] === "app") {
+					const subPath = pathSegments.slice(3).join("/")
+					if (subPath) {
+						targetRoute = `/app/${targetOrg._id}/${subPath}`
+					}
+				}
+
+				await navigate({ to: targetRoute as any })
+
+				await switchToOrganization({ organizationId: workosOrgId })
+			}
 		} catch (error) {
 			console.error("Failed to switch organization:", error)
 		}
