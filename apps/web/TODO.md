@@ -6,7 +6,6 @@
 
 
 - Typing indicator design
-- Add Command Palette
 - Make all Icons use one Icon Lib
 - Make Presence Work better and add Away Status
 - Readd Notification sounds + Notifications in general
