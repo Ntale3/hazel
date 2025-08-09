@@ -263,6 +263,11 @@ export const getChannel = userQuery({
 
 		if (!channel) throw new Error("Channel not found")
 
+		// For thread channels, validate access through parent channel
+		if (channel.type === "thread") {
+			await ctx.user.validateCanViewChannel({ ctx, channelId: args.channelId })
+		}
+
 		const channelMembers = await ctx.db
 			.query("channelMembers")
 			.withIndex("by_channelIdAndUserId", (q) => q.eq("channelId", args.channelId))
@@ -270,7 +275,8 @@ export const getChannel = userQuery({
 
 		const currentUser = channelMembers.find((member) => member.userId === ctx.user.id)
 
-		if (!currentUser) {
+		// For non-thread channels, user must be a member
+		if (!currentUser && channel.type !== "thread") {
 			throw new Error("You are not a member of this channel")
 		}
 
