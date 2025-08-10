@@ -4,6 +4,7 @@ import { asyncMap } from "convex-helpers"
 import { internal } from "./_generated/api"
 import { organizationServerMutation, organizationServerQuery } from "./middleware/withOrganization"
 import { userMutation, userQuery } from "./middleware/withUser"
+import { enrichAttachmentWithMetadata } from "./uploads"
 
 export const getMessageForOrganization = organizationServerQuery({
 	args: {
