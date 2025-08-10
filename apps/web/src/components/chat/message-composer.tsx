@@ -24,6 +24,7 @@ export const MessageComposer = ({ ref, placeholder = "Type a message..." }: Mess
 	const editorRef = useRef<Editor | null>(null)
 
 	const [isTyping, setIsTyping] = useState(false)
+	const [attachmentIds, setAttachmentIds] = useState<Id<"attachments">[]>([])
 
 	const textareaRef = useRef<HTMLDivElement>(null)
 	const typingTimeoutRef = useRef<NodeJS.Timeout>(undefined)
@@ -104,6 +105,9 @@ export const MessageComposer = ({ ref, placeholder = "Type a message..." }: Mess
 			clearTimeout(typingTimeoutRef.current)
 		}
 
+		// Clear attachments after sending
+		setAttachmentIds([])
+		
 		textareaRef.current?.focus()
 		editor.commands.clearContent()
 	}
@@ -169,7 +173,11 @@ export const MessageComposer = ({ ref, placeholder = "Type a message..." }: Mess
 
 								<div className="relative flex flex-col gap-2">
 									<TextEditor.Content className="rounded-none" ref={textareaRef} />
-									<MessageComposerActions onSubmit={handleSubmit} />
+									<MessageComposerActions 
+										attachmentIds={attachmentIds}
+										setAttachmentIds={setAttachmentIds}
+										onSubmit={() => handleSubmit(editor)}
+									/>
 								</div>
 							</>
 						)
