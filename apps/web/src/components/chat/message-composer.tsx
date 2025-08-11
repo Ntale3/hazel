@@ -177,6 +177,9 @@ export const MessageComposer = ({ ref, placeholder = "Type a message..." }: Mess
 										attachmentIds={attachmentIds}
 										setAttachmentIds={setAttachmentIds}
 										onSubmit={() => handleSubmit(editor)}
+										onEmojiSelect={(emoji) => {
+											editor.chain().focus().insertContent(emoji).run()
+										}}
 									/>
 								</div>
 							</>

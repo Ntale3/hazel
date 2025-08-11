@@ -2,25 +2,37 @@ import type { Id } from "@hazel/backend"
 import { useParams } from "@tanstack/react-router"
 import { Attachment01, FaceSmile, XClose } from "@untitledui/icons"
 import { useRef, useState } from "react"
+import { Dialog, DialogTrigger, Popover } from "react-aria-components"
+import { useEmojiStats } from "~/hooks/use-emoji-stats"
 import { useFileUpload } from "~/hooks/use-file-upload"
 import { cx } from "~/utils/cx"
 import { Button } from "../base/buttons/button"
 import { ButtonUtility } from "../base/buttons/button-utility"
+import {
+	EmojiPicker,
+	EmojiPickerContent,
+	EmojiPickerFooter,
+	EmojiPickerSearch,
+} from "../base/emoji-picker/emoji-picker"
 
 interface MessageComposerActionsProps {
 	attachmentIds: Id<"attachments">[]
 	setAttachmentIds: (ids: Id<"attachments">[]) => void
 	onSubmit?: () => Promise<void>
+	onEmojiSelect?: (emoji: string) => void
 }
 
 export const MessageComposerActions = ({
 	attachmentIds,
 	setAttachmentIds,
 	onSubmit,
+	onEmojiSelect,
 }: MessageComposerActionsProps) => {
 	const { orgId } = useParams({ from: "/_app/$orgId" })
 	const fileInputRef = useRef<HTMLInputElement>(null)
 	const [showUploadProgress, setShowUploadProgress] = useState(false)
+	const [emojiPickerOpen, setEmojiPickerOpen] = useState(false)
+	const { trackEmojiUsage } = useEmojiStats()
 
 	const { uploadFiles, uploads, clearUploads, isUploading } = useFileUpload({
 		organizationId: orgId as Id<"organizations">,
@@ -144,7 +156,27 @@ export const MessageComposerActions = ({
 						onClick={() => fileInputRef.current?.click()}
 						disabled={isUploading}
 					/>
-					<ButtonUtility icon={FaceSmile} size="xs" color="tertiary" />
+					<DialogTrigger isOpen={emojiPickerOpen} onOpenChange={setEmojiPickerOpen}>
+						<ButtonUtility icon={FaceSmile} size="xs" color="tertiary" />
+						<Popover>
+							<Dialog className="rounded-lg">
+								<EmojiPicker
+									className="h-[342px]"
+									onEmojiSelect={(emoji) => {
+										if (onEmojiSelect) {
+											trackEmojiUsage(emoji.emoji)
+											onEmojiSelect(emoji.emoji)
+										}
+										setEmojiPickerOpen(false)
+									}}
+								>
+									<EmojiPickerSearch />
+									<EmojiPickerContent />
+									<EmojiPickerFooter />
+								</EmojiPicker>
+							</Dialog>
+						</Popover>
+					</DialogTrigger>
 				</div>
 
 				<Button size="sm" color="link-color" onClick={handleSubmit} disabled={isUploading}>
