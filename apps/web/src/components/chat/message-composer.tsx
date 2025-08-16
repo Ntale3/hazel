@@ -12,6 +12,7 @@ import { useChat } from "~/providers/chat-provider"
 import { cx } from "~/utils/cx"
 import { ButtonUtility } from "../base/buttons/button-utility"
 import { TextEditor } from "../base/text-editor/text-editor"
+import { PreviewMdDemo } from "../preview-markdown-demo"
 import { MessageComposerActions } from "./message-composer-actions"
 import { ReplyIndicator } from "./reply-indicator"
 
