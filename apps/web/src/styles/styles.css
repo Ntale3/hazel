@@ -60,3 +60,16 @@ input[type="search"]::-webkit-search-cancel-button {
     -webkit-appearance: none;
 }
 
+:root {
+    --highlight: oklch(0.852 0.199 91.936);
+}
+
+.dark {
+    --highlight: oklch(0.852 0.199 91.936);
+}
+
+@theme inline {
+    --color-highlight: var(--highlight);
+}
+
+
