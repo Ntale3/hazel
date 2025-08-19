@@ -32,23 +32,62 @@ const decoratePreview: Decorate = ({ entry: [node, path] }) => {
 		return token.content.reduce((l: any, t: any) => l + getLength(t), 0)
 	}
 
-	const tokens = Prism.tokenize(node.text, Prism.languages.markdown)
-	let start = 0
+	const processTokens = (tokens: any[], currentStart: number) => {
+		let start = currentStart
 
-	for (const token of tokens) {
-		const length = getLength(token)
-		const end = start + length
+		for (const token of tokens) {
+			const length = getLength(token)
+			const end = start + length
 
-		if (typeof token !== "string") {
-			ranges.push({
-				anchor: { offset: start, path },
-				focus: { offset: end, path },
-				[token.type]: true,
-			})
+			if (typeof token !== "string") {
+				// For code blocks, process nested tokens
+				if (token.type === "code" && Array.isArray(token.content)) {
+					let innerStart = start
+					for (const innerToken of token.content) {
+						const innerLength = getLength(innerToken)
+						const innerEnd = innerStart + innerLength
+
+						if (typeof innerToken !== "string") {
+							// Mark punctuation (backticks) differently
+							if (innerToken.type === "punctuation") {
+								ranges.push({
+									anchor: { offset: innerStart, path },
+									focus: { offset: innerEnd, path },
+									"code-punctuation": true,
+								})
+							} else if (innerToken.type === "code-block") {
+								ranges.push({
+									anchor: { offset: innerStart, path },
+									focus: { offset: innerEnd, path },
+									"code-block": true,
+								})
+							} else if (innerToken.type === "code-language") {
+								ranges.push({
+									anchor: { offset: innerStart, path },
+									focus: { offset: innerEnd, path },
+									"code-language": true,
+								})
+							}
+						}
+
+						innerStart = innerEnd
+					}
+				} else {
+					// For other tokens, add them normally
+					ranges.push({
+						anchor: { offset: start, path },
+						focus: { offset: end, path },
+						[token.type]: true,
+					})
+				}
+			}
+
+			start = end
 		}
-
-		start = end
 	}
+
+	const tokens = Prism.tokenize(node.text, Prism.languages.markdown)
+	processTokens(tokens, 0)
 
 	return ranges
 }
@@ -64,6 +103,8 @@ function PreviewLeaf({
 		code?: boolean
 		"code-snippet"?: boolean
 		"code-block"?: boolean
+		"code-punctuation"?: boolean
+		"code-language"?: boolean
 		hr?: boolean
 		italic?: boolean
 		list?: boolean
@@ -73,6 +114,8 @@ function PreviewLeaf({
 	const { blockquote, bold, code, hr, italic, list, title } = leaf
 	const codeSnippet = leaf["code-snippet"]
 	const codeBlock = leaf["code-block"]
+	const codePunctuation = leaf["code-punctuation"]
+	const codeLanguage = leaf["code-language"]
 
 	return (
 		<span
@@ -85,7 +128,9 @@ function PreviewLeaf({
 				hr && "block border-[#ddd] border-b-2 text-center",
 				blockquote && "inline-block border-[#ddd] border-l-2 pl-2.5 text-[#aaa] italic",
 				codeSnippet && "bg-[#eee] p-[3px] font-mono text-red-500",
-				codeBlock && "my-2 block rounded-md bg-gray-900 p-3 font-mono text-gray-100",
+				codeBlock && "bg-gray-900 font-mono text-gray-100",
+				codePunctuation && "text-gray-500",
+				codeLanguage && "font-mono text-gray-400",
 				code && !codeSnippet && !codeBlock && "font-mono",
 			)}
 		>
