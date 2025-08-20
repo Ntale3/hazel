@@ -53,7 +53,7 @@ export function MessageItem({
 	const [hasBeenHovered, setHasBeenHovered] = useState(false)
 	const [isMenuOpen, setIsMenuOpen] = useState(false)
 	const hoverTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
-	const editorRef = useRef<any>(null)
+	const _editorRef = useRef<any>(null)
 
 	const { data: currentUser } = useQuery(
 		convexQuery(api.me.getCurrentUser, {
@@ -75,36 +75,6 @@ export function MessageItem({
 			removeReaction(message._id, emoji)
 		} else {
 			addReaction(message._id, emoji)
-		}
-	}
-
-	const handleEdit = async (editor: any) => {
-		// For Plate editor, we need to extract text differently
-		const content = editor.children
-			.map((node: any) => node.children?.map((child: any) => child.text || "").join("") || "")
-			.join("\n")
-		const jsonContent = editor.children
-		if (
-			content.trim() &&
-			(content !== message.content ||
-				JSON.stringify(jsonContent) !== JSON.stringify(message.jsonContent))
-		) {
-			try {
-				await editMessage(message._id, content, jsonContent)
-				setIsEditing(false)
-			} catch (error) {
-				console.error("Failed to edit message:", error)
-				toast.custom((t) => (
-					<IconNotification
-						title="Failed to edit message"
-						description="Please try again later."
-						color="error"
-						onClose={() => toast.dismiss(t)}
-					/>
-				))
-			}
-		} else {
-			setIsEditing(false)
 		}
 	}
 
@@ -286,7 +256,7 @@ export function MessageItem({
 							</TextEditor.Root> */}
 						</div>
 					) : (
-						<MarkdownReadonly value={message.jsonContent}></MarkdownReadonly>
+						<MarkdownReadonly content={message.content}></MarkdownReadonly>
 					)}
 
 					{/* Attachments */}

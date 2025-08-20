@@ -108,9 +108,8 @@ export const MessageComposer = ({ ref, placeholder = "Type a message..." }: Mess
 		}
 	}, [isTyping, stopTyping])
 
-	const handleSubmit = async (content: string, jsonContent: any) => {
+	const handleSubmit = async (content: string) => {
 		sendMessage({
-			jsonContent,
 			content,
 			attachments: attachmentIds,
 		})
@@ -190,7 +189,7 @@ export const MessageComposer = ({ ref, placeholder = "Type a message..." }: Mess
 					placeholder={placeholder}
 					className={cx(
 						"w-full",
-						(replyToMessageId || attachmentIds.length > 0) && "[&_.editor]:rounded-t-none",
+						(replyToMessageId || attachmentIds.length > 0) && "rounded-t-none",
 					)}
 					onSubmit={handleSubmit}
 					onUpdate={handleEditorUpdate}

@@ -7,86 +7,15 @@ import Prism from "prismjs"
 import { forwardRef, useCallback, useImperativeHandle, useRef } from "react"
 import { Node } from "slate"
 import { BasicNodesKit } from "~/components/editor/plugins/basic-nodes-kit"
-import { Editor, EditorContainer } from "~/components/ui/editor"
+import { Editor, EditorContainer } from "~/components/editor-ui/editor"
 import { cn } from "~/lib/utils"
 import { MessageComposerActions } from "./chat/message-composer-actions"
 
 import "prismjs/components/prism-markdown.js"
-
-/** Decorate texts with markdown preview. */
-const decoratePreview: Decorate = ({ entry: [node, path] }) => {
-	const ranges: any[] = []
-
-	if (!TextApi.isText(node)) {
-		return ranges
-	}
-
-	const getLength = (token: any) => {
-		if (typeof token === "string") {
-			return token.length
-		}
-		if (typeof token.content === "string") {
-			return token.content.length
-		}
-
-		return token.content.reduce((l: any, t: any) => l + getLength(t), 0)
-	}
-
-	const tokens = Prism.tokenize(node.text, Prism.languages.markdown)
-	let start = 0
-
-	for (const token of tokens) {
-		const length = getLength(token)
-		const end = start + length
-
-		if (typeof token !== "string") {
-			ranges.push({
-				anchor: { offset: start, path },
-				focus: { offset: end, path },
-				[token.type]: true,
-			})
-		}
-
-		start = end
-	}
-
-	return ranges
-}
-
-function PreviewLeaf({
-	attributes,
-	children,
-	leaf,
-}: RenderLeafProps<
-	{
-		blockquote?: boolean
-		bold?: boolean
-		code?: boolean
-		hr?: boolean
-		italic?: boolean
-		list?: boolean
-		title?: boolean
-	} & TText
->) {
-	const { blockquote, bold, code, hr, italic, list, title } = leaf
-
-	return (
-		<span
-			{...attributes}
-			className={cn(
-				bold && "font-bold",
-				italic && "italic",
-				title && "mx-0 mt-5 mb-2.5 inline-block font-bold text-[20px]",
-				list && "pl-2.5 text-[20px] leading-[10px]",
-				hr && "block border-[#ddd] border-b-2 text-center",
-				blockquote && "inline-block border-[#ddd] border-l-2 pl-2.5 text-[#aaa] italic",
-				code && "bg-[#eee] p-[3px] font-mono",
-			)}
-		>
-			{children}
-		</span>
-	)
-}
+import { cx } from "~/utils/cx"
+import { AutoformatKit } from "./editor/plugins/autoformat-kit"
+import { MarkdownKit } from "./editor/plugins/markdown-kit"
+import { MentionKit } from "./editor/plugins/mention-kit"
 
 export interface MarkdownEditorRef {
 	focusAndInsertText: (text: string) => void
@@ -96,7 +25,7 @@ export interface MarkdownEditorRef {
 interface MarkdownEditorProps {
 	placeholder?: string
 	className?: string
-	onSubmit?: (content: string, jsonContent: any) => void | Promise<void>
+	onSubmit?: (content: string) => void | Promise<void>
 	onUpdate?: (content: string) => void
 	attachmentIds?: Id<"attachments">[]
 	setAttachmentIds?: (ids: Id<"attachments">[]) => void
@@ -128,22 +57,19 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
 			{
 				plugins: [
 					...BasicNodesKit,
-					createSlatePlugin({
-						key: "preview-markdown",
-						decorate: decoratePreview,
-					}),
+					...MarkdownKit,
+					...AutoformatKit,
+					// ...MentionKit,
 				],
 			},
 			[],
 		)
 
-		// Helper to focus the actual DOM element
 		const focusEditor = useCallback(() => {
 			const editorElement = document.querySelector('[data-slate-editor="true"]') as HTMLElement
 			editorElement?.focus()
 		}, [])
 
-		// Helper to reset editor and restore focus
 		const resetAndFocus = useCallback(() => {
 			editor.tf.reset()
 			setTimeout(() => {
@@ -170,15 +96,13 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
 		const handleSubmit = async () => {
 			if (!onSubmit) return
 
-			const textContent = Node.string(editor)
-			const jsonContent = editor.children
-			await onSubmit(textContent, jsonContent)
+			const textContent = editor.api.markdown.serialize()
 
-			// Clear attachments and cleanup
+			await onSubmit(textContent)
+
 			setAttachmentIds?.([])
 			actionsRef.current?.cleanup()
 
-			// Reset editor and refocus
 			resetAndFocus()
 		}
 
@@ -196,11 +120,10 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
 
 		return (
 			<Plate editor={editor} onChange={() => onUpdate?.(Node.string(editor))}>
-				<EditorContainer className={cn("relative", className)}>
+				<EditorContainer className={cx("relative")}>
 					<Editor
 						variant="chat"
-						className="border border-primary bg-primary pr-[120px]"
-						renderLeaf={PreviewLeaf}
+						className={cx("border border-primary bg-primary", className)}
 						placeholder={placeholder}
 						onKeyDown={handleKeyDown}
 					/>
