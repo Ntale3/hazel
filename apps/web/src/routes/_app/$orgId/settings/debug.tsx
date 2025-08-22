@@ -1,7 +1,7 @@
 import { useConvexMutation } from "@convex-dev/react-query"
 import { api } from "@hazel/backend/api"
 import { createFileRoute } from "@tanstack/react-router"
-import { AlertTriangle, Database, TestTube01 } from "@untitledui/icons"
+import { AlertTriangle, Database01 } from "@untitledui/icons"
 import { useState } from "react"
 import { Heading as AriaHeading } from "react-aria-components"
 import { toast } from "sonner"
@@ -57,7 +57,7 @@ function DebugSettings() {
 				</SectionHeader.Root>
 
 				{/* Warning Banner */}
-				<div className="rounded-lg border border-warning/20 bg-warning/10 p-4">
+				<div className="rounded-lg border border-warning-500/20 bg-warning-500/10 p-4">
 					<div className="flex gap-3">
 						<AlertTriangle className="mt-0.5 size-5 text-warning" />
 						<div className="flex-1">
@@ -83,7 +83,7 @@ function DebugSettings() {
 							<div className="rounded-lg border border-primary bg-secondary/50 p-4">
 								<div className="flex items-start gap-3">
 									<FeaturedIcon size="sm" theme="modern" color="brand">
-										<Database className="size-5" />
+										<Database01 className="size-5" />
 									</FeaturedIcon>
 									<div className="flex-1">
 										<h3 className="font-medium text-primary">Generate Sample Data</h3>
@@ -93,11 +93,10 @@ function DebugSettings() {
 										</p>
 										<Button
 											size="sm"
-											variant="secondary"
-											onPress={() => setShowMockDataDialog(true)}
+											color="secondary"
+											onClick={() => setShowMockDataDialog(true)}
 											className="mt-3"
 										>
-											<TestTube01 className="size-4" />
 											Generate Mock Data
 										</Button>
 									</div>
@@ -151,7 +150,7 @@ function DebugSettings() {
 			{/* Mock Data Generation Modal */}
 			<ModalOverlay isOpen={showMockDataDialog} onOpenChange={setShowMockDataDialog}>
 				<Modal>
-					<Dialog className="sm:max-w-screen-sm md:max-w-screen-md">
+					<Dialog>
 						<div className="flex flex-col gap-5 rounded-xl border border-primary bg-primary max-sm:rounded-b-none sm:p-6">
 							<div className="flex w-full items-start justify-between gap-4">
 								<div className="flex-1">
@@ -176,7 +175,7 @@ function DebugSettings() {
 									<li>Sample messages with reactions</li>
 									<li>Thread replies</li>
 								</ul>
-								<div className="rounded-lg border border-warning/20 bg-warning/10 p-3">
+								<div className="rounded-lg border border-warning-500/20 bg-warning-500/10 p-3">
 									<p className="font-medium text-sm text-warning">
 										⚠️ Warning: This is intended for development purposes only.
 									</p>
@@ -186,16 +185,16 @@ function DebugSettings() {
 							<div className="flex justify-end gap-3">
 								<Button
 									size="sm"
-									variant="secondary"
-									onPress={() => setShowMockDataDialog(false)}
+									color="secondary"
+									onClick={() => setShowMockDataDialog(false)}
 									isDisabled={isGeneratingMockData}
 								>
 									Cancel
 								</Button>
 								<Button
 									size="sm"
-									variant="primary"
-									onPress={handleGenerateMockData}
+									color="primary"
+									onClick={handleGenerateMockData}
 									isLoading={isGeneratingMockData}
 								>
 									{isGeneratingMockData ? "Generating..." : "Generate Data"}
