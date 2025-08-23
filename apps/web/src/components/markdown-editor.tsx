@@ -9,6 +9,7 @@ import { Editor, EditorContainer } from "~/components/editor-ui/editor"
 import { cx } from "~/utils/cx"
 import { MessageComposerActions } from "./chat/message-composer-actions"
 import { AutoformatKit } from "./editor/plugins/autoformat-kit"
+import { ExitBreakKit } from "./editor/plugins/exit-break-kit"
 import { MarkdownKit } from "./editor/plugins/markdown-kit"
 import { MentionKit } from "./editor/plugins/mention-kit"
 
@@ -53,6 +54,7 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
 				plugins: [
 					...BasicNodesKit,
 					...MarkdownKit,
+					...ExitBreakKit,
 					...AutoformatKit,
 					// ...CodeBlockKit,
 					...MentionKit,
@@ -105,7 +107,6 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
 			}),
 			[focusAndInsertTextInternal, resetAndFocus],
 		)
-
 
 		const handleSubmit = async () => {
 			if (!onSubmit) return
