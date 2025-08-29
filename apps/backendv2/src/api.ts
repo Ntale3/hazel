@@ -9,4 +9,4 @@ export class MessageGroup extends HttpApiGroup.make("messages")
 	.add(HttpApiEndpoint.post("create")`/`.setPayload(Schema.Any).addSuccess(Schema.Void))
 	.prefix("/messages") {}
 
-export class HazelApp extends HttpApi.make("HazelApp").add(MessageGroup).add(RootGroup) {}
+export class HazelApi extends HttpApi.make("HazelApp").add(MessageGroup).add(RootGroup) {}

@@ -1,11 +1,11 @@
 import { HttpApiBuilder } from "@effect/platform"
 import { PgDrizzle } from "@effect/sql-drizzle/Pg"
 import { Effect } from "effect"
-import { HazelApp } from "../api"
+import { HazelApi } from "../api"
 
 import * as schema from "../schema/index"
 
-export const HttpMessageLive = HttpApiBuilder.group(HazelApp, "messages", (handlers) =>
+export const HttpMessageLive = HttpApiBuilder.group(HazelApi, "messages", (handlers) =>
 	Effect.gen(function* () {
 		const db = yield* PgDrizzle
 

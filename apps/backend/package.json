@@ -17,7 +17,7 @@
 		"@workos-inc/node": "^7.68.0",
 		"convex": "^1.26.1",
 		"convex-helpers": "^0.1.104",
-		"effect": "^3.17.7"
+		"effect": "^3.17.9"
 	},
 	"devDependencies": {
 		"convex-test": "^0.0.38",

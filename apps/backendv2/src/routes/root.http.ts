@@ -1,8 +1,8 @@
 import { HttpApiBuilder } from "@effect/platform"
 import { Effect } from "effect"
-import { HazelApp } from "../api"
+import { HazelApi } from "../api"
 
-export const HttpRootLive = HttpApiBuilder.group(HazelApp, "root", (handlers) =>
+export const HttpRootLive = HttpApiBuilder.group(HazelApi, "root", (handlers) =>
 	handlers.handle(
 		"root",
 		Effect.fnUntraced(function* () {

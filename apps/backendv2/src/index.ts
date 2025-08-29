@@ -1,22 +1,28 @@
 import { OtlpTracer } from "@effect/opentelemetry"
 import {
 	FetchHttpClient,
+	HttpApi,
+	HttpApiBuilder,
+	HttpApiEndpoint,
+	HttpApiGroup,
 	HttpApiScalar,
 	HttpLayerRouter,
 	HttpMiddleware,
 	HttpServerResponse,
 } from "@effect/platform"
 import { BunHttpServer, BunRuntime } from "@effect/platform-bun"
-import { Layer } from "effect"
-import { HazelApp } from "./api"
+import { Effect, Layer } from "effect"
+import { HazelApi } from "./api"
 import { HttpApiRoutes } from "./http"
+
 import { DatabaseLive } from "./services/db"
 
 const HealthRouter = HttpLayerRouter.use((router) =>
 	router.add("GET", "/health", HttpServerResponse.text("OK")),
 )
+
 const DocsRoute = HttpApiScalar.layerHttpLayerRouter({
-	api: HazelApp,
+	api: HazelApi,
 	path: "/docs",
 })
 
