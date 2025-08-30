@@ -5,7 +5,7 @@ import { UserId } from "./schema"
 
 export class User extends Schema.Class<User>("User")({ id: UserId }) {}
 
-class CurrentUser extends Context.Tag("CurrentUser")<CurrentUser, User>() {}
+export class CurrentUser extends Context.Tag("CurrentUser")<CurrentUser, User>() {}
 
 export class Authorization extends HttpApiMiddleware.Tag<Authorization>()("Authorization", {
 	failure: UnauthorizedError,

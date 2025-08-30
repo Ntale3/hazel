@@ -2,37 +2,16 @@ import { HttpApi, HttpApiEndpoint, HttpApiGroup, HttpApiSchema, OpenApi } from "
 import { Message } from "@hazel/db"
 import { Schema } from "effect"
 import { Authorization } from "./lib/auth"
+import { TransactionId } from "./lib/create-transactionId"
 import { InternalServerError, UnauthorizedError } from "./lib/errors"
-import { AttachmentId, ChannelId, MessageId, UserId } from "./lib/schema"
 
 export class RootGroup extends HttpApiGroup.make("root").add(
 	HttpApiEndpoint.get("root")`/`.addSuccess(Schema.String),
 ) {}
 
-export class CreateMessagePayload extends Schema.Class<CreateMessagePayload>("CreateMessagePayload")({
-	channelId: ChannelId,
-	authorId: UserId,
-	content: Schema.NonEmptyString.annotations({
-		description: "The message content",
-		title: "Content",
-		maxLength: 10000,
-	}),
-	replyToMessageId: Schema.optional(
-		MessageId.annotations({
-			description: "The ID of the message being replied to",
-			title: "Reply To Message ID",
-		}),
-	),
-	attachmentIds: Schema.optional(
-		Schema.Array(AttachmentId).annotations({
-			description: "Array of attachment IDs to associate with the message",
-			title: "Attachment IDs",
-		}),
-	),
-}) {}
-
 export class CreateMessageResponse extends Schema.Class<CreateMessageResponse>("CreateMessageResponse")({
 	data: Message.Model.json,
+	transactionId: TransactionId,
 }) {}
 
 export class MessageNotFoundError extends Schema.TaggedError<MessageNotFoundError>("MessageNotFoundError")(
@@ -58,7 +37,7 @@ export class ChannelNotFoundError extends Schema.TaggedError<ChannelNotFoundErro
 export class MessageGroup extends HttpApiGroup.make("messages")
 	.add(
 		HttpApiEndpoint.post("create")`/`
-			.setPayload(CreateMessagePayload)
+			.setPayload(Message.Model.jsonCreate)
 			.addSuccess(CreateMessageResponse)
 			.addError(ChannelNotFoundError)
 			.addError(UnauthorizedError)
@@ -67,6 +46,7 @@ export class MessageGroup extends HttpApiGroup.make("messages")
 				OpenApi.annotations({
 					title: "Create Message",
 					description: "Create a new message in a channel",
+					summary: "Create a new message",
 				}),
 			),
 	)
