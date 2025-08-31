@@ -1,4 +1,5 @@
 import { index, pgEnum, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core"
+import type { UserId } from "../lib/schema"
 
 // User status enum
 export const userStatusEnum = pgEnum("user_status", ["online", "offline", "away"])
@@ -7,7 +8,7 @@ export const userStatusEnum = pgEnum("user_status", ["online", "offline", "away"
 export const usersTable = pgTable(
 	"users",
 	{
-		id: uuid("id").primaryKey().defaultRandom(),
+		id: uuid("id").primaryKey().defaultRandom().$type<UserId>(),
 		externalId: varchar("external_id", { length: 255 }).notNull().unique(), // WorkOS/Clerk ID
 		email: varchar("email", { length: 255 }).notNull(),
 		firstName: varchar("first_name", { length: 100 }).notNull(),

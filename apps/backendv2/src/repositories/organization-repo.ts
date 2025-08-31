@@ -1,6 +1,6 @@
-import { Database, ModelRepository, schema } from "@hazel/db"
+import { and, Database, eq, isNull, ModelRepository, schema } from "@hazel/db"
 import { Organization } from "@hazel/db/models"
-import { and, eq, isNull } from "drizzle-orm"
+import type { OrganizationId } from "@hazel/db/schema"
 import { Effect, Option, type Schema } from "effect"
 import { DatabaseLive } from "../services/database"
 
@@ -33,7 +33,12 @@ export class OrganizationRepo extends Effect.Service<OrganizationRepo>()("Organi
 				.execute((client) =>
 					client
 						.insert(schema.organizationsTable)
-						.values(data)
+						.values({
+							...data,
+							logoUrl: data.logoUrl,
+							settings: data.settings,
+							deletedAt: data.deletedAt,
+						})
 						.onConflictDoUpdate({
 							target: schema.organizationsTable.workosId,
 							set: {
@@ -41,7 +46,6 @@ export class OrganizationRepo extends Effect.Service<OrganizationRepo>()("Organi
 								slug: data.slug,
 								logoUrl: data.logoUrl,
 								settings: data.settings,
-								updatedAt: new Date(),
 							},
 						})
 						.returning(),
@@ -56,7 +60,7 @@ export class OrganizationRepo extends Effect.Service<OrganizationRepo>()("Organi
 					.where(isNull(schema.organizationsTable.deletedAt)),
 			)
 
-		const softDelete = (id: string) =>
+		const softDelete = (id: OrganizationId) =>
 			db.execute((client) =>
 				client
 					.update(schema.organizationsTable)

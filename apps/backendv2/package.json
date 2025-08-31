@@ -13,7 +13,7 @@
 	},
 	"devDependencies": {
 		"@types/bun": "latest",
-		"typescript": "^5.9.2"
+		"typescript": "5.9.2"
 	},
 	"dependencies": {
 		"@effect/opentelemetry": "^0.56.4",
@@ -22,7 +22,6 @@
 		"@effect/platform-node": "^0.96.0",
 		"@effect/rpc": "^0.69.1",
 		"@effect/sql": "^0.44.2",
-		"@effect/sql-drizzle": "^0.43.0",
 		"@effect/sql-pg": "^0.45.1",
 		"@hazel/db": "workspace:*",
 		"@opentelemetry/sdk-logs": "^0.203.0",
@@ -30,7 +29,6 @@
 		"@opentelemetry/sdk-trace-node": "^2.0.1",
 		"@opentelemetry/sdk-trace-web": "^2.0.1",
 		"@workos-inc/node": "^7.69.1",
-		"drizzle-orm": "^0.44.5",
 		"effect": "^3.17.9",
 		"pg": "^8.16.3"
 	}

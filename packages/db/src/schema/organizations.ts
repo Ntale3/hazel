@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm"
 import { index, pgEnum, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core"
+import type { OrganizationId, OrganizationMemberId } from "../lib/schema"
 
 // Organization member roles
 export const organizationRoleEnum = pgEnum("organization_role", ["admin", "member", "owner"])
@@ -8,7 +9,7 @@ export const organizationRoleEnum = pgEnum("organization_role", ["admin", "membe
 export const organizationsTable = pgTable(
 	"organizations",
 	{
-		id: uuid("id").primaryKey().defaultRandom(),
+		id: uuid("id").primaryKey().defaultRandom().$type<OrganizationId>(),
 		workosId: varchar("workos_id", { length: 255 }).notNull().unique(),
 		name: varchar("name", { length: 255 }).notNull(),
 		slug: varchar("slug", { length: 100 }).notNull().unique(),
@@ -30,7 +31,7 @@ export const organizationsTable = pgTable(
 export const organizationMembersTable = pgTable(
 	"organization_members",
 	{
-		id: uuid("id").primaryKey().defaultRandom(),
+		id: uuid("id").primaryKey().defaultRandom().$type<OrganizationMemberId>(),
 		organizationId: uuid("organization_id")
 			.notNull()
 			.references(() => organizationsTable.id, { onDelete: "cascade" }),

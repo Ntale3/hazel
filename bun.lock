@@ -42,7 +42,6 @@
         "@effect/platform-node": "^0.96.0",
         "@effect/rpc": "^0.69.1",
         "@effect/sql": "^0.44.2",
-        "@effect/sql-drizzle": "^0.43.0",
         "@effect/sql-pg": "^0.45.1",
         "@hazel/db": "workspace:*",
         "@opentelemetry/sdk-logs": "^0.203.0",
@@ -56,7 +55,7 @@
       },
       "devDependencies": {
         "@types/bun": "latest",
-        "typescript": "^5.9.2",
+        "typescript": "5.9.2",
       },
     },
     "apps/mobile": {
@@ -208,7 +207,7 @@
       },
       "devDependencies": {
         "drizzle-kit": "^0.31.4",
-        "typescript": "^5.9.2",
+        "typescript": "5.9.2",
       },
     },
   },
@@ -590,8 +589,6 @@
     "@effect/rpc": ["@effect/rpc@0.69.1", "", { "peerDependencies": { "@effect/platform": "^0.90.5", "effect": "^3.17.8" } }, "sha512-zCwUBhrRFaKGEbHAWV/DIXS8XEmRVCVo+bhUiVcmh0huTIOdOdyrztksVCMqgs/B2Qy2BUErEOIXD9ML+hqP/g=="],
 
     "@effect/sql": ["@effect/sql@0.44.2", "", { "dependencies": { "uuid": "^11.0.3" }, "peerDependencies": { "@effect/experimental": "^0.54.6", "@effect/platform": "^0.90.4", "effect": "^3.17.7" } }, "sha512-DEcvriHvj88zu7keruH9NcHQzam7yQzLNLJO6ucDXMCAwWzYZSJOsmkxBznRFv8ylFtccSclKH2fuj+wRKPjCQ=="],
-
-    "@effect/sql-drizzle": ["@effect/sql-drizzle@0.43.0", "", { "peerDependencies": { "@effect/sql": "^0.44.0", "drizzle-orm": ">=0.43.1 <0.50", "effect": "^3.17.0" } }, "sha512-udfXOY+8RVCXZSqMH0wo3OTbIOc4RpGNq4XA+jv6QAa0NkMHytPYT5CtpqoQesnJKOgAlxU3pyQEvjl69amcNQ=="],
 
     "@effect/sql-pg": ["@effect/sql-pg@0.45.1", "", { "dependencies": { "postgres": "^3.4.4" }, "peerDependencies": { "@effect/experimental": "^0.54.6", "@effect/platform": "^0.90.4", "@effect/sql": "^0.44.2", "effect": "^3.17.7" } }, "sha512-nhJO1cdZ8j19yALZ3Iy9Zyi6JQtcS8SNe4MEp9DSSx0JdX5ZC1dN3zT4gYxWoEwcMqp3oQnq3vtV+mdsSWsTXQ=="],
 

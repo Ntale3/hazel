@@ -14,7 +14,7 @@
 	},
 	"devDependencies": {
 		"drizzle-kit": "^0.31.4",
-		"typescript": "^5.9.2"
+		"typescript": "5.9.2"
 	},
 	"dependencies": {
 		"@effect/experimental": "^0.54.6",

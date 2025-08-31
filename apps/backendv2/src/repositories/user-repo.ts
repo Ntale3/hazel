@@ -1,6 +1,6 @@
-import { Database, ModelRepository, schema } from "@hazel/db"
+import { and, Database, eq, isNull, ModelRepository, schema } from "@hazel/db"
 import { User } from "@hazel/db/models"
-import { and, eq, isNull } from "drizzle-orm"
+import type { UserId } from "@hazel/db/schema"
 import { Effect, Option, type Schema } from "effect"
 import { DatabaseLive } from "../services/database"
 
@@ -12,7 +12,6 @@ export class UserRepo extends Effect.Service<UserRepo>()("UserRepo", {
 		})
 		const db = yield* Database.Database
 
-		// Extended methods for WorkOS sync
 		const findByExternalId = (externalId: string) =>
 			db
 				.execute((client) =>
@@ -49,7 +48,7 @@ export class UserRepo extends Effect.Service<UserRepo>()("UserRepo", {
 				client.select().from(schema.usersTable).where(isNull(schema.usersTable.deletedAt)),
 			)
 
-		const softDelete = (id: string) =>
+		const softDelete = (id: UserId) =>
 			db.execute((client) =>
 				client
 					.update(schema.usersTable)

@@ -118,6 +118,8 @@ const makeService = (config: Config) =>
 									Effect.tryPromise({
 										try: () => fn(tx),
 										catch: (cause) => {
+											console.log("Cause", cause)
+
 											const error = matchPgError(cause)
 											if (error !== null) {
 												return error

@@ -1,4 +1,4 @@
-import type { OrganizationId } from "@hazel/db/schema"
+import type { OrganizationId, UserId } from "@hazel/db/schema"
 import type { Event } from "@workos-inc/node"
 import { Data, Effect, Option, pipe } from "effect"
 import { InvitationRepo } from "../repositories/invitation-repo"
@@ -163,7 +163,10 @@ export class WorkOSSync extends Effect.Service<WorkOSSync>()("WorkOSSync", {
 						orgRepo.upsertByWorkosId({
 							workosId: workosOrg.id,
 							name: workosOrg.name,
-							slug: workosOrg.name.toLowerCase().replace(/[^a-z0-9]/g, "-"),
+							slug: workosOrg.name
+								.toLowerCase()
+								.replace(/[^a-z0-9]+/g, "-")
+								.replace(/^-|-$/g, ""),
 							logoUrl: null,
 							settings: null,
 							deletedAt: null,
@@ -255,8 +258,8 @@ export class WorkOSSync extends Effect.Service<WorkOSSync>()("WorkOSSync", {
 
 						return collectResult(
 							orgMemberRepo.upsertByOrgAndUser({
-								organizationId: organizationId as any,
-								userId: user.id as any,
+								organizationId: organizationId,
+								userId: user.id,
 								role,
 								joinedAt: new Date(),
 								invitedBy: null,
@@ -304,7 +307,7 @@ export class WorkOSSync extends Effect.Service<WorkOSSync>()("WorkOSSync", {
 			})
 
 		// Sync invitations
-		const syncInvitations = (organizationId: string, workosOrgId: string) =>
+		const syncInvitations = (organizationId: OrganizationId, workosOrgId: string) =>
 			Effect.gen(function* () {
 				const result: SyncResult & { expired: number } = {
 					created: 0,
@@ -362,20 +365,20 @@ export class WorkOSSync extends Effect.Service<WorkOSSync>()("WorkOSSync", {
 						}
 
 						// Find inviter user if available
-						let invitedBy = null
+						let invitedBy: UserId | null = null
 						if (workosInvitation.inviterUserId) {
 							const inviter = userMap.get(workosInvitation.inviterUserId)
 							if (inviter) {
-								invitedBy = inviter.id
+								invitedBy = inviter.id as UserId
 							}
 						}
 
 						return collectResult(
 							invitationRepo.upsertByWorkosId({
 								workosInvitationId: workosInvitation.id,
-								organizationId: organizationId as any,
+								organizationId: organizationId,
 								email: workosInvitation.email,
-								invitedBy: invitedBy as any,
+								invitedBy: invitedBy,
 								invitedAt: new Date(workosInvitation.createdAt),
 								expiresAt: new Date(workosInvitation.expiresAt),
 								status,
@@ -449,14 +452,17 @@ export class WorkOSSync extends Effect.Service<WorkOSSync>()("WorkOSSync", {
 				organizations.map((org) =>
 					Effect.gen(function* () {
 						console.log(`Syncing memberships for org ${org.workosId}...`)
-						const membershipResult = yield* syncOrganizationMemberships(org.id as any, org.workosId)
+						const membershipResult = yield* syncOrganizationMemberships(org.id, org.workosId)
 						result.memberships.created += membershipResult.created
 						result.memberships.updated += membershipResult.updated
 						result.memberships.deleted += membershipResult.deleted
 						result.memberships.errors.push(...membershipResult.errors)
 
 						console.log(`Syncing invitations for org ${org.workosId}...`)
-						const invitationResult = yield* syncInvitations(org.id, org.workosId)
+						const invitationResult = yield* syncInvitations(
+							org.id as OrganizationId,
+							org.workosId,
+						)
 						result.invitations.created += invitationResult.created
 						result.invitations.updated += invitationResult.updated
 						result.invitations.deleted += invitationResult.deleted
@@ -526,9 +532,12 @@ export class WorkOSSync extends Effect.Service<WorkOSSync>()("WorkOSSync", {
 							const orgData = {
 								workosId: typedEvent.data.id,
 								name: typedEvent.data.name,
-								slug: typedEvent.data.name.toLowerCase().replace(/[^a-z0-9]/g, "-"),
+								slug: typedEvent.data.name
+									.toLowerCase()
+									.replace(/[^a-z0-9]+/g, "-")
+									.replace(/^-|-$/g, ""),
 								logoUrl: null,
-								settings: null,
+								settings: "{}",
 								deletedAt: null,
 							}
 							yield* orgRepo.upsertByWorkosId(orgData)
