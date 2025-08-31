@@ -1,0 +1,13 @@
+import { Schema } from "effect"
+import { ChannelId, DirectMessageParticipantId, OrganizationId, UserId } from "../lib/schema"
+import * as M from "../services/model"
+
+export class Model extends M.Class<Model>("DirectMessageParticipant")({
+	id: M.Generated(DirectMessageParticipantId),
+	channelId: ChannelId,
+	userId: UserId,
+	organizationId: OrganizationId,
+}) {}
+
+export const Insert = Model.insert
+export const Update = Model.update

@@ -1,0 +1,23 @@
+import { Schema } from "effect"
+import { UserId } from "../lib/schema"
+import * as M from "../services/model"
+import { baseFields } from "./utils"
+
+export const UserStatus = Schema.Literal("online", "offline", "away")
+export type UserStatus = Schema.Schema.Type<typeof UserStatus>
+
+export class Model extends M.Class<Model>("User")({
+	id: M.Generated(UserId),
+	externalId: Schema.String,
+	email: Schema.String,
+	firstName: Schema.String,
+	lastName: Schema.String,
+	avatarUrl: Schema.String,
+	status: UserStatus,
+	lastSeen: Schema.DateFromString,
+	settings: Schema.NullOr(Schema.String),
+	...baseFields,
+}) {}
+
+export const Insert = Model.insert
+export const Update = Model.update
