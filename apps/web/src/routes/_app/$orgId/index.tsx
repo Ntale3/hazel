@@ -1,9 +1,10 @@
-import { convexQuery, useConvexMutation } from "@convex-dev/react-query"
-import type { Id } from "@hazel/backend"
-import { api } from "@hazel/backend/api"
-import { useQuery } from "@tanstack/react-query"
+import type { OrganizationId } from "@hazel/db/schema"
+import { eq, useLiveQuery } from "@tanstack/react-db"
+import { useMutation } from "@tanstack/react-query"
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router"
 import { PhoneCall01 } from "@untitledui/icons"
+import { useAuth } from "@workos-inc/authkit-react"
+import { Effect } from "effect"
 import { useMemo, useState } from "react"
 import { twJoin } from "tailwind-merge"
 import { SectionHeader } from "~/components/application/section-headers/section-headers"
@@ -16,6 +17,8 @@ import IconClipboard from "~/components/icons/IconClipboard"
 import { IconSearchStroke } from "~/components/icons/IconSearchStroke"
 import { IconThreeDotsMenuHorizontalStroke } from "~/components/icons/IconThreeDotsMenuHorizontalStroke"
 import IconUserUser03 from "~/components/icons/IconUserUser03"
+import { organizationMemberCollection, userCollection } from "~/db/collections"
+import { backendClient } from "~/lib/client"
 
 export const Route = createFileRoute("/_app/$orgId/")({
 	component: RouteComponent,
@@ -23,33 +26,68 @@ export const Route = createFileRoute("/_app/$orgId/")({
 
 function RouteComponent() {
 	const { orgId } = useParams({ from: "/_app/$orgId" })
-	const organizationId = orgId as Id<"organizations">
+	const organizationId = orgId as OrganizationId
 	const navigate = useNavigate()
 	const [searchQuery, setSearchQuery] = useState("")
+	const { user: authUser } = useAuth()
 
-	const membersQuery = useQuery(convexQuery(api.social.getMembersForOrganization, { organizationId }))
+	// Query organization members with their user data
+	const { data: membersData } = useLiveQuery((q) =>
+		q
+			.from({ member: organizationMemberCollection })
+			.innerJoin({ user: userCollection }, ({ member, user }) => eq(member.userId, user.id))
+			.where(({ member }) => eq(member.organizationId, organizationId))
+			.select(({ member, user }) => ({
+				...user,
+				role: member.role,
+				joinedAt: member.joinedAt,
+			})),
+	)
 
-	const currentUserQuery = useQuery(convexQuery(api.me.get, {}))
+	// Get current user data
+	const { data: currentUser } = useLiveQuery((q) =>
+		q
+			.from({ user: userCollection })
+			.where(({ user }) => eq(user.externalId, authUser?.id || ""))
+			.select(({ user }) => user)
+			.limit(1),
+	)
 
-	const createDmChannel = useConvexMutation(api.channels.createDmChannel)
+	const createDmChannelMutation = useMutation({
+		mutationFn: async ({ targetUserId }: { targetUserId: string }) => {
+			return Effect.runPromise(
+				Effect.gen(function* () {
+					const client = yield* backendClient
+					return yield* client.channels.create({
+						payload: {
+							name: "Direct Message",
+							type: "direct" as const,
+						},
+					})
+				}),
+			)
+		},
+	})
 
 	const filteredMembers = useMemo(() => {
-		if (!membersQuery.data || !searchQuery) return membersQuery.data || []
+		if (!membersData || !searchQuery) return membersData || []
 
-		return membersQuery.data.filter((member: any) => {
+		return membersData.filter((member: any) => {
 			const searchLower = searchQuery.toLowerCase()
 			const fullName = `${member.firstName} ${member.lastName}`.toLowerCase()
 			const email = member.email?.toLowerCase() || ""
 			return fullName.includes(searchLower) || email.includes(searchLower)
 		})
-	}, [membersQuery.data, searchQuery])
+	}, [membersData, searchQuery])
 
-	const handleOpenChat = async (targetUserId: Id<"users">) => {
+	const handleOpenChat = async (targetUserId: string) => {
 		if (!targetUserId) return
 
 		try {
-			const channelId = await createDmChannel({ organizationId, userId: targetUserId })
-			await navigate({ to: "/$orgId/chat/$id", params: { orgId, id: channelId } })
+			const result = await createDmChannelMutation.mutateAsync({ targetUserId })
+			if (result.data?.id) {
+				await navigate({ to: "/$orgId/chat/$id", params: { orgId, id: result.data.id } })
+			}
 		} catch (error) {
 			console.error("Failed to create DM channel:", error)
 		}
@@ -94,13 +132,14 @@ function RouteComponent() {
 				) : (
 					filteredMembers.map((member: any) => {
 						const fullName = `${member.firstName} ${member.lastName}`.trim()
+						const isCurrentUser = currentUser && currentUser.length > 0 && currentUser[0].id === member.id
 						return (
 							<div
-								key={member._id}
+								key={member.id}
 								className={twJoin(
 									"flex items-center justify-between gap-4 rounded-lg px-3 py-2",
 
-									currentUserQuery.data?._id !== member._id &&
+									!isCurrentUser &&
 										"group inset-ring inset-ring-transparent hover:inset-ring-secondary hover:bg-quaternary/40",
 								)}
 							>
@@ -123,10 +162,10 @@ function RouteComponent() {
 									</div>
 								</div>
 
-								{currentUserQuery.data?._id !== member._id && (
+								{!isCurrentUser && (
 									<div className="flex items-center gap-2">
 										<ButtonUtility
-											onClick={() => handleOpenChat(member._id)}
+											onClick={() => handleOpenChat(member.id)}
 											className="inset-ring-0 hidden pressed:bg-tertiary group-hover:bg-tertiary sm:inline-grid"
 											size="sm"
 											icon={IconChatStroke}
