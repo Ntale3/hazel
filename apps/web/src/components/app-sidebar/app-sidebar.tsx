@@ -161,6 +161,9 @@ const ChannelGroup = (props: { organizationId: OrganizationId }) => {
 				.innerJoin({ member: channelMemberCollection }, ({ channel, member }) =>
 					eq(member.channelId, channel.id),
 				)
+				// .innerJoin({ members: channelMemberCollection }, ({ channel, members }) =>
+				// 	eq(members.channelId, channel.id),
+				// )
 				.where((q) =>
 					and(
 						eq(q.channel.organizationId, props.organizationId),
