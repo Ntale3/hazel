@@ -36,7 +36,6 @@ function ChatContent() {
 					<ThreadPanel
 						threadChannelId={activeThreadChannelId}
 						originalMessageId={activeThreadMessageId}
-						organizationId={organizationId}
 						onClose={closeThread}
 					/>
 				</div>

@@ -32,7 +32,7 @@ function OnboardingPage() {
 
 	// If user has organizations, redirect to the first one
 	if (userOrganizations && userOrganizations.length > 0) {
-		const firstOrg = userOrganizations[0]
+		const firstOrg = userOrganizations[0]!
 		return <Navigate to="/$orgId" params={{ orgId: firstOrg.org.id }} />
 	}
 

@@ -1,6 +1,7 @@
 import type { UserId } from "@hazel/db/schema"
 import { eq, useLiveQuery } from "@tanstack/react-db"
 import { DotsHorizontal } from "@untitledui/icons"
+import { useState } from "react"
 import { Button, DialogTrigger, Dialog as PrimitiveDialog } from "react-aria-components"
 import { toast } from "sonner"
 import { Avatar } from "~/components/base/avatar/avatar"
@@ -110,6 +111,32 @@ export function UserProfilePopover({ userId }: UserProfilePopoverProps) {
 							<div className="relative h-32">
 								{!isOwnProfile && (
 									<div className="absolute top-2 right-2 flex items-center gap-2 p-1">
+										<Tooltip
+											arrow
+											title={isFavorite ? "Remove from favorites" : "Add to favorites"}
+											placement="bottom"
+										>
+											<ButtonUtility
+												onClick={handleToggleFavorite}
+												color={isFavorite ? "secondary" : "tertiary"}
+												size="xs"
+												icon={IconStar}
+												aria-label={
+													isFavorite ? "Remove from favorites" : "Add to favorites"
+												}
+											/>
+										</Tooltip>
+
+										<Tooltip arrow title="Call user" placement="bottom">
+											<ButtonUtility
+												onClick={handleCall}
+												color="tertiary"
+												size="xs"
+												icon={IconPhone2}
+												aria-label="Call user"
+											/>
+										</Tooltip>
+
 										<Dropdown.Root>
 											<ButtonUtility
 												className="group"

@@ -33,7 +33,7 @@ function RouteComponent() {
 	}
 
 	if (orgMembers && orgMembers.length > 0) {
-		const orgId = orgMembers[0].org.id
+		const orgId = orgMembers[0]!.org.id
 		return <Navigate to="/$orgId" params={{ orgId }} />
 	}
 

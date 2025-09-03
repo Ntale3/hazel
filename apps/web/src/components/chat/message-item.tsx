@@ -18,6 +18,7 @@ import {
 import { useChat } from "~/hooks/use-chat"
 import { useUser } from "~/lib/auth"
 import { cx } from "~/utils/cx"
+import { ModalFooter } from "../application/modals/modal"
 import { IconNotification } from "../application/notifications/notifications"
 import { Badge } from "../base/badges/badges"
 import { MarkdownReadonly } from "../markdown-readonly"
@@ -130,73 +131,6 @@ export function MessageItem({
 
 	return (
 		<>
-			<DialogTrigger
-				isOpen={openInviteUserToSpecificChannel}
-				onOpenChange={setOpenInviteUserToSpecificChannel}
-			>
-				<ModalOverlay className="z-50" isDismissable>
-					<Modal>
-						<Dialog>
-							{({ close }) => (
-								<div className="relative w-full overflow-hidden rounded-2xl bg-primary shadow-xl transition-all sm:max-w-130">
-									<CloseButton
-										onClick={close}
-										theme="light"
-										size="lg"
-										className="absolute top-3 right-3"
-									/>
-									<div className="flex flex-col gap-4 px-4 pt-5 sm:px-6 sm:pt-6">
-										<div className="relative w-max">
-											<FeaturedIcon
-												color="gray"
-												size="lg"
-												theme="modern"
-												icon={IconUserPlusStroke}
-											/>
-											<BackgroundPattern
-												pattern="circle"
-												size="sm"
-												className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2"
-											/>
-										</div>
-										<div className="z-10 flex flex-col gap-0.5">
-											<AriaHeading
-												slot="title"
-												className="font-semibold text-md text-primary"
-											>
-												Invite Bob Smith to specific channels
-											</AriaHeading>
-											<p className="text-sm text-tertiary">
-												Select a channel to invite this user to join.
-											</p>
-										</div>
-									</div>
-									<div className="h-5 w-full" />
-									<div className="flex max-h-96 flex-col gap-4 overflow-y-auto px-4 sm:px-6">
-										{channels.map((channel) => (
-											<Checkbox
-												label={channel.name}
-												hint={channel.description}
-												size="sm"
-												id={channel.id}
-											/>
-										))}
-									</div>
-									<ModalFooter>
-										<StyledButton color="secondary" size="lg" onClick={close}>
-											Cancel
-										</StyledButton>
-										<StyledButton color="primary" size="lg" onClick={close}>
-											Invite
-										</StyledButton>
-									</ModalFooter>
-								</div>
-							)}
-						</Dialog>
-					</Modal>
-				</ModalOverlay>
-			</DialogTrigger>
-
 			{/* biome-ignore lint/a11y/noStaticElementInteractions: needed for hover interaction */}
 			<div
 				id={`message-${message.id}`}

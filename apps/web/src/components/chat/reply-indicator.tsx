@@ -41,9 +41,7 @@ export function ReplyIndicator({ replyToMessageId, onClose }: ReplyIndicatorProp
 				<span className="font-semibold text-primary">
 					{data.author.firstName} {data.author.lastName}
 				</span>
-				<span className="max-w-xs truncate text-secondary">
-					{data.message.content.split("\n")[0]}
-				</span>
+				<span className="max-w-xs truncate text-secondary">{data.content.split("\n")[0]}</span>
 			</div>
 			<Button size="sm" color="tertiary" onClick={onClose} aria-label="Cancel reply" className="!p-1">
 				<X className="size-3.5" />
