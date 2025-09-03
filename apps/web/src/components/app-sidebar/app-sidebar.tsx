@@ -4,11 +4,7 @@ import { Link, useParams } from "@tanstack/react-router"
 import { useAuth } from "@workos-inc/authkit-react"
 import { useMemo } from "react"
 import IconChat1 from "~/components/icons/IconChat1"
-import {
-	channelCollection,
-	channelMemberCollection,
-	organizationCollection,
-} from "~/db/collections"
+import { channelCollection, channelMemberCollection, organizationCollection } from "~/db/collections"
 import { useUser } from "~/lib/auth"
 import { CreateDmButton } from "../application/modals/create-dm-modal"
 import IconChatChatting1 from "../icons/IconChatChatting1"
@@ -166,6 +162,7 @@ const ChannelGroup = (props: { organizationId: OrganizationId }) => {
 						or(eq(q.channel.type, "public"), eq(q.channel.type, "private")),
 						eq(q.member.userId, user?.id || ""),
 						eq(q.member.isHidden, false),
+						eq(q.member.isFavorite, false),
 					),
 				)
 				.orderBy(({ channel }) => channel.createdAt, "asc"),
@@ -210,6 +207,7 @@ const DmChannelGroup = (props: { organizationId: OrganizationId }) => {
 						or(eq(q.channel.type, "direct"), eq(q.channel.type, "single")),
 						eq(q.member.userId, user?.id),
 						eq(q.member.isHidden, false),
+						eq(q.member.isFavorite, false),
 					),
 				)
 				.orderBy(({ channel }) => channel.createdAt, "asc"),
