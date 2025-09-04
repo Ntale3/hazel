@@ -1,5 +1,3 @@
-import type { Id } from "@hazel/backend"
-import { api } from "@hazel/backend/api"
 import {
 	Attachment,
 	Channel,
