@@ -39,7 +39,16 @@ export const NewChannelModal = () => {
 		},
 		onSubmit: async ({ value }) => {
 			try {
-				await createChannelMutation({ ...value, organizationId })
+				channelCollection.insert({
+					id: ChannelId.make(uuid()),
+					name: value.name,
+					type: value.type,
+					organizationId,
+					parentChannelId: null,
+					createdAt: new Date(),
+					updatedAt: null,
+					deletedAt: null,
+				})
 				toast.success("Channel created successfully")
 				setIsOpen(false)
 				form.reset()

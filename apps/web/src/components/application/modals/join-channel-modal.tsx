@@ -62,6 +62,7 @@ export const JoinChannelModal = ({ isOpen, setIsOpen }: JoinChannelModalProps) =
 				deletedAt: null,
 				lastSeenMessageId: null,
 			})
+
 			toast.success("Successfully joined channel")
 			setIsOpen(false)
 			setSearchQuery("")

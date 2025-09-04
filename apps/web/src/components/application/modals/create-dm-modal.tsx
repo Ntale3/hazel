@@ -18,7 +18,15 @@ import { FeaturedIcon } from "~/components/foundations/featured-icon/featured-ic
 import IconCheckTickCircle from "~/components/icons/IconCheckTickCircle"
 import { usePresence } from "~/components/presence/presence-provider"
 import { BackgroundPattern } from "~/components/shared-assets/background-patterns"
+import {
+	channelCollection,
+	channelMemberCollection,
+	directMessageParticipantCollection,
+	organizationMemberCollection,
+	userCollection,
+} from "~/db/collections"
 import { useAppForm } from "~/hooks/use-app-form"
+import { useUser } from "~/lib/auth"
 import { cx } from "~/utils/cx"
 
 const dmFormSchema = type({
@@ -34,16 +42,38 @@ interface CreateDmModalProps {
 
 export const CreateDmModal = ({ isOpen, onOpenChange }: CreateDmModalProps) => {
 	const [searchQuery, setSearchQuery] = useState("")
-	const [selectedUsers, setSelectedUsers] = useState<Doc<"users">[]>([])
+	const [selectedUsers, setSelectedUsers] = useState<(typeof User.Model.Type)[]>([])
 
 	const navigate = useNavigate()
 	const { orgId } = useParams({ from: "/_app/$orgId" })
-	const organizationId = orgId as Id<"organizations">
+	const organizationId = orgId as OrganizationId
 	const { isUserOnline } = usePresence()
+	const { user } = useUser()
 
-	const friendsQuery = useQuery(convexQuery(api.social.getFriendsForOrganization, { organizationId }))
-	const createDmChannelMutation = useConvexMutation(api.channels.createDmChannel)
-	const createGroupDmChannelMutation = useConvexMutation(api.channels.createGroupDmChannel)
+	// Get all users in the organization (excluding current user)
+	const { data: organizationUsers } = useLiveQuery(
+		(q) =>
+			q
+				.from({ member: organizationMemberCollection })
+				.innerJoin({ user: userCollection }, ({ member, user }) => eq(member.userId, user.id))
+				.where(({ member }) => 
+					eq(member.organizationId, organizationId)
+				)
+				.select(({ user }) => ({
+					id: user.id,
+					firstName: user.firstName,
+					lastName: user.lastName,
+					avatarUrl: user.avatarUrl,
+					externalId: user.externalId,
+					email: user.email,
+					status: user.status,
+					lastSeen: user.lastSeen,
+					settings: user.settings,
+					createdAt: user.createdAt,
+					updatedAt: user.updatedAt,
+					deletedAt: user.deletedAt,
+				}))
+	)
 
 	const form = useAppForm({
 		defaultValues: {
@@ -53,25 +83,77 @@ export const CreateDmModal = ({ isOpen, onOpenChange }: CreateDmModalProps) => {
 			onChange: dmFormSchema,
 		},
 		onSubmit: async ({ value }) => {
-			if (value.userIds.length === 0) return
+			if (value.userIds.length === 0 || !user?.id) return
 
 			try {
-				let channelId: Id<"channels">
+				const channelId = ChannelId.make(uuid())
 
+				// Create the channel
 				if (value.userIds.length === 1) {
 					// Single DM
-					channelId = await createDmChannelMutation({
-						userId: value.userIds[0] as Id<"users">,
+					channelCollection.insert({
+						id: channelId,
+						name: "", // DM channels typically don't have names
+						type: "direct",
+						organizationId,
+						parentChannelId: null,
+						createdAt: new Date(),
+						updatedAt: null,
+						deletedAt: null,
+					})
+
+					// Add participants to direct message
+					const currentUserId = user?.id as UserId
+					const otherUserId = value.userIds[0] as UserId
+					
+					directMessageParticipantCollection.insert({
+						id: DirectMessageParticipantId.make(uuid()),
+						channelId,
+						userId: currentUserId,
 						organizationId,
 					})
-					const user = friendsQuery.data?.find((u) => u?._id === value.userIds[0])
-					toast.success(`Started conversation with ${user?.firstName}`)
+					
+					directMessageParticipantCollection.insert({
+						id: DirectMessageParticipantId.make(uuid()),
+						channelId,
+						userId: otherUserId,
+						organizationId,
+					})
+
+					const targetUser = organizationUsers?.find((u) => u?.id === value.userIds[0])
+					toast.success(`Started conversation with ${targetUser?.firstName}`)
 				} else {
 					// Group DM
-					channelId = await createGroupDmChannelMutation({
-						userIds: value.userIds as Id<"users">[],
+					channelCollection.insert({
+						id: channelId,
+						name: "", // Could be set to participants' names
+						type: "direct",
 						organizationId,
+						parentChannelId: null,
+						createdAt: new Date(),
+						updatedAt: null,
+						deletedAt: null,
 					})
+
+					// Add all participants including current user
+					const allUserIds = [user?.id as UserId, ...value.userIds.map(id => id as UserId)]
+					
+					for (const userId of allUserIds) {
+						channelMemberCollection.insert({
+							id: ChannelMemberId.make(uuid()),
+							channelId,
+							userId,
+							isHidden: false,
+							isMuted: false,
+							isFavorite: false,
+							lastSeenMessageId: null,
+							notificationCount: 0,
+							joinedAt: new Date(),
+							createdAt: new Date(),
+							deletedAt: null,
+						})
+					}
+
 					toast.success(`Created group conversation with ${value.userIds.length} people`)
 				}
 
@@ -95,11 +177,14 @@ export const CreateDmModal = ({ isOpen, onOpenChange }: CreateDmModalProps) => {
 	})
 
 	const filteredUsers = useMemo(() => {
-		const users = friendsQuery.data || []
-		if (!searchQuery.trim()) return users
+		const users = organizationUsers || []
+		// Filter out current user
+		const otherUsers = users.filter((u) => u?.id !== user?.id)
+		
+		if (!searchQuery.trim()) return otherUsers
 
 		const query = searchQuery.toLowerCase()
-		const userss = users.filter((user) => {
+		return otherUsers.filter((user) => {
 			if (!user) return false
 			const firstName = user.firstName || ""
 			const lastName = user.lastName || ""
@@ -110,9 +195,7 @@ export const CreateDmModal = ({ isOpen, onOpenChange }: CreateDmModalProps) => {
 				fullName.toLowerCase().includes(query)
 			)
 		})
-
-		return userss.filter(Boolean)
-	}, [friendsQuery.data, searchQuery])
+	}, [organizationUsers, searchQuery, user?.id])
 
 	const handleClose = () => {
 		onOpenChange(false)
