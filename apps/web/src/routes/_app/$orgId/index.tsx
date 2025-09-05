@@ -1,10 +1,11 @@
+import { useAtomSet } from "@effect-atom/atom-react"
 import type { OrganizationId } from "@hazel/db/schema"
 import { eq, useLiveQuery } from "@tanstack/react-db"
 import { useMutation } from "@tanstack/react-query"
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router"
 import { PhoneCall01 } from "@untitledui/icons"
-import { useAuth } from "@workos-inc/authkit-react"
 import { Effect } from "effect"
+import { useStoreAtomState } from "platejs/react"
 import { useMemo, useState } from "react"
 import { twJoin } from "tailwind-merge"
 import { SectionHeader } from "~/components/application/section-headers/section-headers"
@@ -19,7 +20,7 @@ import { IconThreeDotsMenuHorizontalStroke } from "~/components/icons/IconThreeD
 import IconUserUser03 from "~/components/icons/IconUserUser03"
 import { organizationMemberCollection, userCollection } from "~/db/collections"
 import { useUser } from "~/lib/auth"
-import { backendClient } from "~/lib/client"
+import { HazelApiClient } from "~/lib/client"
 
 export const Route = createFileRoute("/_app/$orgId/")({
 	component: RouteComponent,
@@ -30,6 +31,10 @@ function RouteComponent() {
 	const organizationId = orgId as OrganizationId
 	const navigate = useNavigate()
 	const [searchQuery, setSearchQuery] = useState("")
+
+	const createDmChannel = useAtomSet(HazelApiClient.mutation("channels", "create"), {
+		mode: "promise",
+	})
 
 	const { data: membersData } = useLiveQuery(
 		(q) =>
@@ -47,22 +52,6 @@ function RouteComponent() {
 
 	const { user } = useUser()
 
-	const createDmChannelMutation = useMutation({
-		mutationFn: async ({ targetUserId }: { targetUserId: string }) => {
-			return Effect.runPromise(
-				Effect.gen(function* () {
-					const client = yield* backendClient
-					return yield* client.channels.create({
-						payload: {
-							name: "Direct Message",
-							type: "direct" as const,
-						},
-					})
-				}),
-			)
-		},
-	})
-
 	const filteredMembers = useMemo(() => {
 		if (!membersData || !searchQuery) return membersData || []
 
@@ -78,8 +67,15 @@ function RouteComponent() {
 		if (!targetUserId) return
 
 		try {
-			const result = await createDmChannelMutation.mutateAsync({ targetUserId })
-			if (result.data?.id) {
+			const result = await createDmChannel({
+				payload: {
+					name: "New DM",
+					type: "direct",
+					parentChannelId: null,
+					organizationId: orgId as OrganizationId,
+				},
+			})
+			if (result.data.id) {
 				await navigate({ to: "/$orgId/chat/$id", params: { orgId, id: result.data.id } })
 			}
 		} catch (error) {

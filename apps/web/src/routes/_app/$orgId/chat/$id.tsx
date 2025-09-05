@@ -34,6 +34,7 @@ function ChatContent() {
 			{activeThreadChannelId && activeThreadMessageId && (
 				<div className="slide-in-from-right w-[480px] animate-in duration-200">
 					<ThreadPanel
+						organizationId={organizationId}
 						threadChannelId={activeThreadChannelId}
 						originalMessageId={activeThreadMessageId}
 						onClose={closeThread}

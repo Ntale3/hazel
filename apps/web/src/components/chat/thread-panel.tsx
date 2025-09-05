@@ -1,7 +1,7 @@
 import { convexQuery } from "@convex-dev/react-query"
 import type { Id } from "@hazel/backend"
 import { api } from "@hazel/backend/api"
-import type { ChannelId, MessageId } from "@hazel/db/schema"
+import type { ChannelId, MessageId, OrganizationId } from "@hazel/db/schema"
 import { useQuery } from "@tanstack/react-query"
 import { X } from "@untitledui/icons"
 import { format } from "date-fns"
@@ -17,6 +17,7 @@ import { TypingIndicator } from "./typing-indicator"
 interface ThreadPanelProps {
 	threadChannelId: ChannelId
 	originalMessageId: MessageId
+	organizationId: OrganizationId
 	onClose: () => void
 }
 
@@ -75,10 +76,16 @@ function ThreadContent({ threadChannelId, originalMessageId, onClose }: ThreadPa
 	)
 }
 
-export function ThreadPanel({ threadChannelId, originalMessageId, onClose }: ThreadPanelProps) {
+export function ThreadPanel({
+	threadChannelId,
+	originalMessageId,
+	onClose,
+	organizationId,
+}: ThreadPanelProps) {
 	return (
-		<ChatProvider channelId={threadChannelId}>
+		<ChatProvider channelId={threadChannelId} organizationId={organizationId}>
 			<ThreadContent
+				organizationId={organizationId}
 				threadChannelId={threadChannelId}
 				originalMessageId={originalMessageId}
 				onClose={onClose}

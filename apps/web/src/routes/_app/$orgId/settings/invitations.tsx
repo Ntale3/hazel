@@ -66,10 +66,9 @@ function RouteComponent() {
 
 	const handleResendInvitation = async (invitationId: InvitationId) => {
 		try {
-			// TODO:
+			// TODO: Resend mutation
 			// await resendInvitationMutation({
 			// 	invitationId,
-			// 	organizationId: params.orgId as Id<"organizations">,
 			// })
 			toast.info("Invitation resent", {
 				description: "The invitation has been resent successfully.",
@@ -85,7 +84,6 @@ function RouteComponent() {
 		try {
 			// await revokeInvitationMutation({
 			// 	invitationId,
-			// 	organizationId: params.orgId as Id<"organizations">,
 			// })
 			toast.info("Invitation revoked", {
 				description: "The invitation has been revoked successfully.",

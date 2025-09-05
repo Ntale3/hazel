@@ -233,7 +233,7 @@ export async function createMessage(
 		}
 
 		// Create attachment records if needed
-		const attachmentIds: Id<"attachments">[] = []
+		const attachmentIds: AttachmentId[] = []
 		if (props.attachedFiles && props.attachedFiles.length > 0) {
 			for (const fileName of props.attachedFiles) {
 				const attachmentId = await ctx.db.insert("attachments", {

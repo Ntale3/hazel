@@ -1,4 +1,3 @@
-import type { Doc, Id } from "@hazel/backend"
 import type { Attachment } from "@hazel/db/models"
 import type { MessageId } from "@hazel/db/schema"
 import { FileIcon } from "@untitledui/file-icons"
@@ -7,14 +6,6 @@ import { useState } from "react"
 import { useAttachments } from "~/db/hooks"
 import { cx } from "~/utils/cx"
 import { ButtonUtility } from "../base/buttons/button-utility"
-
-// Enriched attachment type that includes metadata from R2
-type EnrichedAttachment = Doc<"attachments"> & {
-	fileName: string
-	fileSize: number
-	mimeType: string
-	publicUrl: string
-}
 
 interface MessageAttachmentsProps {
 	messageId: MessageId

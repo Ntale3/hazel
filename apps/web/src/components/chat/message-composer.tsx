@@ -1,11 +1,12 @@
 import { convexQuery } from "@convex-dev/react-query"
-import type { Id } from "@hazel/backend"
 import { api } from "@hazel/backend/api"
+import type { AttachmentId, OrganizationId } from "@hazel/db/schema"
+import { eq, inArray, useLiveQuery } from "@tanstack/react-db"
 import { useQuery } from "@tanstack/react-query"
 import { useParams } from "@tanstack/react-router"
 import { Attachment01, Loading03, XClose } from "@untitledui/icons"
 import { useEffect, useRef, useState } from "react"
-
+import { attachmentCollection } from "~/db/collections"
 import { useFileUpload } from "~/hooks/use-file-upload"
 import { useChat } from "~/providers/chat-provider"
 import { cx } from "~/utils/cx"
@@ -15,33 +16,38 @@ import { ReplyIndicator } from "./reply-indicator"
 
 interface MessageComposerProps {
 	placeholder?: string
-	channelId?: string
-	organizationId?: string
 }
 
 export const MessageComposer = ({ placeholder = "Type a message..." }: MessageComposerProps) => {
 	const { orgId } = useParams({ from: "/_app/$orgId" })
+
 	const { sendMessage, startTyping, stopTyping, replyToMessageId, setReplyToMessageId } = useChat()
 	const editorRef = useRef<MarkdownEditorRef | null>(null)
 
 	const [isTyping, setIsTyping] = useState(false)
-	const [attachmentIds, setAttachmentIds] = useState<Id<"attachments">[]>([])
+	const [attachmentIds, setAttachmentIds] = useState<AttachmentId[]>([])
 	const typingTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
 
 	const { uploads } = useFileUpload({
-		organizationId: orgId as Id<"organizations">,
+		organizationId: orgId as OrganizationId,
 		onUploadComplete: () => {},
 	})
 
-	// Fetch attachment details to get actual file names
-	const { data: attachments } = useQuery(
-		convexQuery(api.uploads.getAttachmentsByIds, {
-			attachmentIds,
-			organizationId: orgId as Id<"organizations">,
-		}),
+	const { data: attachments } = useLiveQuery(
+		(q) =>
+			q
+				.from({
+					attachments: attachmentCollection,
+				})
+				.where(({ attachments }) => inArray(attachments.id, attachmentIds))
+				.select(({ attachments }) => ({
+					...attachments,
+					fileName: attachments.fileName,
+				})),
+		[orgId],
 	)
 
-	const handleRemoveAttachment = (attachmentId: Id<"attachments">) => {
+	const handleRemoveAttachment = (attachmentId: AttachmentId) => {
 		setAttachmentIds(attachmentIds.filter((id) => id !== attachmentId))
 	}
 

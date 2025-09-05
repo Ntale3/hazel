@@ -1,6 +1,7 @@
 import { convexQuery } from "@convex-dev/react-query"
 import type { Id } from "@hazel/backend"
 import { api } from "@hazel/backend/api"
+import type { OrganizationId } from "@hazel/db/schema"
 import { useQuery } from "@tanstack/react-query"
 import { useNavigate, useParams } from "@tanstack/react-router"
 import { Container, HelpCircle, LayersTwo01, LogOut01, Settings01, User01 } from "@untitledui/icons"
@@ -16,7 +17,7 @@ export const NavUser = () => {
 	const navigate = useNavigate()
 
 	const params = useParams({ from: "/_app/$orgId" })
-	const organizationId = params?.orgId as Id<"organizations">
+	const organizationId = params?.orgId as OrganizationId
 
 	return (
 		<Dropdown.Root>
