@@ -10,7 +10,14 @@ import {
 	uuid,
 	varchar,
 } from "drizzle-orm/pg-core"
-import type { ChannelId, ChannelMemberId, MessageId, OrganizationId, UserId } from "../lib/schema"
+import type {
+	ChannelId,
+	ChannelMemberId,
+	DirectMessageParticipantId,
+	MessageId,
+	OrganizationId,
+	UserId,
+} from "../lib/schema"
 
 // Channel types
 export const channelTypeEnum = pgEnum("channel_type", ["public", "private", "thread", "direct", "single"])
@@ -66,10 +73,10 @@ export const channelMembersTable = pgTable(
 export const directMessageParticipantsTable = pgTable(
 	"direct_message_participants",
 	{
-		id: uuid().primaryKey().defaultRandom(),
-		channelId: uuid().notNull(),
-		userId: uuid().notNull(),
-		organizationId: uuid().notNull(),
+		id: uuid().primaryKey().defaultRandom().$type<DirectMessageParticipantId>(),
+		channelId: uuid().notNull().$type<ChannelId>(),
+		userId: uuid().notNull().$type<UserId>(),
+		organizationId: uuid().notNull().$type<OrganizationId>(),
 	},
 	(table) => [
 		index("dm_participants_channel_id_idx").on(table.channelId),

@@ -1,12 +1,13 @@
 import { bigint, index, pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core"
+import type { PresenceId, UserId } from "../lib/schema"
 
 // Presence table - for tracking user presence in rooms/channels
 export const presenceTable = pgTable(
 	"presence",
 	{
-		id: uuid().primaryKey().defaultRandom(),
-		roomId: varchar({ length: 255 }).notNull(), // Can be channel ID or other room identifier
-		userId: uuid().notNull(),
+		id: uuid().primaryKey().defaultRandom().$type<PresenceId>(),
+		roomId: varchar({ length: 255 }).notNull(),
+		userId: uuid().notNull().$type<UserId>(),
 		sessionId: varchar({ length: 255 }).notNull(),
 		lastHeartbeat: timestamp({ mode: "date", withTimezone: true }).notNull().defaultNow(),
 		interval: bigint({ mode: "number" }).notNull(), // Heartbeat interval in ms

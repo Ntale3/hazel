@@ -26,7 +26,6 @@ export const HttpDirectMessageParticipantLive = HttpApiBuilder.group(
 									const createdDirectMessageParticipant =
 										yield* DirectMessageParticipantRepo.insert({
 											...payload,
-											deletedAt: null,
 										}).pipe(Effect.map((res) => res[0]!))
 
 									const txid = yield* generateTransactionId(tx)

@@ -50,6 +50,12 @@ export const InvitationId = Schema.UUID.pipe(Schema.brand("@HazelChat/Invitation
 })
 export type InvitationId = Schema.Schema.Type<typeof InvitationId>
 
+export const PresenceId = Schema.UUID.pipe(Schema.brand("@HazelChat/PresenceId")).annotations({
+	description: "The ID of the presence",
+	title: "Presence ID",
+})
+export type PresenceId = Schema.Schema.Type<typeof PresenceId>
+
 export const PinnedMessageId = Schema.UUID.pipe(Schema.brand("@HazelChat/PinnedMessageId")).annotations({
 	description: "The ID of the pinned message",
 	title: "Pinned Message ID",
@@ -83,3 +89,9 @@ export const DirectMessageParticipantId = Schema.UUID.pipe(
 	title: "Direct Message Participant ID",
 })
 export type DirectMessageParticipantId = Schema.Schema.Type<typeof DirectMessageParticipantId>
+
+export const TypingIndicatorId = Schema.UUID.pipe(Schema.brand("@HazelChat/TypingIndicatorId")).annotations({
+	description: "The ID of the typing indicator",
+	title: "Typing Indicator ID",
+})
+export type TypingIndicatorId = Schema.Schema.Type<typeof TypingIndicatorId>

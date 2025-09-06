@@ -1,4 +1,3 @@
-import { Schema } from "effect"
 import { ChannelId, DirectMessageParticipantId, OrganizationId, UserId } from "../lib/schema"
 import * as M from "../services/model"
 
