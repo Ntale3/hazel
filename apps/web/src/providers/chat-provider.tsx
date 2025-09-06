@@ -77,20 +77,14 @@ export function ChatProvider({ channelId, organizationId, children }: ChatProvid
 	const [activeThreadChannelId, setActiveThreadChannelId] = useState<ChannelId | null>(null)
 	const [activeThreadMessageId, setActiveThreadMessageId] = useState<MessageId | null>(null)
 
-	// Keep track of previous messages to show during loading
 	const previousMessagesRef = useRef<(typeof Message.Model.Type)[]>([])
-	// Keep track of the channel ID to clear messages when switching channels
 	const previousChannelIdRef = useRef<ChannelId | null>(null)
-	// Keep track of pagination functions to avoid losing them during loading
 	const loadNextRef = useRef<(() => void) | undefined>(undefined)
 	const loadPrevRef = useRef<(() => void) | undefined>(undefined)
-	// Track message count to detect new messages
 	const prevMessageCountRef = useRef<number>(0)
 
-	// Clear previous messages when channel changes
 	useEffect(() => {
 		if (previousChannelIdRef.current && previousChannelIdRef.current !== channelId) {
-			// Channel has changed, clear previous messages to prevent stale data
 			previousMessagesRef.current = []
 			loadNextRef.current = undefined
 			loadPrevRef.current = undefined
@@ -99,7 +93,6 @@ export function ChatProvider({ channelId, organizationId, children }: ChatProvid
 		previousChannelIdRef.current = channelId
 	}, [channelId])
 
-	// Get channel data from TanStack DB
 	const { data: channelData } = useLiveQuery(
 		(q) =>
 			q

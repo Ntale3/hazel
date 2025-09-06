@@ -1,5 +1,5 @@
 import type { Message } from "@hazel/db/models"
-import type { ChannelId, MessageId, UserId } from "@hazel/db/schema"
+import type { ChannelId, MessageId } from "@hazel/db/schema"
 import { count, eq, useLiveQuery } from "@tanstack/react-db"
 import { format } from "date-fns"
 import { useRef, useState } from "react"
