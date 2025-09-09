@@ -8,6 +8,5 @@ export const channelMemberWithUserCollection = createCollection(
 				.from({ member: channelMemberCollection })
 				.innerJoin({ user: userCollection }, ({ member, user }) => eq(member.userId, user.id))
 				.select(({ member, user }) => ({ ...member, user })),
-		getKey: (item) => item.id,
 	}),
 )

@@ -1,4 +1,3 @@
-import { HttpClientRequest } from "@effect/platform"
 import {
 	Attachment,
 	Channel,

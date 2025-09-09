@@ -128,15 +128,15 @@ export class WorkOSWebhookVerifier extends Effect.Service<WorkOSWebhookVerifier>
 				const expectedBuffer = Buffer.from(expectedSignature, "hex")
 
 				if (signatureBuffer.length !== expectedBuffer.length) {
-					yield* Effect.fail(
+					return yield* Effect.fail(
 						new WebhookVerificationError({
 							message: "Invalid signature length",
 						}),
 					)
 				}
 
-				if (!crypto.timingSafeEqual(signatureBuffer, expectedBuffer)) {
-					yield* Effect.fail(
+				if (!crypto.timingSafeEqual(new Uint8Array(signatureBuffer), new Uint8Array(expectedBuffer))) {
+					return yield* Effect.fail(
 						new WebhookVerificationError({
 							message: "Invalid webhook signature",
 						}),

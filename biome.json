@@ -1,5 +1,5 @@
 {
-	"$schema": "https://biomejs.dev/schemas/2.1.2/schema.json",
+	"$schema": "https://biomejs.dev/schemas/2.2.3/schema.json",
 	"assist": {
 		"actions": {
 			"source": {
@@ -8,7 +8,9 @@
 		}
 	},
 	"files": {
-		"includes": ["**/*.{ts,tsx,json}"]
+		"includes": [
+			"**/*.{ts,tsx,json}"
+		]
 	},
 	"linter": {
 		"enabled": true,
@@ -28,6 +30,7 @@
 				"useSemanticElements": "off"
 			},
 			"correctness": {
+				"useUniqueElements": "off",
 				"useHookAtTopLevel": "off",
 				"noUnusedImports": "off",
 				"noChildrenProp": "off",
