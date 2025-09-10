@@ -1,4 +1,4 @@
-import { index, pgEnum, pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core"
+import { index, integer, pgEnum, pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core"
 import type { AttachmentId, ChannelId, MessageId, OrganizationId, UserId } from "../lib/schema"
 
 // Attachment status
@@ -13,6 +13,7 @@ export const attachmentsTable = pgTable(
 		channelId: uuid().$type<ChannelId>(),
 		messageId: uuid().$type<MessageId>(),
 		fileName: varchar({ length: 255 }).notNull(),
+		fileSize: integer().notNull(),
 		r2Key: varchar({ length: 500 }).notNull(), // S3/R2 storage key
 		uploadedBy: uuid().notNull().$type<UserId>(),
 		status: attachmentStatusEnum().notNull().default("uploading"),

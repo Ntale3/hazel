@@ -30,7 +30,6 @@
 				"useSemanticElements": "off"
 			},
 			"correctness": {
-				"useUniqueElements": "off",
 				"useHookAtTopLevel": "off",
 				"noUnusedImports": "off",
 				"noChildrenProp": "off",

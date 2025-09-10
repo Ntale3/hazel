@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react"
 import { ProgressBar } from "./base/progress-indicators/progress-indicators"
 
+
+
+
+
 export const Loader = () => {
 	const [progress, setProgress] = useState(0)
 
@@ -33,6 +37,7 @@ export const Loader = () => {
 			<div className="flex w-full max-w-xl flex-row">
 				<ProgressBar min={0} max={100} value={progress} />
 			</div>
+			
 			<p className="font-bold font-mono text-xl">
 				Loading
 				<span className="inline-block">

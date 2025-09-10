@@ -9,13 +9,13 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TestRouteImport } from './routes/test'
 import { Route as AppLayoutRouteImport } from './routes/_app/layout'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as AppOnboardingRouteImport } from './routes/_app/onboarding'
 import { Route as AppOrgIdLayoutRouteImport } from './routes/_app/$orgId/layout'
 import { Route as AppOrgIdIndexRouteImport } from './routes/_app/$orgId/index'
-import { Route as AppOrgIdTestRouteImport } from './routes/_app/$orgId/test'
 import { Route as AppOrgIdNotificationsRouteImport } from './routes/_app/$orgId/notifications'
 import { Route as AppOrgIdCallRouteImport } from './routes/_app/$orgId/call'
 import { Route as AppOrgIdSettingsLayoutRouteImport } from './routes/_app/$orgId/settings/layout'
@@ -31,6 +31,11 @@ import { Route as AppOrgIdSettingsDebugRouteImport } from './routes/_app/$orgId/
 import { Route as AppOrgIdSettingsBillingRouteImport } from './routes/_app/$orgId/settings/billing'
 import { Route as AppOrgIdChatIdRouteImport } from './routes/_app/$orgId/chat/$id'
 
+const TestRoute = TestRouteImport.update({
+  id: '/test',
+  path: '/test',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppLayoutRoute = AppLayoutRouteImport.update({
   id: '/_app',
   getParentRoute: () => rootRouteImport,
@@ -58,11 +63,6 @@ const AppOrgIdLayoutRoute = AppOrgIdLayoutRouteImport.update({
 const AppOrgIdIndexRoute = AppOrgIdIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AppOrgIdLayoutRoute,
-} as any)
-const AppOrgIdTestRoute = AppOrgIdTestRouteImport.update({
-  id: '/test',
-  path: '/test',
   getParentRoute: () => AppOrgIdLayoutRoute,
 } as any)
 const AppOrgIdNotificationsRoute = AppOrgIdNotificationsRouteImport.update({
@@ -140,6 +140,7 @@ const AppOrgIdChatIdRoute = AppOrgIdChatIdRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
+  '/test': typeof TestRoute
   '/$orgId': typeof AppOrgIdLayoutRouteWithChildren
   '/onboarding': typeof AppOnboardingRoute
   '/auth/login': typeof AuthLoginRoute
@@ -147,7 +148,6 @@ export interface FileRoutesByFullPath {
   '/$orgId/settings': typeof AppOrgIdSettingsLayoutRouteWithChildren
   '/$orgId/call': typeof AppOrgIdCallRoute
   '/$orgId/notifications': typeof AppOrgIdNotificationsRoute
-  '/$orgId/test': typeof AppOrgIdTestRoute
   '/$orgId/': typeof AppOrgIdIndexRoute
   '/$orgId/chat/$id': typeof AppOrgIdChatIdRoute
   '/$orgId/settings/billing': typeof AppOrgIdSettingsBillingRoute
@@ -162,12 +162,12 @@ export interface FileRoutesByFullPath {
   '/$orgId/settings/': typeof AppOrgIdSettingsIndexRoute
 }
 export interface FileRoutesByTo {
+  '/test': typeof TestRoute
   '/onboarding': typeof AppOnboardingRoute
   '/auth/login': typeof AuthLoginRoute
   '/': typeof AppIndexRoute
   '/$orgId/call': typeof AppOrgIdCallRoute
   '/$orgId/notifications': typeof AppOrgIdNotificationsRoute
-  '/$orgId/test': typeof AppOrgIdTestRoute
   '/$orgId': typeof AppOrgIdIndexRoute
   '/$orgId/chat/$id': typeof AppOrgIdChatIdRoute
   '/$orgId/settings/billing': typeof AppOrgIdSettingsBillingRoute
@@ -184,6 +184,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppLayoutRouteWithChildren
+  '/test': typeof TestRoute
   '/_app/$orgId': typeof AppOrgIdLayoutRouteWithChildren
   '/_app/onboarding': typeof AppOnboardingRoute
   '/auth/login': typeof AuthLoginRoute
@@ -191,7 +192,6 @@ export interface FileRoutesById {
   '/_app/$orgId/settings': typeof AppOrgIdSettingsLayoutRouteWithChildren
   '/_app/$orgId/call': typeof AppOrgIdCallRoute
   '/_app/$orgId/notifications': typeof AppOrgIdNotificationsRoute
-  '/_app/$orgId/test': typeof AppOrgIdTestRoute
   '/_app/$orgId/': typeof AppOrgIdIndexRoute
   '/_app/$orgId/chat/$id': typeof AppOrgIdChatIdRoute
   '/_app/$orgId/settings/billing': typeof AppOrgIdSettingsBillingRoute
@@ -208,6 +208,7 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/test'
     | '/$orgId'
     | '/onboarding'
     | '/auth/login'
@@ -215,7 +216,6 @@ export interface FileRouteTypes {
     | '/$orgId/settings'
     | '/$orgId/call'
     | '/$orgId/notifications'
-    | '/$orgId/test'
     | '/$orgId/'
     | '/$orgId/chat/$id'
     | '/$orgId/settings/billing'
@@ -230,12 +230,12 @@ export interface FileRouteTypes {
     | '/$orgId/settings/'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/test'
     | '/onboarding'
     | '/auth/login'
     | '/'
     | '/$orgId/call'
     | '/$orgId/notifications'
-    | '/$orgId/test'
     | '/$orgId'
     | '/$orgId/chat/$id'
     | '/$orgId/settings/billing'
@@ -251,6 +251,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_app'
+    | '/test'
     | '/_app/$orgId'
     | '/_app/onboarding'
     | '/auth/login'
@@ -258,7 +259,6 @@ export interface FileRouteTypes {
     | '/_app/$orgId/settings'
     | '/_app/$orgId/call'
     | '/_app/$orgId/notifications'
-    | '/_app/$orgId/test'
     | '/_app/$orgId/'
     | '/_app/$orgId/chat/$id'
     | '/_app/$orgId/settings/billing'
@@ -275,11 +275,19 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   AppLayoutRoute: typeof AppLayoutRouteWithChildren
+  TestRoute: typeof TestRoute
   AuthLoginRoute: typeof AuthLoginRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/test': {
+      id: '/test'
+      path: '/test'
+      fullPath: '/test'
+      preLoaderRoute: typeof TestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_app': {
       id: '/_app'
       path: ''
@@ -320,13 +328,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/$orgId/'
       preLoaderRoute: typeof AppOrgIdIndexRouteImport
-      parentRoute: typeof AppOrgIdLayoutRoute
-    }
-    '/_app/$orgId/test': {
-      id: '/_app/$orgId/test'
-      path: '/test'
-      fullPath: '/$orgId/test'
-      preLoaderRoute: typeof AppOrgIdTestRouteImport
       parentRoute: typeof AppOrgIdLayoutRoute
     }
     '/_app/$orgId/notifications': {
@@ -464,7 +465,6 @@ interface AppOrgIdLayoutRouteChildren {
   AppOrgIdSettingsLayoutRoute: typeof AppOrgIdSettingsLayoutRouteWithChildren
   AppOrgIdCallRoute: typeof AppOrgIdCallRoute
   AppOrgIdNotificationsRoute: typeof AppOrgIdNotificationsRoute
-  AppOrgIdTestRoute: typeof AppOrgIdTestRoute
   AppOrgIdIndexRoute: typeof AppOrgIdIndexRoute
   AppOrgIdChatIdRoute: typeof AppOrgIdChatIdRoute
   AppOrgIdChatIndexRoute: typeof AppOrgIdChatIndexRoute
@@ -474,7 +474,6 @@ const AppOrgIdLayoutRouteChildren: AppOrgIdLayoutRouteChildren = {
   AppOrgIdSettingsLayoutRoute: AppOrgIdSettingsLayoutRouteWithChildren,
   AppOrgIdCallRoute: AppOrgIdCallRoute,
   AppOrgIdNotificationsRoute: AppOrgIdNotificationsRoute,
-  AppOrgIdTestRoute: AppOrgIdTestRoute,
   AppOrgIdIndexRoute: AppOrgIdIndexRoute,
   AppOrgIdChatIdRoute: AppOrgIdChatIdRoute,
   AppOrgIdChatIndexRoute: AppOrgIdChatIndexRoute,
@@ -502,6 +501,7 @@ const AppLayoutRouteWithChildren = AppLayoutRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   AppLayoutRoute: AppLayoutRouteWithChildren,
+  TestRoute: TestRoute,
   AuthLoginRoute: AuthLoginRoute,
 }
 export const routeTree = rootRouteImport

@@ -25,9 +25,11 @@ export const MessageComposer = ({ placeholder = "Type a message..." }: MessageCo
 	const [attachmentIds, setAttachmentIds] = useState<AttachmentId[]>([])
 	const typingTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
 
-	const { uploads } = useFileUpload({
+	const { uploads, uploadFiles } = useFileUpload({
 		organizationId: orgId as OrganizationId,
-		onUploadComplete: () => {},
+		onUploadComplete: (attachmentId) => {
+			setAttachmentIds((prev) => [...prev, attachmentId])
+		},
 	})
 
 	const { data: attachments } = useLiveQuery(

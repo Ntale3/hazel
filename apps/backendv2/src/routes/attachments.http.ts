@@ -13,7 +13,7 @@ export const HttpAttachmentLive = HttpApiBuilder.group(HazelApi, "attachments", 
 
 		return handlers
 			.handle(
-				"create",
+				"upload",
 				Effect.fn(function* ({ payload }) {
 					const user = yield* CurrentUser
 
@@ -51,43 +51,7 @@ export const HttpAttachmentLive = HttpApiBuilder.group(HazelApi, "attachments", 
 					}
 				}),
 			)
-			.handle(
-				"update",
-				Effect.fn(function* ({ payload, path }) {
-					const { updatedAttachment, txid } = yield* db
-						.transaction(
-							Effect.fnUntraced(function* (tx) {
-								const updatedAttachment = yield* AttachmentRepo.update({
-									id: path.id,
-									...payload,
-								})
 
-								const txid = yield* generateTransactionId(tx)
-
-								return { updatedAttachment, txid }
-							}),
-						)
-						.pipe(
-							Effect.catchTags({
-								DatabaseError: (err) =>
-									new InternalServerError({
-										message: "Error Updating Attachment",
-										cause: err,
-									}),
-								ParseError: (err) =>
-									new InternalServerError({
-										message: "Error Parsing Response Schema",
-										cause: err,
-									}),
-							}),
-						)
-
-					return {
-						data: updatedAttachment,
-						transactionId: txid,
-					}
-				}),
-			)
 			.handle(
 				"delete",
 				Effect.fn(function* ({ path }) {

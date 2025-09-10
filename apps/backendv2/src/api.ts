@@ -1,4 +1,4 @@
-import { HttpApi, HttpApiEndpoint, HttpApiGroup, HttpApiSchema, OpenApi } from "@effect/platform"
+import { HttpApi, HttpApiEndpoint, HttpApiGroup, HttpApiSchema, Multipart, OpenApi } from "@effect/platform"
 import {
 	Attachment,
 	Channel,
@@ -737,35 +737,33 @@ export class OrganizationMemberGroup extends HttpApiGroup.make("organizationMemb
 
 export class AttachmentGroup extends HttpApiGroup.make("attachments")
 	.add(
-		HttpApiEndpoint.post("create", `/`)
-			.setPayload(Attachment.Model.jsonCreate)
+		HttpApiEndpoint.post("upload", "/upload")
+			.setPayload(
+				HttpApiSchema.Multipart(
+					Schema.Struct({
+						files: Multipart.FilesSchema,
+					}),
+				),
+			)
 			.addSuccess(AttachmentResponse)
 			.addError(UnauthorizedError)
-			.addError(InternalServerError)
-			.annotateContext(
-				OpenApi.annotations({
-					title: "Create Attachment",
-					description: "Create a new attachment",
-					summary: "Create an attachment",
-				}),
-			),
+			.addError(InternalServerError),
 	)
-	.add(
-		HttpApiEndpoint.put("update", `/:id`)
-			.setPath(Schema.Struct({ id: AttachmentId }))
-			.setPayload(Attachment.Model.jsonUpdate)
-			.addSuccess(AttachmentResponse)
-			.addError(AttachmentNotFoundError)
-			.addError(UnauthorizedError)
-			.addError(InternalServerError)
-			.annotateContext(
-				OpenApi.annotations({
-					title: "Update Attachment",
-					description: "Update an existing attachment",
-					summary: "Update an attachment",
-				}),
-			),
-	)
+	// .add(
+	// 	HttpApiEndpoint.post("create", `/`)
+	// 		.setPayload(Attachment.Model.jsonCreate)
+	// 		.addSuccess(AttachmentResponse)
+	// 		.addError(UnauthorizedError)
+	// 		.addError(InternalServerError)
+	// 		.annotateContext(
+	// 			OpenApi.annotations({
+	// 				title: "Create Attachment",
+	// 				description: "Create a new attachment",
+	// 				summary: "Create an attachment",
+	// 			}),
+	// 		),
+	// )
+
 	.add(
 		HttpApiEndpoint.del("delete", "/:id")
 			.setPath(Schema.Struct({ id: AttachmentId }))

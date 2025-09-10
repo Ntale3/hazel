@@ -34,7 +34,7 @@ export const AuthorizationLive = Layer.effect(
 						},
 					})
 
-					yield* Effect.log("got user from JWT", payload)
+					yield* Effect.annotateCurrentSpan("workosId", payload.sub)
 
 					const workOsUserId = payload.sub
 					if (!workOsUserId) {
@@ -54,6 +54,8 @@ export const AuthorizationLive = Layer.effect(
 							}),
 						)
 					}
+
+					yield* Effect.annotateCurrentSpan("userId", user.value.id)
 
 					return new User({ id: user.value.id, role: payload.role as "admin" | "member" })
 				}),

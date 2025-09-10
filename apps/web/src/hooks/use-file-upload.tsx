@@ -1,7 +1,11 @@
 import type { AttachmentId, OrganizationId } from "@hazel/db/schema"
+import { AttachmentId as AttachmentIdSchema, UserId } from "@hazel/db/schema"
 import { useCallback, useState } from "react"
 import { toast } from "sonner"
+import { v4 as uuid } from "uuid"
 import { IconNotification } from "~/components/application/notifications/notifications"
+import { attachmentCollection } from "~/db/collections"
+import { useUser } from "~/lib/auth"
 
 export interface FileUploadProgress {
 	fileId: string
@@ -27,12 +31,16 @@ export function useFileUpload({
 	maxFileSize = 10 * 1024 * 1024, // 10MB default
 }: UseFileUploadOptions) {
 	const [uploads, setUploads] = useState<Map<string, FileUploadProgress>>(new Map())
-
-	// Use the R2 component's upload hook
-	const r2UploadFile = async (_any: any) => {}
+	const { user } = useUser()
 
 	const uploadFile = useCallback(
 		async (file: File): Promise<AttachmentId | null> => {
+			if (!user?.id) {
+				const error = new Error("User not authenticated")
+				onUploadError?.(error)
+				return null
+			}
+
 			const fileId = `${file.name}-${Date.now()}`
 
 			// Validate file size
@@ -70,17 +78,43 @@ export function useFileUpload({
 					const upload = next.get(fileId)
 					if (upload) {
 						upload.status = "uploading"
-						upload.progress = 50 // Approximate progress
+						upload.progress = 25
 					}
 					return next
 				})
 
-				// Upload file using R2 component hook
-				// This returns the R2 key of the uploaded file
-				const _r2Key = await r2UploadFile(file)
+				// Upload file to R2
+				const uploadResult = await r2Client.uploadFile({
+					file,
+					organizationId,
+				})
+
+				// Update progress after R2 upload
+				setUploads((prev) => {
+					const next = new Map(prev)
+					const upload = next.get(fileId)
+					if (upload) {
+						upload.progress = 75
+					}
+					return next
+				})
 
 				// Create attachment record in database
-				const attachmentId = "TODO" as AttachmentId
+				const attachmentId = AttachmentIdSchema.make(uuid())
+				const attachment = {
+					id: attachmentId,
+					organizationId,
+					channelId: null, // Will be set when attached to a message
+					messageId: null,
+					fileName: file.name,
+					fileSize: file.size,
+					r2Key: uploadResult.key,
+					uploadedBy: UserId.make(user.id),
+					status: "complete" as const,
+					uploadedAt: new Date(),
+				}
+
+				attachmentCollection.insert(attachment)
 
 				// Update status to complete
 				setUploads((prev) => {
@@ -123,7 +157,7 @@ export function useFileUpload({
 				return null
 			}
 		},
-		[maxFileSize, onUploadComplete, onUploadError],
+		[maxFileSize, onUploadComplete, onUploadError, organizationId, user?.id],
 	)
 
 	const uploadFiles = useCallback(
