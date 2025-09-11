@@ -57,7 +57,6 @@ export const HttpAttachmentLive = HttpApiBuilder.group(HazelApi, "attachments", 
 									messageId: null,
 									fileName: fileName,
 									fileSize: Number(stats.size),
-									displayOrder: 0,
 									uploadedAt: new Date(),
 								}).pipe(Effect.map((res) => res[0]!))
 

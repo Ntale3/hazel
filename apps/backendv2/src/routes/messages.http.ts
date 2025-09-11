@@ -36,12 +36,11 @@ export const HttpMessageLive = HttpApiBuilder.group(HazelApi, "messages", (handl
 
 								// If there are attachmentIds, update those attachments with the messageId
 								if (attachmentIds && attachmentIds.length > 0) {
-									// Update each attachment with the messageId and displayOrder
-									yield* Effect.forEach(attachmentIds, (attachmentId, index) =>
+									// Update each attachment with the messageId
+									yield* Effect.forEach(attachmentIds, (attachmentId) =>
 										AttachmentRepo.update({
 											id: attachmentId,
 											messageId: createdMessage.id,
-											displayOrder: index,
 										}),
 									)
 								}
