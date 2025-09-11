@@ -20,8 +20,6 @@ export const useMessage = (messageId: MessageId) => {
 		[messageId],
 	)
 
-	console.log(data, "XD")
-
 	const replyMessage = data?.[0]
 
 	return {

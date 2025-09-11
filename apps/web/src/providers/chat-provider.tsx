@@ -203,6 +203,10 @@ export function ChatProvider({ channelId, organizationId, children }: ChatProvid
 		attachments?: string[]
 	}) => {
 		if (!user?.id) return
+		
+		// Store attachmentIds globally before insert so onInsert can access them
+		(window as any).__pendingAttachmentIds = attachments
+		
 		messageCollection.insert({
 			id: MessageId.make(uuid()),
 			channelId,
@@ -213,8 +217,6 @@ export function ChatProvider({ channelId, organizationId, children }: ChatProvid
 			createdAt: new Date(),
 			updatedAt: null,
 			deletedAt: null,
-			// Pass attachmentIds to the backend
-			attachmentIds: attachments,
 		})
 		// Clear reply state after sending
 		setReplyToMessageId(null)
