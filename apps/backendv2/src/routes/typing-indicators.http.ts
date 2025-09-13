@@ -15,7 +15,7 @@ export const HttpTypingIndicatorLive = HttpApiBuilder.group(HazelApi, "typingInd
 			.handle(
 				"create",
 				Effect.fn(function* ({ payload }) {
-					const user = yield* CurrentUser
+					const _user = yield* CurrentUser
 
 					// TODO: Verify the user has permission to type in this channel
 					// This would typically check channel membership, organization membership, etc.
@@ -113,13 +113,15 @@ export const HttpTypingIndicatorLive = HttpApiBuilder.group(HazelApi, "typingInd
 							Effect.fnUntraced(function* (tx) {
 								// First find the typing indicator to return it
 								const existingOption = yield* TypingIndicatorRepo.findById(path.id)
-								
+
 								if (Option.isNone(existingOption)) {
-									return yield* Effect.fail(new TypingIndicatorNotFoundError({ typingIndicatorId: path.id }))
+									return yield* Effect.fail(
+										new TypingIndicatorNotFoundError({ typingIndicatorId: path.id }),
+									)
 								}
-								
+
 								const existing = existingOption.value
-								
+
 								// Delete it
 								yield* TypingIndicatorRepo.deleteById(path.id)
 
@@ -131,15 +133,12 @@ export const HttpTypingIndicatorLive = HttpApiBuilder.group(HazelApi, "typingInd
 						.pipe(
 							Effect.catchTags({
 								DatabaseError: (err) =>
-									Effect.fail(new InternalServerError({
-										message: "Error Deleting Typing Indicator",
-										cause: err,
-									})),
-								ParseError: (err) =>
-									Effect.fail(new InternalServerError({
-										message: "Error Parsing Response Schema",
-										cause: err,
-									})),
+									Effect.fail(
+										new InternalServerError({
+											message: "Error Deleting Typing Indicator",
+											cause: err,
+										}),
+									),
 							}),
 						)
 				}),
