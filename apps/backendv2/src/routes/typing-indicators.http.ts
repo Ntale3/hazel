@@ -108,7 +108,7 @@ export const HttpTypingIndicatorLive = HttpApiBuilder.group(HazelApi, "typingInd
 				Effect.fn(function* ({ path }) {
 					const _user = yield* CurrentUser
 
-					const { typingIndicator, txid } = yield* db
+					return yield* db
 						.transaction(
 							Effect.fnUntraced(function* (tx) {
 								// First find the typing indicator to return it
@@ -125,28 +125,23 @@ export const HttpTypingIndicatorLive = HttpApiBuilder.group(HazelApi, "typingInd
 
 								const txid = yield* generateTransactionId(tx)
 
-								return { typingIndicator: existing, txid }
+								return { data: existing, transactionId: txid }
 							}),
 						)
 						.pipe(
 							Effect.catchTags({
-								DatabaseError: (err: any) =>
-									new InternalServerError({
+								DatabaseError: (err) =>
+									Effect.fail(new InternalServerError({
 										message: "Error Deleting Typing Indicator",
 										cause: err,
-									}),
-								ParseError: (err: any) =>
-									new InternalServerError({
+									})),
+								ParseError: (err) =>
+									Effect.fail(new InternalServerError({
 										message: "Error Parsing Response Schema",
 										cause: err,
-									}),
+									})),
 							}),
 						)
-
-					return {
-						data: typingIndicator,
-						transactionId: txid,
-					}
 				}),
 			)
 	}),

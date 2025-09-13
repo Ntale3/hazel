@@ -65,8 +65,7 @@ export const sendMessage = createOptimisticAction<{
 }>({
 	onMutate: (props) => {
 		const messageId = MessageId.make(uuid())
-		
-		// Insert the message optimistically
+
 		messageCollection.insert({
 			id: messageId,
 			channelId: props.channelId,
@@ -78,17 +77,17 @@ export const sendMessage = createOptimisticAction<{
 			updatedAt: null,
 			deletedAt: null,
 		})
-		
+
 		return { messageId }
 	},
 	mutationFn: async (props, _params) => {
 		const workOsClient = await authClient
 		const accessToken = await workOsClient.getAccessToken()
-		
+
 		const { transactionId } = await Effect.runPromise(
 			Effect.gen(function* () {
 				const client = yield* getBackendClient(accessToken)
-				
+
 				// Create the message with attachmentIds
 				return yield* client.messages.create({
 					payload: {
@@ -97,11 +96,13 @@ export const sendMessage = createOptimisticAction<{
 						replyToMessageId: props.replyToMessageId || null,
 						threadChannelId: props.threadChannelId || null,
 						attachmentIds: props.attachmentIds || [],
+						deletedAt: null,
+						authorId: props.authorId,
 					},
 				})
 			}),
 		)
-		
+
 		return { transactionId }
 	},
 })

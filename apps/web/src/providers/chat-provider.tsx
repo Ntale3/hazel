@@ -2,8 +2,7 @@ import type { Channel, ChannelMember, Message, TypingIndicator, User } from "@ha
 import {
 	type AttachmentId,
 	ChannelId,
-	ChannelMemberId,
-	MessageId,
+	type MessageId,
 	MessageReactionId,
 	type OrganizationId,
 	PinnedMessageId,
@@ -42,7 +41,7 @@ interface ChatContextValue {
 	isLoadingMessages: boolean
 	isLoadingNext: boolean
 	isLoadingPrev: boolean
-	sendMessage: (props: { content: string; attachments?: string[] }) => void
+	sendMessage: (props: { content: string; attachments?: AttachmentId[] }) => void
 	editMessage: (messageId: MessageId, content: string) => Promise<void>
 	deleteMessage: (messageId: MessageId) => void
 	addReaction: (messageId: MessageId, emoji: string) => void
@@ -197,15 +196,9 @@ export function ChatProvider({ channelId, organizationId, children }: ChatProvid
 	}, [])
 
 	// Message operations
-	const sendMessage = ({
-		content,
-		attachments,
-	}: {
-		content: string
-		attachments?: string[]
-	}) => {
+	const sendMessage = ({ content, attachments }: { content: string; attachments?: AttachmentId[] }) => {
 		if (!user?.id) return
-		
+
 		// Use the sendMessage action which handles both message creation and attachment linking
 		sendMessageAction({
 			channelId,
@@ -215,7 +208,7 @@ export function ChatProvider({ channelId, organizationId, children }: ChatProvid
 			threadChannelId: null,
 			attachmentIds: attachments as AttachmentId[] | undefined,
 		})
-		
+
 		// Clear reply state after sending
 		setReplyToMessageId(null)
 	}
