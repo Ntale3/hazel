@@ -46,6 +46,9 @@
     "apps/electric-proxy": {
       "name": "@hazel/electric-proxy",
       "dependencies": {
+        "@effect/platform": "^0.90.10",
+        "@effect/platform-bun": "^0.79.1",
+        "@electric-sql/client": "^1.0.10",
         "effect": "^3.17.14",
       },
       "devDependencies": {
