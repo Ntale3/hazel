@@ -24,8 +24,8 @@ function ChatContent() {
 					<MessageList />
 				</div>
 				<div className="flex-shrink-0 px-4 pt-2">
-					<MessageComposer />
 					<TypingIndicator />
+					<MessageComposer />
 				</div>
 			</div>
 
