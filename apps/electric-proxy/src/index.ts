@@ -1,100 +1,97 @@
-import { Config, ConfigProvider, Effect, Layer, Redacted, Runtime } from "effect"
+import {
+	HttpMiddleware,
+	HttpRouter,
+	HttpServer,
+	HttpServerRequest,
+	HttpServerResponse,
+} from "@effect/platform"
+import { BunHttpServer, BunRuntime } from "@effect/platform-bun"
+import { ELECTRIC_PROTOCOL_QUERY_PARAMS } from "@electric-sql/client"
+import { Config, Effect, Layer, Redacted } from "effect"
 
-const makeProxyService = Effect.gen(function* () {
-	const electricUrl = yield* Config.string("ELECTRIC_URL")
-	const electricSecret = yield* Config.redacted("ELECTRIC_SECRET")
-	const electricSourceId = yield* Config.string("ELECTRIC_SOURCE_ID")
-	const port = yield* Config.withDefault(Config.number("PORT"), 3004)
+const electricUrl = Config.string("ELECTRIC_URL").pipe(Config.withDefault("https://api.electric-sql.cloud"))
+const electricSecret = Config.redacted("ELECTRIC_SECRET")
+const electricSourceId = Config.string("ELECTRIC_SOURCE_ID")
 
-	const handleRequest = (request: Request): Effect.Effect<Response, Error> =>
+const router = HttpRouter.empty.pipe(
+	HttpRouter.get(
+		"/electric/proxy",
 		Effect.gen(function* () {
-			const url = new URL(request.url)
+			const request = yield* HttpServerRequest.HttpServerRequest
+			const url = request.url
+			const searchParams = new URLSearchParams(url.split("?")[1] || "")
 
-			if (url.pathname !== "/electric/proxy") {
-				return new Response("Not Found", { status: 404 })
-			}
-
-			const table = url.searchParams.get("table")
+			const table = searchParams.get("table")
 			if (!table) {
-				return new Response(JSON.stringify({ message: "Needs to have a table param" }), {
-					status: 400,
-					headers: { "Content-Type": "application/json" },
-				})
+				return yield* HttpServerResponse.json(
+					{ message: "Needs to have a table param" },
+					{ status: 400 },
+				)
 			}
 
-			const originUrl = new URL("/v1/shape", electricUrl)
+			const [elUrl, elSecret, elSourceId] = yield* Effect.all([
+				electricUrl,
+				electricSecret,
+				electricSourceId,
+			])
 
-			const allowedParams = ["live", "table", "handle", "offset", "cursor"]
-			url.searchParams.forEach((value, key) => {
-				if (allowedParams.includes(key)) {
+			const originUrl = new URL("/v1/shape", elUrl)
+
+			searchParams.forEach((value, key) => {
+				if (ELECTRIC_PROTOCOL_QUERY_PARAMS.includes(key)) {
 					originUrl.searchParams.set(key, value)
 				}
 			})
 
-			originUrl.searchParams.set("source_id", electricSourceId)
-			originUrl.searchParams.set("source_secret", Redacted.value(electricSecret))
+			originUrl.searchParams.set(`table`, searchParams.get("table")!)
 
-			const resp = yield* Effect.tryPromise({
+			originUrl.searchParams.set("source_id", elSourceId)
+			originUrl.searchParams.set("secret", Redacted.value(elSecret))
+
+			const response = yield* Effect.tryPromise({
 				try: () => fetch(originUrl.toString()),
 				catch: (error) => new Error(`Proxy fetch failed: ${error}`),
 			})
 
-			const newHeaders = new Headers(resp.headers)
-			newHeaders.delete("content-encoding")
-			newHeaders.delete("content-length")
-			newHeaders.set("Vary", "Authorization")
-			newHeaders.set("Access-Control-Allow-Origin", "*")
-			newHeaders.set("Access-Control-Allow-Methods", "GET, OPTIONS")
-			newHeaders.set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+			const headers = new Headers(response.headers)
+			headers.delete("content-encoding")
+			headers.delete("content-length")
+			headers.set("Vary", "Authorization")
+			headers.set("Access-Control-Allow-Origin", "*")
+			headers.set("Access-Control-Allow-Methods", "GET, OPTIONS")
+			headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
-			return new Response(resp.body, {
-				status: resp.status,
-				statusText: resp.statusText,
-				headers: newHeaders,
+			const body = yield* Effect.tryPromise({
+				try: () => response.arrayBuffer(),
+				catch: (error) => new Error(`Failed to read response body: ${error}`),
 			})
-		})
 
-	return { handleRequest, port }
-})
+			const headersObject: Record<string, string> = {}
+			headers.forEach((value, key) => {
+				headersObject[key] = value
+			})
 
-class ProxyService extends Effect.Tag("ProxyService")<
-	ProxyService,
-	Effect.Effect.Success<typeof makeProxyService>
->() {}
+			return HttpServerResponse.raw(new Uint8Array(body), {
+				status: response.status,
+				statusText: response.statusText,
+				headers: headersObject,
+			})
+		}),
+	),
+)
 
-const ProxyServiceLive = Layer.effect(ProxyService, makeProxyService)
+const app = router.pipe(
+	HttpServer.serve(
+		HttpMiddleware.cors({
+			allowedOrigins: ["*"],
+			allowedMethods: ["GET", "OPTIONS"],
+			allowedHeaders: ["Content-Type", "Authorization"],
+			credentials: true,
+		}),
+	),
+	HttpServer.withLogAddress,
+)
 
-const MainLive = ProxyServiceLive.pipe(Layer.provide(Layer.setConfigProvider(ConfigProvider.fromEnv())))
+const ServerLive = BunHttpServer.layer({ port: 3004 })
 
-const program = Effect.gen(function* () {
-	const { handleRequest, port } = yield* ProxyService
-
-	const server = Bun.serve({
-		port,
-		async fetch(request) {
-			const response = await Effect.runPromise(handleRequest(request))
-			return response
-		},
-	})
-
-	console.log(`Electric SQL Proxy running on http://localhost:${server.port}`)
-
-	return server
-})
-
-const runnable = program.pipe(Effect.provide(MainLive))
-
-Effect.runPromise(runnable).catch((error) => {
-	console.error("Failed to start Electric SQL Proxy:", error)
-	process.exit(1)
-})
-
-process.on("SIGTERM", () => {
-	console.log("Shutting down Electric SQL Proxy...")
-	process.exit(0)
-})
-
-process.on("SIGINT", () => {
-	console.log("Shutting down Electric SQL Proxy...")
-	process.exit(0)
-})
+BunRuntime.runMain(Layer.launch(Layer.provide(app, ServerLive)))
