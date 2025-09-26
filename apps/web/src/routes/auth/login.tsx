@@ -15,6 +15,8 @@ function LoginPage() {
 	const { user, signIn, isLoading } = useAuth()
 	const search = Route.useSearch()
 
+	console.log("user", user)
+
 	useEffect(() => {
 		const searchParams = new URLSearchParams(window.location.search)
 		const context = searchParams.get("context") ?? undefined
