@@ -3,7 +3,7 @@ import { Effect, Predicate, Schema } from "effect"
 import { CurrentUser } from "."
 
 export class UnauthorizedError extends Schema.TaggedError<UnauthorizedError>("UnauthorizedError")(
-	"MessageNotFoundError",
+	"UnauthorizedError",
 	{
 		message: Schema.String,
 		detail: Schema.String,
