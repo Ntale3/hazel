@@ -52,7 +52,6 @@
 		"@untitledui/file-icons": "^0.0.9",
 		"@untitledui/icons": "^0.0.19",
 		"@workos-inc/authkit-js": "^0.14.0",
-		"@workos-inc/authkit-react": "^0.13.0",
 		"@workos-inc/widgets": "^1.4.0",
 		"arktype": "^2.1.22",
 		"class-variance-authority": "^0.7.1",

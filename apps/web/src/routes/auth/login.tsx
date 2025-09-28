@@ -1,5 +1,6 @@
 import { createFileRoute, Navigate } from "@tanstack/react-router"
 import { useEffect, useState } from "react"
+import { Button } from "~/components/base/buttons/button"
 import { useAuth } from "../../providers/auth-provider"
 
 export const Route = createFileRoute("/auth/login")({
@@ -21,7 +22,7 @@ function LoginPage() {
 		if (!user && !isLoading && !isRedirecting && !error) {
 			// Attempt to login
 			setIsRedirecting(true)
-			login({ returnTo: location.host + search.returnTo || location.href }).catch((err) => {
+			login({ returnTo: `${location.origin}${search.returnTo}` || location.href }).catch((err) => {
 				setError(err.message || "Failed to initiate login")
 				setIsRedirecting(false)
 			})
@@ -46,15 +47,14 @@ function LoginPage() {
 				<div className="max-w-md text-center">
 					<h1 className="mb-4 font-semibold text-2xl text-red-600">Login Failed</h1>
 					<p className="mb-6 text-gray-600">{error}</p>
-					<button
+					<Button
 						onClick={() => {
 							setError(null)
 							setIsRedirecting(false)
 						}}
-						className="rounded-lg bg-blue-600 px-6 py-2 text-white transition-colors hover:bg-blue-700"
 					>
 						Try Again
-					</button>
+					</Button>
 				</div>
 			</div>
 		)
