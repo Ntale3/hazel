@@ -5,6 +5,12 @@ export class UserPolicy extends Effect.Service<UserPolicy>()("UserPolicy/Policy"
 	effect: Effect.gen(function* () {
 		const policyEntity = "User" as const
 
+		const canRead = (_id: UserId) =>
+			UnauthorizedError.refail(
+				policyEntity,
+				"select",
+			)(policy(policyEntity, "select", (_actor) => Effect.succeed(true)))
+
 		const canCreate = () =>
 			UnauthorizedError.refail(
 				policyEntity,
@@ -23,7 +29,7 @@ export class UserPolicy extends Effect.Service<UserPolicy>()("UserPolicy/Policy"
 				"delete",
 			)(policy(policyEntity, "delete", (actor) => Effect.succeed(actor.id === id)))
 
-		return { canCreate, canUpdate, canDelete } as const
+		return { canCreate, canUpdate, canDelete, canRead } as const
 	}),
 	dependencies: [],
 	accessors: true,

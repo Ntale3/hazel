@@ -12,6 +12,7 @@ import { Effect, Option } from "effect"
 import { HazelApi } from "../api"
 import { generateTransactionId } from "../lib/create-transactionId"
 import { ChannelPolicy } from "../policies/channel-policy"
+import { UserPolicy } from "../policies/user-policy"
 import { ChannelMemberRepo } from "../repositories/channel-member-repo"
 import { ChannelRepo } from "../repositories/channel-repo"
 import { DirectMessageParticipantRepo } from "../repositories/direct-message-participant-repo"
@@ -131,8 +132,13 @@ export const HttpChannelLive = HttpApiBuilder.group(HazelApi, "channels", (handl
 								// Generate channel name for DMs
 								let channelName = payload.name
 								if (payload.type === "dm") {
-									const otherUser = yield* UserRepo.findById(payload.participantIds[0])
-									const currentUser = yield* UserRepo.findById(user.id)
+									const otherUser = yield* UserRepo.findById(
+										payload.participantIds[0],
+									).pipe(policyUse(UserPolicy.canRead(payload.participantIds[0]!)))
+									const currentUser = yield* UserRepo.findById(user.id).pipe(
+										policyUse(UserPolicy.canRead(payload.participantIds[0]!)),
+									)
+
 									if (Option.isSome(otherUser) && Option.isSome(currentUser)) {
 										// Create a consistent name for DMs using first and last name
 										const currentUserName =
