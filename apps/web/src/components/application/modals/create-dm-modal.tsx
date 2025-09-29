@@ -1,11 +1,5 @@
 import type { User } from "@hazel/db/models"
-import {
-	ChannelId,
-	ChannelMemberId,
-	DirectMessageParticipantId,
-	type OrganizationId,
-	type UserId,
-} from "@hazel/db/schema"
+import type { OrganizationId, UserId } from "@hazel/db/schema"
 import { eq, useLiveQuery } from "@tanstack/react-db"
 import { useNavigate, useParams } from "@tanstack/react-router"
 import { Mail01, MessageSquare02, Plus } from "@untitledui/icons"
@@ -13,7 +7,6 @@ import { type } from "arktype"
 import { useMemo, useState } from "react"
 import { Heading as AriaHeading } from "react-aria-components"
 import { toast } from "sonner"
-import { v4 as uuid } from "uuid"
 import { Dialog, Modal, ModalFooter, ModalOverlay } from "~/components/application/modals/modal"
 import { Avatar } from "~/components/base/avatar/avatar"
 import { Button } from "~/components/base/buttons/button"
@@ -23,13 +16,8 @@ import { Input } from "~/components/base/input/input"
 import { FeaturedIcon } from "~/components/foundations/featured-icon/featured-icons"
 import IconCheckTickCircle from "~/components/icons/IconCheckTickCircle"
 import { BackgroundPattern } from "~/components/shared-assets/background-patterns"
-import {
-	channelCollection,
-	channelMemberCollection,
-	directMessageParticipantCollection,
-	organizationMemberCollection,
-	userCollection,
-} from "~/db/collections"
+import { createDmChannel } from "~/db/actions"
+import { organizationMemberCollection, userCollection } from "~/db/collections"
 import { useAppForm } from "~/hooks/use-app-form"
 import { useAuth } from "~/providers/auth-provider"
 import { cx } from "~/utils/cx"
@@ -49,7 +37,7 @@ export const CreateDmModal = ({ isOpen, onOpenChange }: CreateDmModalProps) => {
 	const [searchQuery, setSearchQuery] = useState("")
 	const [selectedUsers, setSelectedUsers] = useState<(typeof User.Model.Type)[]>([])
 
-	const navigate = useNavigate()
+	const _navigate = useNavigate()
 	const { orgId } = useParams({ from: "/_app/$orgId" })
 	const organizationId = orgId as OrganizationId
 
@@ -82,75 +70,33 @@ export const CreateDmModal = ({ isOpen, onOpenChange }: CreateDmModalProps) => {
 			if (value.userIds.length === 0 || !user?.id) return
 
 			try {
-				const channelId = ChannelId.make(uuid())
+				// Determine if it's a single DM or group
+				const type = value.userIds.length === 1 ? "dm" : "group"
 
-				// Create the channel
-				if (value.userIds.length === 1) {
-					// Single DM
-					const _test = channelCollection.insert({
-						id: channelId,
-						name: "",
-						type: "direct",
-						organizationId,
-						parentChannelId: null,
-						createdAt: new Date(),
-						updatedAt: null,
-						deletedAt: null,
-					})
+				// Get selected users for group name
+				const selectedUserNames =
+					value.userIds.length > 1
+						? organizationUsers
+								?.filter((u) => value.userIds.includes(u?.id || ""))
+								?.map((u) => u?.firstName || "")
+								?.slice(0, 3)
+								?.join(", ")
+						: undefined
 
-					// Add participants to direct message
-					const currentUserId = user?.id as UserId
-					const otherUserId = value.userIds[0] as UserId
+				// Todo: We should navigate to the chat here
+				createDmChannel({
+					organizationId,
+					participantIds: value.userIds as UserId[],
+					type,
+					name: type === "group" ? selectedUserNames : undefined,
+					currentUserId: user.id as UserId,
+				})
 
-					directMessageParticipantCollection.insert({
-						id: DirectMessageParticipantId.make(uuid()),
-						channelId,
-						userId: currentUserId,
-						organizationId,
-					})
-
-					directMessageParticipantCollection.insert({
-						id: DirectMessageParticipantId.make(uuid()),
-						channelId,
-						userId: otherUserId,
-						organizationId,
-					})
-
+				// Show success message
+				if (type === "dm") {
 					const targetUser = organizationUsers?.find((u) => u?.id === value.userIds[0])
 					toast.success(`Started conversation with ${targetUser?.firstName}`)
 				} else {
-					// Group DM
-					// TODO: NOT GONNA WORK NEEDS TRANSACTION
-					const _test = channelCollection.insert({
-						id: channelId,
-						name: "",
-						type: "direct",
-						organizationId,
-						parentChannelId: null,
-						createdAt: new Date(),
-						updatedAt: null,
-						deletedAt: null,
-					})
-
-					// Add all participants including current user
-					const allUserIds = [user?.id as UserId, ...value.userIds.map((id) => id as UserId)]
-
-					for (const userId of allUserIds) {
-						channelMemberCollection.insert({
-							id: ChannelMemberId.make(uuid()),
-							channelId,
-							userId,
-							isHidden: false,
-							isMuted: false,
-							isFavorite: false,
-							lastSeenMessageId: null,
-							notificationCount: 0,
-							joinedAt: new Date(),
-							createdAt: new Date(),
-							deletedAt: null,
-						})
-					}
-
 					toast.success(`Created group conversation with ${value.userIds.length} people`)
 				}
 
@@ -160,12 +106,6 @@ export const CreateDmModal = ({ isOpen, onOpenChange }: CreateDmModalProps) => {
 				form.reset()
 				setSelectedUsers([])
 				setSearchQuery("")
-
-				// Navigate to the chat
-				navigate({
-					to: "/$orgId/chat/$id",
-					params: { orgId: organizationId, id: channelId },
-				})
 			} catch (error) {
 				console.error("Failed to create DM channel:", error)
 				toast.error("Failed to start conversation")
