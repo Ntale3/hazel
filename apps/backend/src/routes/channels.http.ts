@@ -1,6 +1,6 @@
 import { HttpApiBuilder } from "@effect/platform"
 import { Database } from "@hazel/db"
-import { ChannelMemberId } from "@hazel/db/schema"
+import { ChannelId, ChannelMemberId, OrganizationId } from "@hazel/db/schema"
 import {
 	CurrentUser,
 	InternalServerError,
@@ -8,12 +8,14 @@ import {
 	withRemapDbErrors,
 	withSystemActor,
 } from "@hazel/effect-lib"
-import { Effect } from "effect"
+import { Effect, Option } from "effect"
 import { HazelApi } from "../api"
 import { generateTransactionId } from "../lib/create-transactionId"
 import { ChannelPolicy } from "../policies/channel-policy"
 import { ChannelMemberRepo } from "../repositories/channel-member-repo"
 import { ChannelRepo } from "../repositories/channel-repo"
+import { DirectMessageParticipantRepo } from "../repositories/direct-message-participant-repo"
+import { UserRepo } from "../repositories/user-repo"
 
 export const HttpChannelLive = HttpApiBuilder.group(HazelApi, "channels", (handlers) =>
 	Effect.gen(function* () {
@@ -104,6 +106,113 @@ export const HttpChannelLive = HttpApiBuilder.group(HazelApi, "channels", (handl
 						)
 
 					return {
+						transactionId: txid,
+					}
+				}),
+			)
+			.handle(
+				"createDm",
+				Effect.fn(function* ({ payload }) {
+					const user = yield* CurrentUser.Context
+
+					const { createdChannel, txid } = yield* db
+						.transaction(
+							Effect.fnUntraced(function* (tx) {
+								// Validate participant count
+								if (payload.type === "dm" && payload.participantIds.length !== 1) {
+									return yield* Effect.fail(
+										new InternalServerError({
+											message: "DM channels must have exactly one other participant",
+											cause: "Invalid participant count",
+										}),
+									)
+								}
+
+								// Generate channel name for DMs
+								let channelName = payload.name
+								if (payload.type === "dm") {
+									const otherUser = yield* UserRepo.findById(payload.participantIds[0])
+									const currentUser = yield* UserRepo.findById(user.id)
+									if (Option.isSome(otherUser) && Option.isSome(currentUser)) {
+										// Create a consistent name for DMs using first and last name
+										const currentUserName =
+											`${currentUser.value.firstName} ${currentUser.value.lastName}`.trim()
+										const otherUserName =
+											`${otherUser.value.firstName} ${otherUser.value.lastName}`.trim()
+										const names = [currentUserName, otherUserName].sort()
+										channelName = names.join(", ")
+									}
+								}
+
+								// Create the channel
+								const channelType = payload.type === "dm" ? "direct" : "private"
+								const createdChannel = yield* ChannelRepo.insert({
+									name: channelName || "Group Channel",
+									type: channelType,
+									organizationId: OrganizationId.make(payload.organizationId),
+									parentChannelId: null,
+									deletedAt: null,
+								}).pipe(
+									Effect.map((res) => res[0]!),
+									policyUse(
+										ChannelPolicy.canCreate(OrganizationId.make(payload.organizationId)),
+									),
+								)
+
+								// Add creator as member
+								yield* ChannelMemberRepo.insert({
+									channelId: createdChannel.id,
+									userId: user.id,
+									isHidden: false,
+									isMuted: false,
+									isFavorite: false,
+									lastSeenMessageId: null,
+									notificationCount: 0,
+									joinedAt: new Date(),
+									deletedAt: null,
+								}).pipe(withSystemActor)
+
+								// Add all participants as members
+								for (const participantId of payload.participantIds) {
+									yield* ChannelMemberRepo.insert({
+										channelId: createdChannel.id,
+										userId: participantId,
+										isHidden: false,
+										isMuted: false,
+										isFavorite: false,
+										lastSeenMessageId: null,
+										notificationCount: 0,
+										joinedAt: new Date(),
+										deletedAt: null,
+									}).pipe(withSystemActor)
+								}
+
+								// For DMs, add to direct_message_participants
+								if (payload.type === "dm") {
+									// Add creator
+									yield* DirectMessageParticipantRepo.insert({
+										channelId: createdChannel.id,
+										userId: user.id,
+										organizationId: OrganizationId.make(payload.organizationId),
+									}).pipe(withSystemActor)
+
+									// Add other participant
+									yield* DirectMessageParticipantRepo.insert({
+										channelId: createdChannel.id,
+										userId: payload.participantIds[0],
+										organizationId: OrganizationId.make(payload.organizationId),
+									}).pipe(withSystemActor)
+								}
+
+								const txid = yield* generateTransactionId(tx)
+
+								return { createdChannel, txid }
+							}),
+						)
+						.pipe(withRemapDbErrors("Channel", "create"))
+
+					return {
+						data: createdChannel,
 						transactionId: txid,
 					}
 				}),

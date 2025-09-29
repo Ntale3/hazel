@@ -19,8 +19,8 @@ import { IconSearchStroke } from "~/components/icons/IconSearchStroke"
 import { IconThreeDotsMenuHorizontalStroke } from "~/components/icons/IconThreeDotsMenuHorizontalStroke"
 import IconUserUser03 from "~/components/icons/IconUserUser03"
 import { organizationMemberCollection, userCollection } from "~/db/collections"
-import { useAuth } from "~/providers/auth-provider"
 import { HazelApiClient } from "~/lib/services/common/atom-client"
+import { useAuth } from "~/providers/auth-provider"
 
 export const Route = createFileRoute("/_app/$orgId/")({
 	component: RouteComponent,

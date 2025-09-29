@@ -1,6 +1,6 @@
 import { HttpApiEndpoint, HttpApiGroup, OpenApi } from "@effect/platform"
 import { Channel } from "@hazel/db/models"
-import { ChannelId } from "@hazel/db/schema"
+import { ChannelId, UserId } from "@hazel/db/schema"
 import { CurrentUser, InternalServerError, UnauthorizedError } from "@hazel/effect-lib"
 import { Schema } from "effect"
 import { TransactionId } from "../../../lib/schema"
@@ -8,6 +8,13 @@ import { TransactionId } from "../../../lib/schema"
 export class CreateChannelResponse extends Schema.Class<CreateChannelResponse>("CreateChannelResponse")({
 	data: Channel.Model.json,
 	transactionId: TransactionId,
+}) {}
+
+export class CreateDmChannelRequest extends Schema.Class<CreateDmChannelRequest>("CreateDmChannelRequest")({
+	participantIds: Schema.Array(UserId),
+	type: Schema.Literal("dm", "group"),
+	name: Schema.optional(Schema.String),
+	organizationId: Schema.UUID,
 }) {}
 
 export class ChannelNotFoundError extends Schema.TaggedError<ChannelNotFoundError>("ChannelNotFoundError")(
@@ -32,6 +39,20 @@ export class ChannelGroup extends HttpApiGroup.make("channels")
 					title: "Create Channel",
 					description: "Create a new channel in an organization",
 					summary: "Create a new channel",
+				}),
+			),
+	)
+	.add(
+		HttpApiEndpoint.post("createDm", `/dm`)
+			.setPayload(CreateDmChannelRequest)
+			.addSuccess(CreateChannelResponse)
+			.addError(UnauthorizedError)
+			.addError(InternalServerError)
+			.annotateContext(
+				OpenApi.annotations({
+					title: "Create DM or Group Channel",
+					description: "Create a new direct message or group channel with specified participants",
+					summary: "Create a DM or group channel",
 				}),
 			),
 	)

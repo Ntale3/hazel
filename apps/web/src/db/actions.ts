@@ -1,10 +1,24 @@
-import { AttachmentId, type ChannelId, MessageId, type OrganizationId, type UserId } from "@hazel/db/schema"
+import {
+	AttachmentId,
+	ChannelId,
+	ChannelMemberId,
+	DirectMessageParticipantId,
+	MessageId,
+	type OrganizationId,
+	type UserId,
+} from "@hazel/db/schema"
 import { createOptimisticAction } from "@tanstack/react-db"
 import { Effect } from "effect"
 import { v4 as uuid } from "uuid"
 import { ApiClient } from "~/lib/services/common/api-client"
 import { runtime } from "~/lib/services/common/runtime"
-import { attachmentCollection, messageCollection, typingIndicatorCollection } from "./collections"
+import {
+	attachmentCollection,
+	channelCollection,
+	channelMemberCollection,
+	directMessageParticipantCollection,
+	messageCollection,
+} from "./collections"
 
 export const uploadAttachment = createOptimisticAction<{
 	organizationId: OrganizationId
@@ -47,6 +61,8 @@ export const uploadAttachment = createOptimisticAction<{
 				})
 			}),
 		)
+
+		await attachmentCollection.utils.awaitTxId(transactionId)
 
 		return { transactionId }
 	},
@@ -97,6 +113,114 @@ export const sendMessage = createOptimisticAction<{
 			}),
 		)
 
+		await messageCollection.utils.awaitTxId(transactionId)
+
 		return { transactionId }
+	},
+})
+
+export const createDmChannel = createOptimisticAction<{
+	organizationId: OrganizationId
+	participantIds: UserId[]
+	type: "dm" | "group"
+	name?: string
+	currentUserId: UserId
+}>({
+	onMutate: (props) => {
+		const channelId = ChannelId.make(uuid())
+		const now = new Date()
+
+		// Generate channel name for DMs
+		let channelName = props.name
+		if (props.type === "dm" && props.participantIds.length === 1) {
+			// For now, we'll use a default name pattern, as we can't easily access user data synchronously
+			// The backend will generate the proper name based on user data
+			channelName = channelName || "Direct Message"
+		}
+
+		// Optimistically insert the channel
+		channelCollection.insert({
+			id: channelId,
+			name: channelName || "Group Channel",
+			type: props.type === "dm" ? "direct" : "private",
+			organizationId: props.organizationId,
+			parentChannelId: null,
+			createdAt: now,
+			updatedAt: null,
+			deletedAt: null,
+		})
+
+		// Add current user as member
+		channelMemberCollection.insert({
+			id: ChannelMemberId.make(uuid()),
+			channelId: channelId,
+			userId: props.currentUserId,
+			isHidden: false,
+			isMuted: false,
+			isFavorite: false,
+			lastSeenMessageId: null,
+			notificationCount: 0,
+			joinedAt: now,
+			createdAt: now,
+			deletedAt: null,
+		})
+
+		// Add all participants as members
+		for (const participantId of props.participantIds) {
+			channelMemberCollection.insert({
+				id: ChannelMemberId.make(uuid()),
+				channelId: channelId,
+				userId: participantId,
+				isHidden: false,
+				isMuted: false,
+				isFavorite: false,
+				lastSeenMessageId: null,
+				notificationCount: 0,
+				joinedAt: now,
+				createdAt: now,
+				deletedAt: null,
+			})
+		}
+
+		// For DMs, add to direct_message_participants
+		if (props.type === "dm" && props.participantIds.length > 0) {
+			// Add current user
+			directMessageParticipantCollection.insert({
+				id: DirectMessageParticipantId.make(uuid()),
+				channelId: channelId,
+				userId: props.currentUserId,
+				organizationId: props.organizationId,
+			})
+
+			// Add other participant
+			directMessageParticipantCollection.insert({
+				id: DirectMessageParticipantId.make(uuid()),
+				channelId: channelId,
+				userId: props.participantIds[0]!,
+				organizationId: props.organizationId,
+			})
+		}
+
+		return { channelId }
+	},
+	mutationFn: async (props, _params) => {
+		const { transactionId, data } = await runtime.runPromise(
+			Effect.gen(function* () {
+				const client = yield* ApiClient
+
+				return yield* client.channels.createDm({
+					payload: {
+						organizationId: props.organizationId,
+						participantIds: props.participantIds,
+						type: props.type,
+						name: props.name,
+					},
+				})
+			}),
+		)
+
+		await channelCollection.utils.awaitTxId(transactionId)
+
+		return { transactionId, channelId: data.id }
 	},
 })

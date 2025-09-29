@@ -8,8 +8,8 @@ import { Avatar } from "~/components/base/avatar/avatar"
 import IconHashtagStroke from "~/components/icons/IconHashtagStroke"
 import IconLockCloseStroke from "~/components/icons/IconLockCloseStroke"
 import { channelCollection, channelMemberCollection } from "~/db/collections"
-import { useAuth } from "~/providers/auth-provider"
 import { cn } from "~/lib/utils"
+import { useAuth } from "~/providers/auth-provider"
 
 export const Route = createFileRoute("/_app/$orgId/chat/")({
 	component: RouteComponent,

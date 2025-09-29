@@ -1,3 +1,4 @@
+import { HttpApiBuilder } from "@effect/platform"
 import { CurrentUser, UnauthorizedError } from "@hazel/effect-lib"
 import { Config, Effect, Layer, Option, Redacted } from "effect"
 import { createRemoteJWKSet, jwtVerify } from "jose"
@@ -13,6 +14,16 @@ export const AuthorizationLive = Layer.effect(
 		const workos = yield* WorkOS
 
 		const workOsCookiePassword = yield* Config.string("WORKOS_COOKIE_PASSWORD").pipe(Effect.orDie)
+		const cookieDomain = yield* Config.string("WORKOS_COOKIE_DOMAIN").pipe(Effect.orDie)
+
+		const clearInvalidCookie = () =>
+			HttpApiBuilder.securitySetCookie(CurrentUser.Cookie, Redacted.make(""), {
+				secure: Bun.env.NODE_ENV === "production",
+				sameSite: "lax",
+				domain: cookieDomain,
+				path: "/",
+				maxAge: 0,
+			})
 
 		return {
 			cookie: (cookie) =>
@@ -27,28 +38,35 @@ export const AuthorizationLive = Layer.effect(
 						)
 						.pipe(
 							Effect.catchTag("WorkOSApiError", (error) =>
-								Effect.fail(
-									new UnauthorizedError({
-										message: "Failed to get session from cookie",
-										detail: String(error.cause),
-									}),
-								),
+								Effect.gen(function* () {
+									yield* clearInvalidCookie()
+									return yield* Effect.fail(
+										new UnauthorizedError({
+											message: "Failed to get session from cookie",
+											detail: String(error.cause),
+										}),
+									)
+								}),
 							),
 						)
 
 					const session = yield* Effect.tryPromise(() => res.authenticate()).pipe(
 						Effect.tapError((error) => Effect.log("authenticate error", error)),
 						Effect.catchTag("UnknownException", (error) =>
-							Effect.fail(
-								new UnauthorizedError({
-									message: "Failed to call authenticate on sealed session",
-									detail: String(error.cause),
-								}),
-							),
+							Effect.gen(function* () {
+								yield* clearInvalidCookie()
+								return yield* Effect.fail(
+									new UnauthorizedError({
+										message: "Failed to call authenticate on sealed session",
+										detail: String(error.cause),
+									}),
+								)
+							}),
 						),
 					)
 
 					if (!session.authenticated) {
+						yield* clearInvalidCookie()
 						return yield* Effect.fail(
 							new UnauthorizedError({
 								message: "Failed to authenticate session",
@@ -60,6 +78,7 @@ export const AuthorizationLive = Layer.effect(
 					const user = yield* userRepo.findByExternalId(session.user.id).pipe(Effect.orDie)
 
 					if (Option.isNone(user)) {
+						yield* clearInvalidCookie()
 						return yield* Effect.fail(
 							new UnauthorizedError({
 								message: "User not found",

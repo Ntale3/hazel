@@ -112,8 +112,6 @@ export function ChatProvider({ channelId, organizationId, children }: ChatProvid
 		[channelId],
 	)
 
-
-
 	// Message operations
 	const sendMessage = ({ content, attachments }: { content: string; attachments?: AttachmentId[] }) => {
 		if (!user?.id) return
