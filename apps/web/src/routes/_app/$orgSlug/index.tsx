@@ -21,6 +21,7 @@ import IconUserUser03 from "~/components/icons/IconUserUser03"
 import { organizationMemberCollection, userCollection } from "~/db/collections"
 import { useOrganization } from "~/hooks/use-organization"
 import { HazelApiClient } from "~/lib/services/common/atom-client"
+import { toastExit } from "~/lib/toast-exit"
 import { useAuth } from "~/providers/auth-provider"
 
 export const Route = createFileRoute("/_app/$orgSlug/")({
@@ -34,7 +35,7 @@ function RouteComponent() {
 	const [searchQuery, setSearchQuery] = useState("")
 
 	const createDmChannel = useAtomSet(HazelApiClient.mutation("channels", "create"), {
-		mode: "promise",
+		mode: "promiseExit",
 	})
 
 	const { data: membersData } = useLiveQuery(
@@ -67,21 +68,26 @@ function RouteComponent() {
 	const handleOpenChat = async (targetUserId: string) => {
 		if (!targetUserId) return
 
-		try {
-			const result = await createDmChannel({
+		const exit = await toastExit(
+			createDmChannel({
 				payload: {
 					name: "New DM",
 					type: "direct",
 					parentChannelId: null,
 					organizationId: organizationId!,
 				},
-			})
-			if (result.data.id) {
-				await navigate({ to: "/$orgSlug/chat/$id", params: { orgSlug, id: result.data.id } })
-			}
-		} catch (error) {
-			console.error("Failed to create DM channel:", error)
-		}
+			}),
+			{
+				loading: "Creating conversation...",
+				success: (result) => {
+					if (result.data.id) {
+						navigate({ to: "/$orgSlug/chat/$id", params: { orgSlug, id: result.data.id } })
+					}
+					return "Conversation created"
+				},
+				error: "Failed to create conversation",
+			},
+		)
 	}
 
 	return (

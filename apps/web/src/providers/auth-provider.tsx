@@ -1,5 +1,6 @@
 import { useAtomSet, useAtomValue } from "@effect-atom/atom-react"
 import type { CurrentUser } from "@hazel/db/schema"
+import { Exit } from "effect"
 import type { ReactNode } from "react"
 import { createContext, useContext, useEffect, useState } from "react"
 import { HazelApiClient } from "~/lib/services/common/atom-client"
@@ -27,7 +28,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	const [isLoading, setIsLoading] = useState(true)
 
 	const loginMutation = useAtomSet(HazelApiClient.mutation("auth", "login"), {
-		mode: "promise",
+		mode: "promiseExit",
 	})
 
 	const currentUserResult = useAtomValue(
@@ -56,14 +57,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	}
 
 	const login = async (options?: LoginOptions) => {
-		const data = await loginMutation({
+		const exit = await loginMutation({
 			urlParams: {
 				...options,
 				returnTo: options?.returnTo || location.href,
 			},
 		})
 
-		window.location.href = data.authorizationUrl
+		Exit.match(exit, {
+			onSuccess: (data) => {
+				window.location.href = data.authorizationUrl
+			},
+			onFailure: (cause) => {
+				console.error("Login failed:", cause)
+			},
+		})
 	}
 
 	// Logout using Effect Atom mutation

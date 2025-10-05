@@ -1,10 +1,8 @@
 import { useAtomSet } from "@effect-atom/atom-react"
-import type { OrganizationId } from "@hazel/db/schema"
 import { createFileRoute } from "@tanstack/react-router"
 import { AlertTriangle, Database01 } from "@untitledui/icons"
 import { useState } from "react"
 import { Heading as AriaHeading } from "react-aria-components"
-import { toast } from "sonner"
 import { Dialog, Modal, ModalOverlay } from "~/components/application/modals/modal"
 import { SectionHeader } from "~/components/application/section-headers/section-headers"
 import { SectionLabel } from "~/components/application/section-headers/section-label"
@@ -14,6 +12,7 @@ import { Form } from "~/components/base/form/form"
 import { FeaturedIcon } from "~/components/foundations/featured-icon/featured-icons"
 import { useOrganization } from "~/hooks/use-organization"
 import { HazelApiClient } from "~/lib/services/common/atom-client"
+import { toastExit } from "~/lib/toast-exit"
 
 export const Route = createFileRoute("/_app/$orgSlug/settings/debug")({
 	component: DebugSettings,
@@ -26,30 +25,30 @@ function DebugSettings() {
 	const { organizationId } = useOrganization()
 
 	const generateMockData = useAtomSet(HazelApiClient.mutation("mockData", "generate"), {
-		mode: "promise",
+		mode: "promiseExit",
 	})
 
 	const handleGenerateMockData = async () => {
 		setIsGeneratingMockData(true)
-		try {
-			const result = await generateMockData({
+		const _exit = await toastExit(
+			generateMockData({
 				payload: {
 					organizationId: organizationId!,
 					userCount: 10,
 					channelCount: 5,
 					messageCount: 50,
 				},
-			})
-			toast.success(
-				`Mock data generated successfully! Created ${result.created.users} users, ${result.created.channels} channels, and ${result.created.messages} messages.`,
-			)
-			setShowMockDataDialog(false)
-		} catch (error) {
-			console.error("Error generating mock data:", error)
-			toast.error("Failed to generate mock data")
-		} finally {
-			setIsGeneratingMockData(false)
-		}
+			}),
+			{
+				loading: "Generating mock data...",
+				success: (result) => {
+					setShowMockDataDialog(false)
+					return `Mock data generated successfully! Created ${result.created.users} users, ${result.created.channels} channels, and ${result.created.messages} messages.`
+				},
+				error: "Failed to generate mock data",
+			},
+		)
+		setIsGeneratingMockData(false)
 	}
 
 	return (

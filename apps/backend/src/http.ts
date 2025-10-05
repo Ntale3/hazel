@@ -19,9 +19,7 @@ import { HttpTypingIndicatorLive } from "./routes/typing-indicators.http"
 import { HttpUserLive } from "./routes/users.http"
 import { HttpWebhookLive } from "./routes/webhooks.http"
 
-export const HttpApiRoutes = HttpLayerRouter.addHttpApi(HazelApi, {
-	openapiPath: "/docs/openapi.json",
-}).pipe(
+export const HttpApiRoutes = HttpLayerRouter.addHttpApi(HazelApi).pipe(
 	Layer.provide(HttpRootLive),
 	Layer.provide(HttpAuthLive),
 	Layer.provide(HttpChannelLive),
