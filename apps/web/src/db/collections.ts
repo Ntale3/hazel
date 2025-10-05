@@ -17,15 +17,14 @@ import { effectElectricCollectionOptions } from "@hazel/effect-electric-db-colle
 import { createCollection } from "@tanstack/react-db"
 import { Effect, Layer, Logger, ManagedRuntime, Schema } from "effect"
 import { ApiClient } from "~/lib/services/common/api-client"
+import { runtime } from "~/lib/services/common/runtime"
 
 const electricUrl: string = import.meta.env.VITE_ELECTRIC_URL
-
-const collectionRuntime = ManagedRuntime.make(ApiClient.Default)
 
 export const organizationCollection = createCollection(
 	effectElectricCollectionOptions({
 		id: "organizations",
-		runtime: collectionRuntime,
+		runtime: runtime,
 		shapeOptions: {
 			url: electricUrl,
 			params: {
@@ -81,7 +80,7 @@ export const organizationCollection = createCollection(
 export const invitationCollection = createCollection(
 	effectElectricCollectionOptions({
 		id: "invitations",
-		runtime: collectionRuntime,
+		runtime: runtime,
 		shapeOptions: {
 			url: electricUrl,
 			params: {
@@ -137,7 +136,7 @@ export const invitationCollection = createCollection(
 export const messageCollection = createCollection(
 	effectElectricCollectionOptions({
 		id: "messages",
-		runtime: collectionRuntime,
+		runtime: runtime,
 		shapeOptions: {
 			url: electricUrl,
 			params: {
@@ -193,7 +192,7 @@ export const messageCollection = createCollection(
 export const messageReactionCollection = createCollection(
 	effectElectricCollectionOptions({
 		id: "message_reactions",
-		runtime: collectionRuntime,
+		runtime: runtime,
 		shapeOptions: {
 			url: electricUrl,
 			params: {
@@ -249,7 +248,7 @@ export const messageReactionCollection = createCollection(
 export const pinnedMessageCollection = createCollection(
 	effectElectricCollectionOptions({
 		id: "pinned_messages",
-		runtime: collectionRuntime,
+		runtime: runtime,
 		shapeOptions: {
 			url: electricUrl,
 			params: {
@@ -305,7 +304,7 @@ export const pinnedMessageCollection = createCollection(
 export const notificationCollection = createCollection(
 	effectElectricCollectionOptions({
 		id: "notifications",
-		runtime: collectionRuntime,
+		runtime: runtime,
 		shapeOptions: {
 			url: electricUrl,
 			params: {
@@ -361,7 +360,7 @@ export const notificationCollection = createCollection(
 export const userCollection = createCollection(
 	effectElectricCollectionOptions({
 		id: "users",
-		runtime: collectionRuntime,
+		runtime: runtime,
 		shapeOptions: {
 			url: electricUrl,
 			params: {
@@ -417,7 +416,7 @@ export const userCollection = createCollection(
 export const organizationMemberCollection = createCollection(
 	effectElectricCollectionOptions({
 		id: "organization_members",
-		runtime: collectionRuntime,
+		runtime: runtime,
 		shapeOptions: {
 			url: electricUrl,
 			params: {
@@ -473,7 +472,7 @@ export const organizationMemberCollection = createCollection(
 export const channelCollection = createCollection(
 	effectElectricCollectionOptions({
 		id: "channels",
-		runtime: collectionRuntime,
+		runtime: runtime,
 		shapeOptions: {
 			url: electricUrl,
 			params: {
@@ -529,7 +528,7 @@ export const channelCollection = createCollection(
 export const channelMemberCollection = createCollection(
 	effectElectricCollectionOptions({
 		id: "channel_members",
-		runtime: collectionRuntime,
+		runtime: runtime,
 		shapeOptions: {
 			url: `${electricUrl}`,
 			params: {
@@ -585,7 +584,7 @@ export const channelMemberCollection = createCollection(
 export const attachmentCollection = createCollection(
 	effectElectricCollectionOptions({
 		id: "attachments",
-		runtime: collectionRuntime,
+		runtime: runtime,
 		shapeOptions: {
 			url: electricUrl,
 			params: {
@@ -616,7 +615,7 @@ export const attachmentCollection = createCollection(
 export const directMessageParticipantCollection = createCollection(
 	effectElectricCollectionOptions({
 		id: "direct_message_participants",
-		runtime: collectionRuntime,
+		runtime: runtime,
 		shapeOptions: {
 			url: electricUrl,
 			params: {
@@ -669,7 +668,7 @@ export const directMessageParticipantCollection = createCollection(
 export const typingIndicatorCollection = createCollection(
 	effectElectricCollectionOptions({
 		id: "typing_indicators",
-		runtime: collectionRuntime,
+		runtime: runtime,
 		shapeOptions: {
 			url: electricUrl,
 			params: {
