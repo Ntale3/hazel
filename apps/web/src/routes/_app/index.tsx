@@ -11,7 +11,11 @@ export const Route = createFileRoute("/_app/")({
 function RouteComponent() {
 	const { user, isLoading: isAuthLoading } = useAuth()
 
-	const { data: organizations, isLoading } = useLiveQuery(
+	const {
+		data: organizations,
+		isLoading,
+		isReady,
+	} = useLiveQuery(
 		(q) => {
 			return q
 				.from({
@@ -24,12 +28,14 @@ function RouteComponent() {
 		[user?.id, user?.workosOrganizationId],
 	)
 
-	if (isLoading || isAuthLoading) {
+	if (isLoading || isAuthLoading || !isReady) {
 		return <Loader />
 	}
 
 	if (organizations && organizations.length > 0) {
 		const org = organizations[0]!
+
+		console.log("org", org)
 
 		// If organization doesn't have a slug, redirect to setup
 		if (!org.slug) {
