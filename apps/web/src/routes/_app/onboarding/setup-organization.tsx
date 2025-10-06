@@ -44,16 +44,6 @@ function RouteComponent() {
 
 	const organization = organizations?.[0]
 
-	// If no orgId provided, redirect to main onboarding
-	if (!search.orgId) {
-		return <Navigate to="/onboarding" />
-	}
-
-	// If org already has a slug, redirect to it
-	if (organization?.slug) {
-		return <Navigate to="/$orgSlug" params={{ orgSlug: organization.slug }} />
-	}
-
 	const generateSlug = useCallback((name: string) => {
 		let slug = name
 			.normalize("NFD")
@@ -80,36 +70,56 @@ function RouteComponent() {
 		onSubmit: async ({ value }) => {
 			if (!organization) return
 
-			try {
-				organizationCollection.update(organization.id, (org) => {
+			const tx = organizationCollection.update(
+				organization.id,
+				{
+					optimistic: false,
+				},
+				(org) => {
 					org.slug = value.slug.trim()
 					org.updatedAt = new Date()
-				})
+				},
+			)
+
+			try {
+				const res = await tx.isPersisted.promise
+
+				console.log("res", res)
+
+				if (res.error) {
+					form.setFieldMeta("slug", (meta) => ({
+						...meta,
+						errors: [{ message: res.error?.message }],
+					}))
+				}
 
 				toast.success("Organization setup complete!")
 
-				// Navigate to the organization
 				await navigate({ to: "/$orgSlug", params: { orgSlug: value.slug.trim() } })
 			} catch (error: any) {
-				console.error("Failed to update organization:", error)
-				if (error.message?.includes("slug already exists")) {
-					form.setFieldMeta("slug", (meta) => ({
-						...meta,
-						errors: [{ message: "This slug is already taken" }],
-					}))
-				} else {
-					toast.error(error.message || "Failed to update organization")
-				}
+				form.setFieldMeta("slug", (meta) => ({
+					...meta,
+					errors: [{ message: error.message || "This slug is already taken" }],
+				}))
+
+				toast.error(error.message || "This slug is already taken")
 			}
 		},
 	})
 
-	// Auto-generate slug from organization name
 	useEffect(() => {
 		if (organization?.name && !form.getFieldValue("slug")) {
 			form.setFieldValue("slug", generateSlug(organization.name))
 		}
 	}, [organization?.name, form, generateSlug])
+
+	if (!search.orgId) {
+		return <Navigate to="/onboarding" />
+	}
+
+	if (organization?.slug) {
+		return <Navigate to="/$orgSlug" params={{ orgSlug: organization.slug }} />
+	}
 
 	if (!organization) {
 		return (
