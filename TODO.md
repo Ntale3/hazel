@@ -3,6 +3,10 @@
 ## High Priority Features
 
 
+## Medium Priority Features
+
+- Setup Organization should display better errors 
+
 
 ### Core Features
 - [ ] **File Upload**
@@ -62,6 +66,8 @@
 
 ## Backend TODOs (apps/backend)
 
+- API always returning 500's on errors for some reason
+
 ### Authentication & Authorization
 - [ ] Create organization membership when user has organizationId (`apps/backend/src/routes/auth.http.ts:99`)
 - [ ] Implement smarter role-based policies (`apps/backend/src/policies/channel-policy.ts:26,39,53`)
@@ -69,14 +75,11 @@
 ### File Handling
 - [ ] Map errors for attachment uploads (`apps/backend/src/routes/attachments.http.ts:44`)
 
-## Database TODOs (packages/db)
 
 
 ## Technical Debt
 
 ### Testing
-- [ ] Add comprehensive test coverage for new features
-- [ ] Integration tests for real-time features
 
 ## Notes
 - Line numbers reference specific TODO comments in the codebase

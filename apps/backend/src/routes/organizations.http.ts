@@ -50,6 +50,7 @@ export const HttpOrganizationLive = HttpApiBuilder.group(HazelApi, "organization
 				Effect.fn(function* ({ payload, path }) {
 					const { updatedOrganization, txid } = yield* db
 						.transaction(
+							// TODO: Return a separate error for duplicate slug errors
 							Effect.gen(function* () {
 								const updatedOrganization = yield* OrganizationRepo.update({
 									id: path.id,
