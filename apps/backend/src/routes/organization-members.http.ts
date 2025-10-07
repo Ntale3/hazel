@@ -87,10 +87,12 @@ export const HttpOrganizationMemberLive = HttpApiBuilder.group(HazelApi, "organi
 						.pipe(
 							Effect.catchTags({
 								DatabaseError: (err) =>
-									new InternalServerError({
-										message: "Error Deleting Organization Member",
-										cause: err,
-									}),
+									Effect.fail(
+										new InternalServerError({
+											message: "Error Deleting Organization Member",
+											cause: err,
+										}),
+									),
 							}),
 						)
 

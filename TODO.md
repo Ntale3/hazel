@@ -38,6 +38,7 @@
 ## Frontend TODOs (apps/web)
 
 - Update Icons
+- Command Palette not using tsr nav to navigate
 
 ### Chat Components
 - [ ] **Message Features**
