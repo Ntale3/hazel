@@ -1,4 +1,4 @@
-import { and, eq, or, useLiveQuery } from "@tanstack/react-db"
+import { eq, useLiveQuery } from "@tanstack/react-db"
 import { createFileRoute, Link, useParams } from "@tanstack/react-router"
 import { useMemo } from "react"
 import { SectionHeader } from "~/components/application/section-headers/section-headers"
@@ -6,7 +6,7 @@ import { TabList, TabPanel, Tabs } from "~/components/application/tabs/tabs"
 import { Avatar } from "~/components/base/avatar/avatar"
 import IconHashtag from "~/components/icons/icon-hashtag"
 import IconLock from "~/components/icons/icon-lock"
-import { channelCollection, channelMemberCollection } from "~/db/collections"
+import { channelCollection, channelMemberCollection, userCollection } from "~/db/collections"
 import { useOrganization } from "~/hooks/use-organization"
 import { cn } from "~/lib/utils"
 import { useAuth } from "~/providers/auth-provider"
@@ -22,68 +22,66 @@ function RouteComponent() {
 
 	const presenceList: any[] = [] // TODO: Add presence list
 
-	// Get all channels for this organization that the user is a member of
-	const { data: userChannels, isLoading: channelsLoading } = useLiveQuery(
+	// Get all channels with members and users in a single query
+	const { data: channelsData, isLoading: channelsLoading } = useLiveQuery(
 		(q) =>
 			q
 				.from({ channel: channelCollection })
 				.innerJoin({ member: channelMemberCollection }, ({ channel, member }) =>
 					eq(member.channelId, channel.id),
 				)
-				.where((q) =>
-					and(
-						eq(q.channel.organizationId, organizationId),
-						eq(q.member.userId, me?.id || ""),
-						eq(q.member.isHidden, false),
-					),
-				)
+				.innerJoin({ user: userCollection }, ({ member, user }) => eq(user.id, member.userId))
+				.where((q) => eq(q.channel.organizationId, organizationId))
 				.orderBy(({ channel }) => channel.createdAt, "asc"),
-		[me?.id, organizationId],
+		[organizationId],
 	)
 
-	const publicChannels = useMemo(
-		() =>
-			userChannels
-				?.filter((row) => row.channel.type === "public")
-				.map((row) => ({
-					_id: row.channel.id,
-					name: row.channel.name,
-					type: row.channel.type,
-					isMuted: row.member.isMuted,
-					isFavorite: row.member.isFavorite,
-					currentUser: { notificationCount: row.member.notificationCount || 0 },
-				})) || [],
-		[userChannels],
-	)
+	const { publicChannels, privateChannels, dmChannels } = useMemo(() => {
+		if (!channelsData || !me?.id) {
+			return { publicChannels: [], privateChannels: [], dmChannels: [] }
+		}
 
-	const privateChannels = useMemo(
-		() =>
-			userChannels
-				?.filter((row) => row.channel.type === "private")
-				.map((row) => ({
-					_id: row.channel.id,
-					name: row.channel.name,
-					type: row.channel.type,
-					isMuted: row.member.isMuted,
-					isFavorite: row.member.isFavorite,
-					currentUser: { notificationCount: row.member.notificationCount || 0 },
-				})) || [],
-		[userChannels],
-	)
+		// Group all data by channel
+		const channelMap = new Map<string, { channel: any; members: any[]; myMember?: any }>()
 
-	const dmChannels = useMemo(
-		() =>
-			userChannels
-				?.filter((row) => row.channel.type === "direct" || row.channel.type === "single")
-				.map((row) => ({
-					_id: row.channel.id,
-					name: row.channel.name,
-					type: row.channel.type,
-					isMuted: row.member.isMuted,
-					currentUser: { notificationCount: row.member.notificationCount || 0 },
-				})) || [],
-		[userChannels],
-	)
+		for (const row of channelsData) {
+			if (!channelMap.has(row.channel.id)) {
+				channelMap.set(row.channel.id, { channel: row.channel, members: [] })
+			}
+			const data = channelMap.get(row.channel.id)!
+			data.members.push({ ...row.member, user: row.user })
+			if (row.member.userId === me.id) {
+				data.myMember = row.member
+			}
+		}
+
+		// Filter to only channels where user is a member and not hidden, then split by type
+		const public_: any[] = []
+		const private_: any[] = []
+		const dms: any[] = []
+
+		for (const { channel, members, myMember } of channelMap.values()) {
+			if (!myMember || myMember.isHidden) continue
+
+			const baseData = {
+				_id: channel.id,
+				name: channel.name,
+				type: channel.type,
+				isMuted: myMember.isMuted,
+				currentUser: { notificationCount: myMember.notificationCount || 0 },
+			}
+
+			if (channel.type === "public") {
+				public_.push({ ...baseData, isFavorite: myMember.isFavorite })
+			} else if (channel.type === "private") {
+				private_.push({ ...baseData, isFavorite: myMember.isFavorite })
+			} else if (channel.type === "direct" || channel.type === "single") {
+				dms.push({ ...baseData, members })
+			}
+		}
+
+		return { publicChannels: public_, privateChannels: private_, dmChannels: dms }
+	}, [channelsData, me?.id])
 
 	if (channelsLoading) {
 		return (
@@ -263,7 +261,7 @@ function DmCard({
 		<Link
 			to="/$orgSlug/chat/$id"
 			params={{ orgSlug, id: channel._id }}
-			className="inset-ring inset-ring inset-ring-transparent inset-ring-transparent flex items-center justify-between gap-4 rounded-lg px-2.5 py-2 hover:inset-ring-secondary hover:bg-quaternary/40"
+			className="inset-ring inset-ring-transparent flex items-center justify-between gap-4 rounded-lg px-2.5 py-2 hover:inset-ring-secondary hover:bg-quaternary/40"
 		>
 			<div className="flex items-center gap-2.5">
 				<div className="-space-x-4 flex">
