@@ -9,6 +9,7 @@
 - Migrate the missing icons to nucleo
 
 - New Version checker not working
+- webhooks for workos
 
 
 ### Core Features

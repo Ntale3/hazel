@@ -74,6 +74,8 @@ export const versionCheckAtom = Atom.make((get) =>
 				const toastShown = get(updateToastShownAtom)
 				const shouldShowToast = isUpdateAvailable && !toastShown
 
+				console.log("[Version Check] 🎉 New version detected!")
+
 				if (shouldShowToast) {
 					get.set(updateToastShownAtom, true)
 				}

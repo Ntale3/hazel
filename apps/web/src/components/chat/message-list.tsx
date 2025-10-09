@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useAtomSet, useAtomValue } from "@effect-atom/atom-react"
+import { useCallback, useEffect, useMemo, useRef } from "react"
+import {
+	isAtBottomAtomFamily,
+	messageCountAtomFamily,
+	scrollContainerRefAtomFamily,
+} from "~/atoms/chat-atoms"
 import { useChat } from "~/hooks/use-chat"
 // TODO: Re-enable when pagination is implemented
 // import { useDebouncedIntersection } from "~/hooks/use-debounced-intersection"
@@ -8,16 +14,20 @@ import { useChat } from "~/hooks/use-chat"
 import { MessageItem } from "./message-item"
 
 export function MessageList() {
-	const { messages, isLoadingMessages } = useChat()
+	const { messages, isLoadingMessages, channelId } = useChat()
 	const scrollContainerRef = useRef<HTMLDivElement>(null)
+
+	// Atom-based scroll state management
+	const isAtBottom = useAtomValue(isAtBottomAtomFamily(channelId))
+	const setIsAtBottom = useAtomSet(isAtBottomAtomFamily(channelId))
+	const messageCount = useAtomValue(messageCountAtomFamily(channelId))
+	const setMessageCount = useAtomSet(messageCountAtomFamily(channelId))
+	const setScrollContainerRef = useAtomSet(scrollContainerRefAtomFamily(channelId))
+
 	// TODO: Re-enable when pagination is implemented
 	// const { saveScrollState, restoreScrollPosition } = useScrollRestoration()
 	// const { canLoadTop, canLoadBottom, startLoadingTop, startLoadingBottom, finishLoading } =
 	// 	useLoadingState()
-	const [isAtBottom, setIsAtBottom] = useState(true)
-	const prevMessageCountRef = useRef(messages.length)
-	const isUserScrollingRef = useRef(false)
-	const scrollTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
 	// const loadingDirectionRef = useRef<"top" | "bottom" | null>(null)
 
 	// TODO: Re-enable when pagination is implemented
@@ -100,40 +110,47 @@ export function MessageList() {
 		const container = scrollContainerRef.current
 		if (!container) return
 
-		// Track that user is actively scrolling
-		isUserScrollingRef.current = true
-		clearTimeout(scrollTimeoutRef.current)
-		scrollTimeoutRef.current = setTimeout(() => {
-			isUserScrollingRef.current = false
-		}, 150)
+		const atBottom = checkIfAtBottom()
+		setIsAtBottom(atBottom)
+	}, [checkIfAtBottom, setIsAtBottom])
 
-		setIsAtBottom(checkIfAtBottom())
-	}, [checkIfAtBottom])
+	// Store scroll container ref in atom for potential future use
+	useEffect(() => {
+		setScrollContainerRef(scrollContainerRef)
+	}, [setScrollContainerRef])
 
 	// Auto-scroll to bottom on initial load
-	// biome-ignore lint/correctness/useExhaustiveDependencies: We only want to scroll on initial load>
+	// biome-ignore lint/correctness/useExhaustiveDependencies: We only want to scroll on initial load
 	useEffect(() => {
 		if (scrollContainerRef.current && !isLoadingMessages && messages.length > 0) {
 			scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight
+			setIsAtBottom(true)
 		}
-	}, [isLoadingMessages])
+	}, [isLoadingMessages, setIsAtBottom])
 
-	// Auto-scroll to bottom when new messages arrive if user was at bottom
+	// Track message count changes and auto-scroll when at bottom
 	useEffect(() => {
 		const container = scrollContainerRef.current
 		if (!container) return
 
+		// Update message count in atom
+		setMessageCount(messages.length)
+
 		// Check if new messages were added
-		const messageCountIncreased = messages.length > prevMessageCountRef.current
+		const messageCountIncreased = messages.length > messageCount
 
 		if (messageCountIncreased && isAtBottom) {
-			// Scroll to bottom to show new messages
-			container.scrollTop = container.scrollHeight
+			// Use requestAnimationFrame to ensure DOM has updated before scrolling
+			requestAnimationFrame(() => {
+				if (container) {
+					container.scrollTop = container.scrollHeight
+					// Re-check if we're at bottom after scroll
+					const atBottom = checkIfAtBottom()
+					setIsAtBottom(atBottom)
+				}
+			})
 		}
-
-		// Update previous message count
-		prevMessageCountRef.current = messages.length
-	}, [messages.length, isAtBottom])
+	}, [messages.length, messageCount, isAtBottom, setMessageCount, setIsAtBottom, checkIfAtBottom])
 
 	// TODO: Re-enable when pagination is implemented
 	// // Load older messages when top sentinel is visible
