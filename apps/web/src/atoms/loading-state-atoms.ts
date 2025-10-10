@@ -14,7 +14,7 @@ const COOLDOWN_MS = 300
  * Atom family for per-component loading states
  * Each component can have its own isolated loading state
  */
-export const loadingStateAtomFamily = Atom.family((id: string) =>
+export const loadingStateAtomFamily = Atom.family((_id: string) =>
 	Atom.make<LoadingState>("idle").pipe(Atom.keepAlive),
 )
 

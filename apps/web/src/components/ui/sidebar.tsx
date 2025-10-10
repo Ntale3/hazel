@@ -1,5 +1,5 @@
-import { Slot } from "@radix-ui/react-slot"
 import { useAtomValue } from "@effect-atom/atom-react"
+import { Slot } from "@radix-ui/react-slot"
 import { LeftIndent01 } from "@untitledui/icons"
 import { cva, type VariantProps } from "class-variance-authority"
 import * as React from "react"
@@ -65,12 +65,7 @@ function useSidebar() {
  * SidebarProvider wraps the app and sets up global sidebar keyboard shortcuts
  * State is now managed via atoms instead of Context
  */
-function SidebarProvider({
-	className,
-	style,
-	children,
-	...props
-}: React.ComponentProps<"div">) {
+function SidebarProvider({ className, style, children, ...props }: React.ComponentProps<"div">) {
 	const isMobile = useIsMobile()
 
 	// Helper to toggle the sidebar (mobile or desktop depending on screen size)

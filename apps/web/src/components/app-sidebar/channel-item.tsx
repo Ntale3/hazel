@@ -1,13 +1,15 @@
-import type { ChannelId, OrganizationId } from "@hazel/db/schema"
-import { Link } from "@tanstack/react-router"
+import type { ChannelId } from "@hazel/db/schema"
+import { Link, useNavigate, useParams } from "@tanstack/react-router"
 import { useCallback, useState } from "react"
+import { toast } from "sonner"
 import IconEdit from "~/components/icons/icon-edit"
 import IconTrash from "~/components/icons/icon-trash"
-import { channelMemberCollection } from "~/db/collections"
+import { channelCollection, channelMemberCollection } from "~/db/collections"
 import { useChannelWithCurrentUser } from "~/db/hooks"
 import { useOrganization } from "~/hooks/use-organization"
 import { useAuth } from "~/lib/auth"
 import { cx } from "~/utils/cx"
+import { DeleteChannelModal } from "../application/modals/delete-channel-modal"
 import { RenameChannelModal } from "../application/modals/rename-channel-modal"
 import { Avatar } from "../base/avatar/avatar"
 import { Dropdown } from "../base/dropdown/dropdown"
@@ -26,33 +28,67 @@ export interface ChannelItemProps {
 
 export const ChannelItem = ({ channelId }: ChannelItemProps) => {
 	const { slug: orgSlug } = useOrganization()
+	const navigate = useNavigate()
+	const params = useParams({ strict: false })
 	const [isRenameModalOpen, setIsRenameModalOpen] = useState(false)
+	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
 
 	const { channel } = useChannelWithCurrentUser(channelId)
 
-	if (!channel) {
-		return null
-	}
-
 	const handleLeaveChannel = useCallback(() => {
+		if (!channel) return
 		channelMemberCollection.delete(channel.currentUser.id)
-	}, [channel.currentUser.id])
+	}, [channel])
 
 	const handleToggleMute = useCallback(() => {
+		if (!channel) return
 		channelMemberCollection.update(channel.currentUser.id, (member) => {
 			member.isMuted = !member.isMuted
 		})
-	}, [channel.currentUser.id])
+	}, [channel])
 
 	const handleToggleFavorite = useCallback(() => {
+		if (!channel) return
 		channelMemberCollection.update(channel.currentUser.id, (member) => {
 			member.isFavorite = !member.isFavorite
 		})
-	}, [channel.currentUser.id])
+	}, [channel])
 
 	const handleRename = useCallback(() => {
 		setIsRenameModalOpen(true)
 	}, [])
+
+	const handleDelete = useCallback(() => {
+		setIsDeleteModalOpen(true)
+	}, [])
+
+	const handleConfirmDelete = useCallback(async () => {
+		if (!channel) return
+
+		const channelIdToDelete = channel.id
+		const channelNameToDisplay = channel.name
+
+		try {
+			channelCollection.delete(channelIdToDelete!)
+
+			// If user is currently viewing this channel, redirect to organization page
+			if (params.id === channelId) {
+				navigate({
+					to: "/$orgSlug",
+					params: { orgSlug: orgSlug || "" },
+				})
+			}
+
+			toast.success(`Channel #${channelNameToDisplay} has been deleted`)
+		} catch (error) {
+			console.error("Failed to delete channel:", error)
+			toast.error("Failed to delete channel")
+		}
+	}, [channel, channelId, navigate, orgSlug, params.id])
+
+	if (!channel) {
+		return null
+	}
 
 	return (
 		<SidebarMenuItem>
@@ -111,6 +147,7 @@ export const ChannelItem = ({ channelId }: ChannelItemProps) => {
 							Rename
 						</Dropdown.Item>
 						<Dropdown.Item
+							onAction={handleDelete}
 							icon={(props) => <IconTrash className={cx("text-amber-500", props.className)} />}
 						>
 							Delete
@@ -147,6 +184,12 @@ export const ChannelItem = ({ channelId }: ChannelItemProps) => {
 				channelId={channelId}
 				isOpen={isRenameModalOpen}
 				onOpenChange={setIsRenameModalOpen}
+			/>
+			<DeleteChannelModal
+				channelName={channel.name || "this channel"}
+				isOpen={isDeleteModalOpen}
+				onOpenChange={setIsDeleteModalOpen}
+				onConfirm={handleConfirmDelete}
 			/>
 		</SidebarMenuItem>
 	)
