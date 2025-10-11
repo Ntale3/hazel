@@ -9,6 +9,7 @@ import { BasicNodesKit } from "~/components/editor/plugins/basic-nodes-kit"
 import { cx } from "~/utils/cx"
 import { MessageComposerActions } from "./chat/message-composer-actions"
 import { AutoformatKit } from "./editor/plugins/autoformat-kit"
+import { CodeBlockKit } from "./editor/plugins/code-block-kit"
 import { ExitBreakKit } from "./editor/plugins/exit-break-kit"
 import { MarkdownKit } from "./editor/plugins/markdown-kit"
 import { MentionKit } from "./editor/plugins/mention-kit"
@@ -58,7 +59,7 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
 					...ExitBreakKit,
 					...AutoformatKit,
 					...SlashKit,
-					// ...CodeBlockKit,
+					...CodeBlockKit,
 					...MentionKit,
 				],
 			},
