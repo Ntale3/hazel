@@ -8,10 +8,7 @@
 - Setup Organization should display better errors 
 - Migrate the missing icons to nucleo
 
-- New Version checker not working
 - webhooks for workos
-- Simplify ChatProvider and Message Component with Atoms
-- Make the switch of chats be faster than 100ms
 
 
 ### Core Features
@@ -27,7 +24,6 @@
     - User mentions
     - Slash commands
   - Implement message pagination (`apps/web/src/providers/chat-provider.tsx:104,111,262`)
-  - Implement pinned message lookup (`apps/web/src/providers/chat-provider.tsx:180`)
 
 - [ ] **User Management**
   - Invite User mutation (`apps/web/src/components/application/modals/email-invite-modal.tsx:69`)
