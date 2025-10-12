@@ -39,16 +39,13 @@ export function ChangeRoleModal({ isOpen, onOpenChange, user, currentUserRole }:
 				draft.role = selectedRole as "member" | "admin" | "owner"
 			})
 
-			await tx.isPersisted.promise
+			await toast.promise(tx.isPersisted.promise, {
+				loading: "Updating role...",
+				success: `${user.name}'s role has been updated to ${selectedRole}`,
+				error: "Failed to update role",
+			})
 
-			toast.success("Role updated", {
-				description: `${user.name}'s role has been updated to ${selectedRole}`,
-			})
 			onOpenChange(false)
-		} catch (error) {
-			toast.error("Failed to update role", {
-				description: error instanceof Error ? error.message : "An error occurred",
-			})
 		} finally {
 			setIsSubmitting(false)
 		}
