@@ -35,7 +35,7 @@ export const Route = createFileRoute("/_app/$orgSlug/chat/$id")({
 						author: author,
 					}))
 					.orderBy(({ message }) => message.createdAt, "desc")
-					.limit(20) // Initial limit for first page
+					.limit(150)
 					.offset(0),
 		})
 

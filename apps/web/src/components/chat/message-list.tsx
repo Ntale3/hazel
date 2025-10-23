@@ -11,7 +11,6 @@ export function MessageList() {
 	const { channelId } = useChat()
 	const { messagesInfiniteQuery } = Route.useLoaderData()
 
-	// Use infinite query hook with the preloaded collection from router
 	const {
 		data,
 		pages: _pages,
@@ -19,15 +18,13 @@ export function MessageList() {
 		hasNextPage: _hasNextPage,
 		isLoading,
 	} = useLiveInfiniteQuery(messagesInfiniteQuery, {
-		pageSize: 50,
+		pageSize: 150,
 		getNextPageParam: (lastPage) => (lastPage.length === 20 ? lastPage.length : undefined),
 	})
 
-	// Flatten pages into a single array of messages
 	const messages = (data || []) as MessageWithPinned[]
 	const isLoadingMessages = isLoading
 
-	// Process messages for grouping (same logic as before)
 	const processedMessages = useMemo(() => {
 		const timeThreshold = 5 * 60 * 1000
 		const chronologicalMessages = [...messages].reverse()
