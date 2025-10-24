@@ -20,8 +20,15 @@ interface MessageComposerProps {
 
 export const MessageComposer = ({ placeholder = "Type a message..." }: MessageComposerProps) => {
 	const { user } = useAuth()
-	const { sendMessage, replyToMessageId, setReplyToMessageId, channelId, attachmentIds, removeAttachment } =
-		useChat()
+	const {
+		sendMessage,
+		replyToMessageId,
+		setReplyToMessageId,
+		channelId,
+		attachmentIds,
+		removeAttachment,
+		isUploading,
+	} = useChat()
 
 	const editorRef = useRef<MarkdownEditorRef | null>(null)
 
@@ -133,6 +140,7 @@ export const MessageComposer = ({ placeholder = "Type a message..." }: MessageCo
 					)}
 					onSubmit={handleSubmit}
 					onUpdate={handleEditorUpdate}
+					isUploading={isUploading}
 				/>
 			</div>
 		</div>

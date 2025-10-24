@@ -13,6 +13,7 @@ import { createContext, type ReactNode, useCallback, useContext, useMemo } from 
 import {
 	activeThreadChannelIdAtom,
 	activeThreadMessageIdAtom,
+	isUploadingAtomFamily,
 	replyToMessageAtomFamily,
 	uploadedAttachmentsAtomFamily,
 } from "~/atoms/chat-atoms"
@@ -48,6 +49,8 @@ interface ChatContextValue {
 	addAttachment: (attachmentId: AttachmentId) => void
 	removeAttachment: (attachmentId: AttachmentId) => void
 	clearAttachments: () => void
+	isUploading: boolean
+	setIsUploading: (value: boolean) => void
 }
 
 const ChatContext = createContext<ChatContextValue | undefined>(undefined)
@@ -82,6 +85,10 @@ export function ChatProvider({ channelId, organizationId, children }: ChatProvid
 	// Attachment state - per-channel using Atom.family
 	const attachmentIds = useAtomValue(uploadedAttachmentsAtomFamily(channelId))
 	const setAttachmentIds = useAtomSet(uploadedAttachmentsAtomFamily(channelId))
+
+	// Upload state - per-channel using Atom.family
+	const isUploading = useAtomValue(isUploadingAtomFamily(channelId))
+	const setIsUploading = useAtomSet(isUploadingAtomFamily(channelId))
 
 	// Fetch channel using new tanstack-db-atom
 	const channelResult = useAtomValue(channelByIdAtomFamily(channelId))
@@ -256,6 +263,8 @@ export function ChatProvider({ channelId, organizationId, children }: ChatProvid
 			addAttachment,
 			removeAttachment,
 			clearAttachments,
+			isUploading,
+			setIsUploading,
 		}),
 		[
 			channelId,
@@ -279,6 +288,8 @@ export function ChatProvider({ channelId, organizationId, children }: ChatProvid
 			addAttachment,
 			removeAttachment,
 			clearAttachments,
+			isUploading,
+			setIsUploading,
 		],
 	)
 

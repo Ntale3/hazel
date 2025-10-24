@@ -24,10 +24,11 @@ interface MarkdownEditorProps {
 	className?: string
 	onSubmit?: (content: string) => void | Promise<void>
 	onUpdate?: (content: string) => void
+	isUploading?: boolean
 }
 
 export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>(
-	({ placeholder = "Type a message...", className, onSubmit, onUpdate }, ref) => {
+	({ placeholder = "Type a message...", className, onSubmit, onUpdate, isUploading = false }, ref) => {
 		const actionsRef = useRef<{ cleanup: () => void } | null>(null)
 
 		const editor = usePlateEditor(
@@ -108,6 +109,9 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
 		const handleSubmit = async () => {
 			if (!onSubmit) return
 
+			// Don't submit while uploads are in progress
+			if (isUploading) return
+
 			const textContent = editor.api.markdown.serialize().trim()
 
 			function isEffectivelyEmpty(str: string) {
@@ -127,7 +131,10 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
 		const handleKeyDown = (event: React.KeyboardEvent) => {
 			if (event.key === "Enter" && !event.shiftKey) {
 				event.preventDefault()
-				handleSubmit()
+				// Don't submit while uploads are in progress
+				if (!isUploading) {
+					handleSubmit()
+				}
 			}
 		}
 

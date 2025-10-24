@@ -37,3 +37,11 @@ export const isAtBottomAtomFamily = Atom.family((_channelId: ChannelId) =>
 export const uploadedAttachmentsAtomFamily = Atom.family((_channelId: ChannelId) =>
 	Atom.make<AttachmentId[]>([]).pipe(Atom.keepAlive),
 )
+
+/**
+ * Per-channel upload state
+ * Tracks whether files are currently being uploaded to prevent message sending
+ */
+export const isUploadingAtomFamily = Atom.family((_channelId: ChannelId) =>
+	Atom.make<boolean>(false).pipe(Atom.keepAlive),
+)
