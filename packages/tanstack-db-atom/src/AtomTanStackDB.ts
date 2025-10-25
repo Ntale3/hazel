@@ -321,10 +321,26 @@ export const makeQueryConditional = <TContext extends Context>(
 	options?: QueryOptions,
 ): Atom.Atom<Result.Result<InferResultType<TContext>, Error> | undefined> => {
 	return Atom.readable((get) => {
-		// Build query to check if it returns null/undefined
-		const query = queryFn({} as InitialQueryBuilder)
+		// Create a proxy query builder to detect if query function returns null/undefined
+		// without actually executing any query methods
+		let queryReturnsNull = false
+
+		const proxyBuilder = new Proxy({} as InitialQueryBuilder, {
+			get: () => {
+				// If any method is accessed, the query is being built (not null)
+				queryReturnsNull = false
+				// Return a function that returns the proxy itself for chaining
+				return () => proxyBuilder
+			}
+		})
+
+		const query = queryFn(proxyBuilder)
 
 		if (query === null || query === undefined) {
+			queryReturnsNull = true
+		}
+
+		if (queryReturnsNull) {
 			return undefined
 		}
 

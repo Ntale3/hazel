@@ -204,13 +204,24 @@ describe("Timing and Async Behavior", () => {
 			expect(result.waiting).toBe(true)
 		}
 
+		// Set up subscription to track state changes
+		const states: Array<string> = []
+		const unsub = registry.subscribe(todosAtom, (r) => {
+			if (Result.isSuccess(r)) states.push("success")
+		})
+
 		// Manually trigger sync early
 		utils.triggerSync()
 		await vi.runAllTimersAsync()
 
-		// Should now be ready
+		// Should have transitioned to success
+		expect(states).toContain("success")
+
+		// Re-read the atom to get updated state
 		result = registry.get(todosAtom)
 		expect(Result.isSuccess(result)).toBe(true)
+
+		unsub()
 	})
 
 	it("should handle subscription during delayed sync", async () => {
@@ -223,6 +234,9 @@ describe("Timing and Async Behavior", () => {
 		registry.subscribe(todosAtom, (value) => {
 			updates.push(value)
 		})
+
+		// Trigger subscription
+		registry.get(todosAtom)
 
 		// Wait for sync to complete
 		await vi.advanceTimersByTimeAsync(500)
@@ -302,6 +316,8 @@ describe("Timing and Async Behavior", () => {
 			updateCount++
 		})
 
+		// Trigger subscription
+		registry.get(todosAtom)
 		await vi.runAllTimersAsync()
 
 		// Make 100 rapid updates
@@ -346,16 +362,27 @@ describe("Timing and Async Behavior", () => {
 		let result = registry.get(completedTodosAtom)
 		expect(Result.isInitial(result)).toBe(true)
 
+		// Set up subscription to track state changes
+		const states: Array<string> = []
+		const unsub = registry.subscribe(completedTodosAtom, (r) => {
+			if (Result.isSuccess(r)) states.push("success")
+		})
+
 		// Advance time until collection syncs
 		await vi.advanceTimersByTimeAsync(200)
 		await vi.runAllTimersAsync()
 
-		// Should now have filtered results
+		// Should have transitioned to success
+		expect(states).toContain("success")
+
+		// Re-read the atom to get updated state
 		result = registry.get(completedTodosAtom)
 		expect(Result.isSuccess(result)).toBe(true)
 		if (Result.isSuccess(result)) {
 			expect(result.value).toHaveLength(1) // Only one completed todo
 			expect(result.value[0]?.completed).toBe(true)
 		}
+
+		unsub()
 	})
 })
