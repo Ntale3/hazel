@@ -1,12 +1,13 @@
+import { Result, useAtomValue } from "@effect-atom/atom-react"
 import type { PinnedMessageId } from "@hazel/db/schema"
-import { eq, useLiveQuery } from "@tanstack/react-db"
 import { format } from "date-fns"
 import { useRef, useState } from "react"
 import { useHover } from "react-aria"
 import { Button } from "react-aria-components"
 import { toast } from "sonner"
 import type { MessageWithPinned } from "~/atoms/chat-query-atoms"
-import { messageCollection, messageReactionCollection } from "~/db/collections"
+import { messageReactionsAtomFamily, processedReactionsAtomFamily } from "~/atoms/message-atoms"
+import { messageCollection } from "~/db/collections"
 import { useChat } from "~/hooks/use-chat"
 import { useAuth } from "~/lib/auth"
 import { cx } from "~/utils/cx"
@@ -46,9 +47,13 @@ export function MessageItem({
 	const showAvatar = isGroupStart || !!message?.replyToMessageId
 	const isRepliedTo = !!message?.replyToMessageId
 
-	const { data: reactions } = useLiveQuery((q) =>
-		q.from({ reactions: messageReactionCollection }).where((q) => eq(q.reactions.messageId, message?.id)),
+	// Use atom for reactions - automatically deduplicated and memoized
+	const aggregatedReactions = useAtomValue(
+		processedReactionsAtomFamily({ messageId: message.id, currentUserId: currentUser?.id || "" }),
 	)
+	// Also get raw reactions for handleReaction function
+	const rawReactionsResult = useAtomValue(messageReactionsAtomFamily(message.id))
+	const rawReactions = Result.getOrElse(rawReactionsResult, () => [])
 
 	const { hoverProps } = useHover({
 		onHoverStart: () => {
@@ -62,7 +67,7 @@ export function MessageItem({
 	const handleReaction = (emoji: string) => {
 		if (!message) return
 
-		const existingReaction = reactions.find((r) => r.emoji === emoji && r.userId === currentUser?.id)
+		const existingReaction = rawReactions.find((r) => r.emoji === emoji && r.userId === currentUser?.id)
 		if (existingReaction) {
 			removeReaction(existingReaction.id)
 		} else {
@@ -206,31 +211,9 @@ export function MessageItem({
 					<MessageAttachments messageId={message.id} />
 
 					{/* Reactions */}
-					{reactions && reactions.length > 0 && (
+					{aggregatedReactions.length > 0 && (
 						<div className="mt-2 flex flex-wrap gap-1">
-							{Object.entries(
-								reactions.reduce(
-									(acc, reaction) => {
-										if (!acc[reaction.emoji]) {
-											acc[reaction.emoji] = {
-												count: 0,
-												users: [],
-												hasReacted: false,
-											}
-										}
-										acc[reaction.emoji]!.count++
-										acc[reaction.emoji]!.users.push(reaction.userId)
-										if (reaction.userId === currentUser?.id) {
-											acc[reaction.emoji]!.hasReacted = true
-										}
-										return acc
-									},
-									{} as Record<
-										string,
-										{ count: number; users: string[]; hasReacted: boolean }
-									>,
-								),
-							).map(([emoji, data]) => (
+							{aggregatedReactions.map(([emoji, data]) => (
 								<Button onPress={() => handleReaction(emoji)} key={emoji}>
 									<Badge
 										type="pill-color"

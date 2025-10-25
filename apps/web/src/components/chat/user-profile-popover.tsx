@@ -1,8 +1,9 @@
+import { Result, useAtomValue } from "@effect-atom/atom-react"
 import type { UserId } from "@hazel/db/schema"
-import { eq, useLiveQuery } from "@tanstack/react-db"
 import { useState } from "react"
 import { Button, DialogTrigger, Dialog as PrimitiveDialog } from "react-aria-components"
 import { toast } from "sonner"
+import { userWithPresenceAtomFamily } from "~/atoms/message-atoms"
 import { Avatar } from "~/components/base/avatar/avatar"
 import { Button as StyledButton } from "~/components/base/buttons/button"
 import { ButtonUtility } from "~/components/base/buttons/button-utility"
@@ -11,7 +12,6 @@ import { Popover } from "~/components/base/select/popover"
 import { TextArea } from "~/components/base/textarea/textarea"
 import { Tooltip } from "~/components/base/tooltip/tooltip"
 import IconEdit from "~/components/icons/icon-edit"
-import { userCollection, userPresenceStatusCollection } from "~/db/collections"
 import { useAuth } from "~/lib/auth"
 import { IconNotification } from "../application/notifications/notifications"
 import IconDots from "../icons/icon-dots"
@@ -25,16 +25,9 @@ interface UserProfilePopoverProps {
 export function UserProfilePopover({ userId }: UserProfilePopoverProps) {
 	const { user: currentUser } = useAuth()
 
-	// Query user and presence - matching original pattern from main branch
-	const { data } = useLiveQuery((q) =>
-		q
-			.from({ user: userCollection })
-			.leftJoin({ presence: userPresenceStatusCollection }, ({ user, presence }) =>
-				eq(user.id, presence.userId),
-			)
-			.where((q) => eq(q.user.id, userId))
-			.select(({ user, presence }) => ({ user, presence })),
-	)
+	// Use atom for user and presence - automatically deduplicated across all messages
+	const userPresenceResult = useAtomValue(userWithPresenceAtomFamily(userId))
+	const data = Result.getOrElse(userPresenceResult, () => [])
 	const result = data[0]
 	const user = result?.user
 	const presence = result?.presence

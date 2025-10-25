@@ -1,5 +1,6 @@
+import { Result, useAtomValue } from "@effect-atom/atom-react"
 import type { MessageId } from "@hazel/db/schema"
-import { useMessage } from "~/db/hooks"
+import { messageWithAuthorAtomFamily } from "~/atoms/message-atoms"
 import { Avatar } from "../base/avatar/avatar"
 
 interface MessageReplySectionProps {
@@ -8,7 +9,11 @@ interface MessageReplySectionProps {
 }
 
 export function MessageReplySection({ replyToMessageId, onClick }: MessageReplySectionProps) {
-	const { data, isLoading } = useMessage(replyToMessageId)
+	// Use atom for message with author - automatically deduplicated
+	const messageResult = useAtomValue(messageWithAuthorAtomFamily(replyToMessageId))
+	const messages = Result.getOrElse(messageResult, () => [])
+	const data = messages[0]
+	const isLoading = Result.isInitial(messageResult)
 
 	return (
 		<div className="relative">

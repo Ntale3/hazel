@@ -90,8 +90,8 @@ export function MessageList() {
 		hasNextPage,
 		isLoading,
 	} = useLiveInfiniteQuery(messagesInfiniteQuery, {
-		pageSize: 50,
-		getNextPageParam: (lastPage) => (lastPage.length === 20 ? lastPage.length : undefined),
+		pageSize: 30,
+		getNextPageParam: (lastPage) => (lastPage.length === 30 ? lastPage.length : undefined),
 	})
 
 	const messages = (data || []) as MessageWithPinned[]

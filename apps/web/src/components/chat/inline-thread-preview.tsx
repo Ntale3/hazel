@@ -1,11 +1,9 @@
+import { Result, useAtomValue } from "@effect-atom/atom-react"
 import type { Message } from "@hazel/db/models"
 import type { ChannelId, MessageId } from "@hazel/db/schema"
-import { count, eq, useLiveQuery } from "@tanstack/react-db"
 import { format } from "date-fns"
-import { Button } from "react-aria-components"
-import { messageCollection, userCollection } from "~/db/collections"
+import { threadMessageCountAtomFamily, threadMessagesAtomFamily, userWithPresenceAtomFamily } from "~/atoms/message-atoms"
 import { useChat } from "~/hooks/use-chat"
-import { cx } from "~/utils/cx"
 import { Avatar } from "../base/avatar/avatar"
 import IconThread from "../icons/icon-thread"
 
@@ -22,28 +20,15 @@ export function InlineThreadPreview({
 }: InlineThreadPreviewProps) {
 	const { openThread } = useChat()
 
-	// Fetch thread messages
-	const { data: threadMessages } = useLiveQuery(
-		(q) =>
-			q
-				.from({ message: messageCollection })
-				.where(({ message }) => eq(message.channelId, threadChannelId))
-				.orderBy(({ message }) => message.createdAt, "asc")
-				.limit(maxPreviewMessages + 1), // Fetch one extra to check if there are more
-		[threadChannelId, maxPreviewMessages],
+	// Use atoms for thread messages - automatically deduplicated across all thread previews
+	const threadMessagesResult = useAtomValue(
+		threadMessagesAtomFamily({ threadChannelId, maxPreviewMessages }),
 	)
+	const threadMessages = Result.getOrElse(threadMessagesResult, () => [])
 
-	// Get total thread message count
-	const { data: countData } = useLiveQuery(
-		(q) =>
-			q
-				.from({ message: messageCollection })
-				.where(({ message }) => eq(message.channelId, threadChannelId))
-				.select(({ message }) => ({
-					count: count(message.id),
-				})),
-		[threadChannelId],
-	)
+	// Get total thread message count using atom
+	const countResult = useAtomValue(threadMessageCountAtomFamily(threadChannelId))
+	const countData = Result.getOrElse(countResult, () => [])
 
 	const totalCount = countData?.[0]?.count ?? 0
 	const previewMessages = threadMessages?.slice(0, maxPreviewMessages) ?? []
@@ -86,17 +71,11 @@ export function InlineThreadPreview({
 }
 
 function ThreadMessagePreview({ message }: { message: typeof Message.Model.Type }) {
-	// Fetch user data for the message author
-	const { data: userData } = useLiveQuery(
-		(q) =>
-			q
-				.from({ user: userCollection })
-				.where(({ user }) => eq(user.id, message.authorId))
-				.limit(1),
-		[message.authorId],
-	)
-
-	const user = userData?.[0]
+	// Use atom for user data - automatically deduplicated across all thread messages
+	const userPresenceResult = useAtomValue(userWithPresenceAtomFamily(message.authorId))
+	const data = Result.getOrElse(userPresenceResult, () => [])
+	const result = data[0]
+	const user = result?.user
 
 	if (!user) return null
 
