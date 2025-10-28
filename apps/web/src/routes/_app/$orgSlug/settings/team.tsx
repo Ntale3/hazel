@@ -27,8 +27,8 @@ import { organizationMemberCollection, userCollection, userPresenceStatusCollect
 import { useOrganization } from "~/hooks/use-organization"
 import { useAuth } from "~/lib/auth"
 import { findExistingDmChannel } from "~/lib/channels"
-import { HazelApiClient } from "~/lib/services/common/atom-client"
 import { toastExit } from "~/lib/toast-exit"
+import { createDmChannelMutation } from "~/atoms/channel-atoms"
 
 export const Route = createFileRoute("/_app/$orgSlug/settings/team")({
 	component: RouteComponent,
@@ -45,7 +45,7 @@ function RouteComponent() {
 	const { organizationId, slug: orgSlug } = useOrganization()
 	const navigate = useNavigate()
 
-	const createDmChannel = useAtomSet(HazelApiClient.mutation("channels", "createDm"), {
+	const createDmChannel = useAtomSet(createDmChannelMutation, {
 		mode: "promiseExit",
 	})
 
@@ -111,17 +111,14 @@ function RouteComponent() {
 	const handleMessageUser = async (targetUserId: UserId, targetUserName: string) => {
 		if (!user?.id || !organizationId || !orgSlug) return
 
-		// Check if a DM channel already exists
 		const existingChannel = findExistingDmChannel(user.id, targetUserId)
 
 		if (existingChannel) {
-			// Navigate to existing channel
 			navigate({
 				to: "/$orgSlug/chat/$id",
 				params: { orgSlug, id: existingChannel.id },
 			})
 		} else {
-			// Create new DM channel
 			await toastExit(
 				createDmChannel({
 					payload: {
@@ -133,7 +130,6 @@ function RouteComponent() {
 				{
 					loading: `Starting conversation with ${targetUserName}...`,
 					success: (result) => {
-						// Navigate to the created channel
 						if (result.data.id) {
 							navigate({
 								to: "/$orgSlug/chat/$id",

@@ -1,4 +1,4 @@
-import { Atom, Result, useAtomMount, useAtomSet, useAtomValue } from "@effect-atom/atom-react"
+import { Atom, Result, useAtomMount, useAtomValue } from "@effect-atom/atom-react"
 import type { ChannelId, UserId } from "@hazel/db/schema"
 import { makeQuery } from "@hazel/tanstack-db-atom"
 import { eq } from "@tanstack/db"
@@ -6,26 +6,14 @@ import { DateTime, Duration, Effect, Schedule, Stream } from "effect"
 import { useCallback, useEffect, useRef } from "react"
 import { userPresenceStatusCollection } from "~/db/collections"
 import { userAtom } from "~/lib/auth"
-import { HazelApiClient } from "~/lib/services/common/atom-client"
+import { RpcClient } from "~/lib/services/common/rpc-client"
+import { runtime } from "~/lib/services/common/runtime"
 import { router } from "~/main"
 
 type PresenceStatus = "online" | "away" | "busy" | "dnd" | "offline"
 
 const AFK_TIMEOUT = Duration.minutes(5)
-const UPDATE_INTERVAL = Duration.seconds(30)
 
-// TODO: Implement server-side offline detection
-// Server should mark users as offline if no heartbeat received within:
-// - UPDATE_INTERVAL * 2 (60 seconds) - consider user offline
-// This should be implemented as a background job that:
-// 1. Queries users with presence.updatedAt older than 60 seconds
-// 2. Updates their status to 'offline'
-// 3. Runs every 30 seconds
-// Backend file: apps/backend/src/jobs/presence-cleanup.ts
-
-// ============================================================================
-// Core Atoms
-// ============================================================================
 
 /**
  * Atom that tracks the last user activity timestamp
@@ -196,41 +184,17 @@ const currentUserPresenceAtom = Atom.make((get) => {
 	return get(currentUserPresenceAtomFamily(user.id))
 })
 
-// ============================================================================
-// Mutation Atoms
-// ============================================================================
-
-/**
- * Mutation atom for updating presence status
- */
-const updatePresenceStatusMutation = HazelApiClient.mutation("presence", "updateStatus")
-
-/**
- * Mutation atom for updating active channel
- */
-const updateActiveChannelMutation = HazelApiClient.mutation("presence", "updateActiveChannel")
-
-// ============================================================================
-// Hooks
-// ============================================================================
 
 /**
  * Hook for managing the current user's presence status
  */
 export function usePresence() {
-	// Read user directly from atom instead of useAuth hook
 	const user = useAtomValue(userAtom)
-
-	// Query current presence from atom (uses TanStack DB integration)
 	const presenceResult = useAtomValue(currentUserPresenceAtom)
 	const presenceData = Result.getOrElse(presenceResult, () => [])
 	const currentPresence = presenceData?.[0]
-
-	// Read computed status (unwrap Result)
 	const computedStatusResult = useAtomValue(computedPresenceStatusAtom)
 	const computedStatus = Result.getOrElse(computedStatusResult, () => "online" as PresenceStatus)
-
-	// Read AFK state (unwrap Result)
 	const afkStateResult = useAtomValue(afkStateAtom)
 	const afkState = Result.getOrElse(afkStateResult, () => ({
 		isAFK: false,
@@ -240,72 +204,49 @@ export function usePresence() {
 
 	const currentChannelId = useAtomValue(currentChannelIdAtom)
 
-	// Get mutation setters
-	const updateStatus = useAtomSet(updatePresenceStatusMutation, { mode: "promiseExit" })
-	const updateActiveChannel = useAtomSet(updateActiveChannelMutation, { mode: "promiseExit" })
-
-	// Track last sent status to avoid redundant updates
 	const lastSentStatusRef = useRef<PresenceStatus | null>(null)
 	const lastSentChannelRef = useRef<string | null>(null)
 
-	// Sync computed status to server when it changes
 	useEffect(() => {
 		if (!user?.id) return
 		if (lastSentStatusRef.current === computedStatus) return
 
 		lastSentStatusRef.current = computedStatus
 
-		updateStatus({
-			payload: {
+		const program = Effect.gen(function* () {
+			const client = yield* RpcClient
+			yield* client.userPresenceStatus.update({
 				status: computedStatus,
-				customMessage: null,
-			},
+			})
 		})
-	}, [computedStatus, user?.id, updateStatus])
 
-	// Sync active channel to server when it changes
+		runtime.runPromise(program).catch(console.error)
+	}, [computedStatus, user?.id])
+
 	useEffect(() => {
 		if (!user?.id) return
 		if (lastSentChannelRef.current === currentChannelId) return
 
 		lastSentChannelRef.current = currentChannelId
 
-		updateActiveChannel({
-			payload: {
+		const program = Effect.gen(function* () {
+			const client = yield* RpcClient
+			yield* client.userPresenceStatus.update({
 				activeChannelId: currentChannelId ? (currentChannelId as ChannelId) : null,
-			},
-		})
-	}, [currentChannelId, user?.id, updateActiveChannel])
-
-	// Heartbeat: update timestamp periodically
-	useEffect(() => {
-		if (!user?.id || !currentPresence?.id) return
-
-		const interval = setInterval(() => {
-			updateStatus({
-				payload: {
-					status: computedStatus,
-					customMessage: null,
-				},
 			})
-		}, Duration.toMillis(UPDATE_INTERVAL))
+		})
 
-		return () => clearInterval(interval)
-	}, [user?.id, currentPresence?.id, computedStatus, updateStatus])
+		runtime.runPromise(program).catch(console.error)
+	}, [currentChannelId, user?.id])
 
-	// Mark user offline when tab closes using atom-based listener
-	// Atom reads from userAtom directly, so it's automatically reactive
 	useAtomMount(beforeUnloadAtom)
 
-	// Ref to track previous status for manual updates
 	const previousManualStatusRef = useRef<PresenceStatus>("online")
 
-	// Manual status setter
 	const setStatus = useCallback(
 		async (status: PresenceStatus, customMessage?: string) => {
 			if (!user?.id) return
 
-			// Update local atom state imperatively via batch
 			Atom.batch(() => {
 				Atom.set(manualStatusAtom, {
 					status,
@@ -314,18 +255,19 @@ export function usePresence() {
 				})
 			})
 
-			// Track for next time
 			previousManualStatusRef.current = status
 
-			// Update on server
-			await updateStatus({
-				payload: {
+			const program = Effect.gen(function* () {
+				const client = yield* RpcClient
+				yield* client.userPresenceStatus.update({
 					status,
 					customMessage: customMessage ?? null,
-				},
+				})
 			})
+
+			await runtime.runPromise(program).catch(console.error)
 		},
-		[user?.id, updateStatus],
+		[user?.id],
 	)
 
 	return {
@@ -341,7 +283,6 @@ export function usePresence() {
  * Hook to get another user's presence
  */
 export function useUserPresence(userId: UserId) {
-	// Use the atom family to query this user's presence
 	const presenceResult = useAtomValue(currentUserPresenceAtomFamily(userId))
 	const presenceData = Result.getOrElse(presenceResult, () => [])
 	const presence = presenceData?.[0]

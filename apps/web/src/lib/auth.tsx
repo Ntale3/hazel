@@ -2,6 +2,7 @@ import { Atom, Result, useAtomSet, useAtomValue } from "@effect-atom/atom-react"
 import { Effect, Exit } from "effect"
 import { HazelApiClient } from "~/lib/services/common/atom-client"
 import { router } from "~/main"
+import { HazelRpcClient } from "./services/common/rpc-atom-client"
 
 interface LoginOptions {
 	returnTo?: string
@@ -13,16 +14,11 @@ interface LogoutOptions {
 	redirectTo?: string
 }
 
-// ============================================================================
-// Atoms
-// ============================================================================
-
 /**
  * Atom that tracks whether the current route is a public route
  * (i.e., starts with /auth)
  */
 const isPublicRouteAtom = Atom.make((get) => {
-	// Subscribe to route changes using TanStack Router
 	const unsubscribe = router.subscribe("onResolved", (event) => {
 		get.setSelf(event.toLocation.pathname.startsWith("/auth"))
 	})
@@ -35,7 +31,7 @@ const isPublicRouteAtom = Atom.make((get) => {
 /**
  * Query atom that fetches the current user from the API
  */
-const currentUserQueryAtom = HazelApiClient.query("users", "me", {
+const currentUserQueryAtom = HazelRpcClient.query("user.me", void 0, {
 	reactivityKeys: ["currentUser"],
 })
 
@@ -82,10 +78,6 @@ const logoutAtom = Atom.fn(
 		window.location.href = logoutUrl.toString()
 	}),
 )
-
-// ============================================================================
-// Hook
-// ============================================================================
 
 export function useAuth() {
 	const user = useAtomValue(userAtom)

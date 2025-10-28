@@ -1,23 +1,7 @@
 import { HttpApi, HttpApiEndpoint, HttpApiGroup, HttpApiSchema, OpenApi } from "@effect/platform"
 import { CurrentUser, InternalServerError, UnauthorizedError } from "@hazel/effect-lib"
 import { Schema } from "effect"
-import {
-	AttachmentGroup,
-	ChannelGroup,
-	ChannelMemberGroup,
-	DirectMessageParticipantGroup,
-	InvitationGroup,
-	MessageGroup,
-	MessageReactionGroup,
-	NotificationGroup,
-	OrganizationGroup,
-	OrganizationMemberGroup,
-	PinnedMessageGroup,
-	PresenceGroup,
-	PresencePublicGroup,
-	TypingIndicatorGroup,
-	UserGroup,
-} from "./api/electric/collections"
+import { AttachmentGroup, PresencePublicGroup } from "./api/electric/collections"
 import { TransactionId } from "./lib/schema"
 
 export class RootGroup extends HttpApiGroup.make("root").add(
@@ -168,20 +152,7 @@ export class AuthGroup extends HttpApiGroup.make("auth")
 	.prefix("/auth") {}
 
 export class HazelApi extends HttpApi.make("HazelApp")
-	.add(ChannelGroup)
-	.add(ChannelMemberGroup)
-	.add(MessageGroup)
-	.add(OrganizationGroup)
-	.add(InvitationGroup)
-	.add(MessageReactionGroup)
-	.add(PinnedMessageGroup)
-	.add(NotificationGroup)
-	.add(UserGroup)
-	.add(OrganizationMemberGroup)
 	.add(AttachmentGroup)
-	.add(DirectMessageParticipantGroup)
-	.add(TypingIndicatorGroup)
-	.add(PresenceGroup)
 	.add(PresencePublicGroup)
 	.add(RootGroup)
 	.add(AuthGroup)

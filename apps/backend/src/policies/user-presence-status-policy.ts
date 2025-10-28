@@ -7,47 +7,31 @@ export class UserPresenceStatusPolicy extends Effect.Service<UserPresenceStatusP
 		effect: Effect.gen(function* () {
 			const policyEntity = "UserPresenceStatus" as const
 
-			const canRead = () =>
-				UnauthorizedError.refail(
-					policyEntity,
-					"select",
-				)(policy(policyEntity, "select", () => Effect.succeed(true)))
-
 			const canCreate = () =>
 				UnauthorizedError.refail(
 					policyEntity,
 					"create",
-				)(
-					policy(
-						policyEntity,
-						"create",
-						Effect.fn(`${policyEntity}.create`)(function* () {
-							// Any authenticated user can create their own status
-							return yield* Effect.succeed(true)
-						}),
-					),
-				)
+				)(policy(policyEntity, "create", (_actor) => Effect.succeed(true)))
+
+			const canRead = () =>
+				UnauthorizedError.refail(
+					policyEntity,
+					"select",
+				)(policy(policyEntity, "select", (_actor) => Effect.succeed(true)))
 
 			const canUpdate = () =>
 				UnauthorizedError.refail(
 					policyEntity,
 					"update",
-				)(
-					policy(
-						policyEntity,
-						"update",
-						// User can only update their own status (ensured by using currentUser.id in route)
-						() => Effect.succeed(true),
-					),
-				)
+				)(policy(policyEntity, "update", (_actor) => Effect.succeed(true)))
 
 			const canDelete = () =>
 				UnauthorizedError.refail(
 					policyEntity,
 					"delete",
-				)(policy(policyEntity, "delete", () => Effect.succeed(true)))
+				)(policy(policyEntity, "delete", (_actor) => Effect.succeed(true)))
 
-			return { canCreate, canUpdate, canDelete, canRead } as const
+			return { canUpdate, canDelete, canRead, canCreate } as const
 		}),
 		dependencies: [],
 		accessors: true,

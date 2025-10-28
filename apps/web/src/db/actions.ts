@@ -10,6 +10,7 @@ import {
 import { createOptimisticAction } from "@tanstack/react-db"
 import { Effect } from "effect"
 import { ApiClient } from "~/lib/services/common/api-client"
+import { RpcClient } from "~/lib/services/common/rpc-client"
 import { runtime } from "~/lib/services/common/runtime"
 import {
 	attachmentCollection,
@@ -93,24 +94,21 @@ export const sendMessage = createOptimisticAction<{
 	mutationFn: async (props, _params) => {
 		const { transactionId, data } = await runtime.runPromise(
 			Effect.gen(function* () {
-				const client = yield* ApiClient
+				const client = yield* RpcClient
 
-				// Create the message with attachmentIds
-				return yield* client.messages.create({
-					payload: {
-						channelId: props.channelId,
-						content: props.content,
-						replyToMessageId: props.replyToMessageId || null,
-						threadChannelId: props.threadChannelId || null,
-						attachmentIds: props.attachmentIds || [],
-						deletedAt: null,
-						authorId: props.authorId,
-					},
+				// Create the message with attachmentIds using RPC
+				// Note: authorId will be overridden by backend AuthMiddleware with the authenticated user
+				return yield* client.message.create({
+					channelId: props.channelId,
+					content: props.content,
+					replyToMessageId: props.replyToMessageId || null,
+					threadChannelId: props.threadChannelId || null,
+					attachmentIds: props.attachmentIds || [],
+					deletedAt: null,
+					authorId: props.authorId,
 				})
 			}),
 		)
-
-		console.log(transactionId)
 
 		await messageCollection.utils.awaitTxId(transactionId)
 
@@ -202,15 +200,13 @@ export const createDmChannel = createOptimisticAction<{
 	mutationFn: async (props, _params) => {
 		const { transactionId, data } = await runtime.runPromise(
 			Effect.gen(function* () {
-				const client = yield* ApiClient
+				const client = yield* RpcClient
 
-				return yield* client.channels.createDm({
-					payload: {
-						organizationId: props.organizationId,
-						participantIds: props.participantIds,
-						type: props.type,
-						name: props.name,
-					},
+				return yield* client.channel.createDm({
+					organizationId: props.organizationId,
+					participantIds: props.participantIds,
+					type: props.type,
+					name: props.name,
 				})
 			}),
 		)

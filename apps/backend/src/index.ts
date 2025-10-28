@@ -7,6 +7,7 @@ import {
 	HttpServerResponse,
 } from "@effect/platform"
 import { BunHttpServer, BunRuntime } from "@effect/platform-bun"
+import { RpcSerialization, RpcServer } from "@effect/rpc"
 import { S3 } from "@effect-aws/client-s3"
 import { MultipartUpload } from "@effect-aws/s3"
 import { Config, Layer } from "effect"
@@ -40,6 +41,8 @@ import { PinnedMessageRepo } from "./repositories/pinned-message-repo"
 import { TypingIndicatorRepo } from "./repositories/typing-indicator-repo"
 import { UserPresenceStatusRepo } from "./repositories/user-presence-status-repo"
 import { UserRepo } from "./repositories/user-repo"
+
+import { AllRpcs, RpcServerLive } from "./rpc/server"
 import { AuthorizationLive } from "./services/auth"
 import { DatabaseLive } from "./services/database"
 import { MockDataGenerator } from "./services/mock-data-generator"
@@ -48,6 +51,12 @@ import { WorkOSSync } from "./services/workos-sync"
 import { WorkOSWebhookVerifier } from "./services/workos-webhook"
 
 export { HazelApi }
+
+// Export RPC groups for frontend consumption
+export { InvitationRpcs } from "./rpc/groups/invitations"
+export { MessageRpcs } from "./rpc/groups/messages"
+export { NotificationRpcs } from "./rpc/groups/notifications"
+export { AuthMiddleware } from "./rpc/middleware/auth"
 
 const HealthRouter = HttpLayerRouter.use((router) =>
 	router.add("GET", "/health", HttpServerResponse.text("OK")),
@@ -58,7 +67,13 @@ const DocsRoute = HttpApiScalar.layerHttpLayerRouter({
 	path: "/docs",
 })
 
-const AllRoutes = Layer.mergeAll(HttpApiRoutes, HealthRouter, DocsRoute).pipe(
+const RpcRoute = RpcServer.layerHttpRouter({
+	group: AllRpcs,
+	path: "/rpc",
+	protocol: "websocket",
+}).pipe(Layer.provide(RpcSerialization.layerNdjson), Layer.provide(RpcServerLive))
+
+const AllRoutes = Layer.mergeAll(HttpApiRoutes, HealthRouter, DocsRoute, RpcRoute).pipe(
 	Layer.provide(
 		HttpLayerRouter.cors({
 			allowedOrigins: ["http://localhost:3000", "https://app.hazel.sh"],
