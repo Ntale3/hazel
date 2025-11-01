@@ -1,5 +1,5 @@
 import { ChannelsSidebar } from "~/components/channels-sidebar"
-import { ServerSidebar } from "~/components/server-sidebar"
+import { NavSidebar } from "~/components/nav-sidebar"
 import { Sidebar } from "~/components/ui/sidebar"
 
 export function AppSidebar({ openCmd }: { openCmd: (isOpen: boolean) => void }) {
@@ -9,7 +9,7 @@ export function AppSidebar({ openCmd }: { openCmd: (isOpen: boolean) => void }) 
 			collapsible="dock"
 			className="overflow-hidden *:data-[sidebar=default]:flex-row"
 		>
-			<ServerSidebar />
+			<NavSidebar />
 
 			<ChannelsSidebar openCmd={openCmd} />
 		</Sidebar>
