@@ -20,6 +20,7 @@ import { Route as AppOrgSlugNotificationsRouteImport } from './routes/_app/$orgS
 import { Route as AppOrgSlugSettingsLayoutRouteImport } from './routes/_app/$orgSlug/settings/layout'
 import { Route as AppOrgSlugSettingsIndexRouteImport } from './routes/_app/$orgSlug/settings/index'
 import { Route as AppOrgSlugSettingsProfileRouteImport } from './routes/_app/$orgSlug/settings/profile'
+import { Route as AppOrgSlugSettingsIntegrationsRouteImport } from './routes/_app/$orgSlug/settings/integrations'
 
 const AppLayoutRoute = AppLayoutRouteImport.update({
   id: '/_app',
@@ -78,6 +79,12 @@ const AppOrgSlugSettingsProfileRoute =
     path: '/profile',
     getParentRoute: () => AppOrgSlugSettingsLayoutRoute,
   } as any)
+const AppOrgSlugSettingsIntegrationsRoute =
+  AppOrgSlugSettingsIntegrationsRouteImport.update({
+    id: '/integrations',
+    path: '/integrations',
+    getParentRoute: () => AppOrgSlugSettingsLayoutRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/$orgSlug': typeof AppOrgSlugLayoutRouteWithChildren
@@ -88,6 +95,7 @@ export interface FileRoutesByFullPath {
   '/onboarding/setup-organization': typeof AppOnboardingSetupOrganizationRoute
   '/$orgSlug/': typeof AppOrgSlugIndexRoute
   '/onboarding': typeof AppOnboardingIndexRoute
+  '/$orgSlug/settings/integrations': typeof AppOrgSlugSettingsIntegrationsRoute
   '/$orgSlug/settings/profile': typeof AppOrgSlugSettingsProfileRoute
   '/$orgSlug/settings/': typeof AppOrgSlugSettingsIndexRoute
 }
@@ -98,6 +106,7 @@ export interface FileRoutesByTo {
   '/onboarding/setup-organization': typeof AppOnboardingSetupOrganizationRoute
   '/$orgSlug': typeof AppOrgSlugIndexRoute
   '/onboarding': typeof AppOnboardingIndexRoute
+  '/$orgSlug/settings/integrations': typeof AppOrgSlugSettingsIntegrationsRoute
   '/$orgSlug/settings/profile': typeof AppOrgSlugSettingsProfileRoute
   '/$orgSlug/settings': typeof AppOrgSlugSettingsIndexRoute
 }
@@ -112,6 +121,7 @@ export interface FileRoutesById {
   '/_app/onboarding/setup-organization': typeof AppOnboardingSetupOrganizationRoute
   '/_app/$orgSlug/': typeof AppOrgSlugIndexRoute
   '/_app/onboarding/': typeof AppOnboardingIndexRoute
+  '/_app/$orgSlug/settings/integrations': typeof AppOrgSlugSettingsIntegrationsRoute
   '/_app/$orgSlug/settings/profile': typeof AppOrgSlugSettingsProfileRoute
   '/_app/$orgSlug/settings/': typeof AppOrgSlugSettingsIndexRoute
 }
@@ -126,6 +136,7 @@ export interface FileRouteTypes {
     | '/onboarding/setup-organization'
     | '/$orgSlug/'
     | '/onboarding'
+    | '/$orgSlug/settings/integrations'
     | '/$orgSlug/settings/profile'
     | '/$orgSlug/settings/'
   fileRoutesByTo: FileRoutesByTo
@@ -136,6 +147,7 @@ export interface FileRouteTypes {
     | '/onboarding/setup-organization'
     | '/$orgSlug'
     | '/onboarding'
+    | '/$orgSlug/settings/integrations'
     | '/$orgSlug/settings/profile'
     | '/$orgSlug/settings'
   id:
@@ -149,6 +161,7 @@ export interface FileRouteTypes {
     | '/_app/onboarding/setup-organization'
     | '/_app/$orgSlug/'
     | '/_app/onboarding/'
+    | '/_app/$orgSlug/settings/integrations'
     | '/_app/$orgSlug/settings/profile'
     | '/_app/$orgSlug/settings/'
   fileRoutesById: FileRoutesById
@@ -237,16 +250,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppOrgSlugSettingsProfileRouteImport
       parentRoute: typeof AppOrgSlugSettingsLayoutRoute
     }
+    '/_app/$orgSlug/settings/integrations': {
+      id: '/_app/$orgSlug/settings/integrations'
+      path: '/integrations'
+      fullPath: '/$orgSlug/settings/integrations'
+      preLoaderRoute: typeof AppOrgSlugSettingsIntegrationsRouteImport
+      parentRoute: typeof AppOrgSlugSettingsLayoutRoute
+    }
   }
 }
 
 interface AppOrgSlugSettingsLayoutRouteChildren {
+  AppOrgSlugSettingsIntegrationsRoute: typeof AppOrgSlugSettingsIntegrationsRoute
   AppOrgSlugSettingsProfileRoute: typeof AppOrgSlugSettingsProfileRoute
   AppOrgSlugSettingsIndexRoute: typeof AppOrgSlugSettingsIndexRoute
 }
 
 const AppOrgSlugSettingsLayoutRouteChildren: AppOrgSlugSettingsLayoutRouteChildren =
   {
+    AppOrgSlugSettingsIntegrationsRoute: AppOrgSlugSettingsIntegrationsRoute,
     AppOrgSlugSettingsProfileRoute: AppOrgSlugSettingsProfileRoute,
     AppOrgSlugSettingsIndexRoute: AppOrgSlugSettingsIndexRoute,
   }
