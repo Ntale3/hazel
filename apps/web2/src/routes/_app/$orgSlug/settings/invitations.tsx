@@ -1,11 +1,12 @@
 import { useAtomSet } from "@effect-atom/atom-react"
 import type { InvitationId } from "@hazel/db/schema"
-import { ArrowPathIcon, XMarkIcon } from "@heroicons/react/20/solid"
+import { ArrowPathIcon } from "@heroicons/react/20/solid"
 import { eq, useLiveQuery } from "@tanstack/react-db"
 import { createFileRoute } from "@tanstack/react-router"
 import { useState } from "react"
 import { toast } from "sonner"
 import { resendInvitationMutation, revokeInvitationMutation } from "~/atoms/invitation-atoms"
+import IconClose from "~/components/icons/icon-close"
 import IconPlus from "~/components/icons/icon-plus"
 import { EmailInviteModal } from "~/components/modals/email-invite-modal"
 import { Button } from "~/components/ui/button"
@@ -196,7 +197,7 @@ function InvitationsSettings() {
 														onPress={() => handleRevokeInvitation(invitation.id)}
 														aria-label="Revoke invitation"
 													>
-														<XMarkIcon data-slot="icon" />
+														<IconClose data-slot="icon" />
 													</Button>
 												</div>
 											</td>

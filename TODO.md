@@ -2,7 +2,10 @@
 
 
 # UI REWORK
-- Apperance Setitngs page 
+- Settings Pages
+- Commandbar
+- Onboarding
+- Chat
 
 ## High Priority Features
 

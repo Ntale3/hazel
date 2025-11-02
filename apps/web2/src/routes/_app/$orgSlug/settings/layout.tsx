@@ -1,6 +1,6 @@
-import { MagnifyingGlassIcon } from "@heroicons/react/20/solid"
 import { createFileRoute, Outlet, useLocation, useNavigate, useParams } from "@tanstack/react-router"
 import { useEffect, useState } from "react"
+import IconMagnifier from "~/components/icons/icon-magnifier-3"
 import { Input, InputGroup } from "~/components/ui/input"
 import { Tab, TabList, Tabs } from "~/components/ui/tabs"
 
@@ -39,7 +39,7 @@ function RouteComponent() {
 	}, [currentTab])
 
 	return (
-		<main className="min-w-0 flex-1 bg-bg pb-12 pt-8">
+		<main className="min-w-0 flex-1 bg-bg pt-8 pb-12">
 			<div className="flex flex-col gap-8">
 				<div className="flex flex-col gap-5 px-4 lg:px-8">
 					{/* Page header simple with search */}
@@ -50,7 +50,7 @@ function RouteComponent() {
 							</div>
 							<div className="flex flex-col gap-4 lg:flex-row">
 								<InputGroup className="lg:w-80">
-									<MagnifyingGlassIcon data-slot="icon" />
+									<IconMagnifier data-slot="icon" />
 									<Input aria-label="Search" placeholder="Search" />
 								</InputGroup>
 							</div>
@@ -82,7 +82,7 @@ function RouteComponent() {
 					</div>
 
 					{/* Desktop tabs */}
-					<div className="-mx-4 -my-1 scrollbar-hide flex overflow-auto px-4 py-1 lg:-mx-8 lg:px-8">
+					<div className="-mx-4 -my-1 scrollbar-hide lg:-mx-8 flex overflow-auto px-4 py-1 lg:px-8">
 						<Tabs
 							className="max-md:hidden"
 							selectedKey={selectedTab}

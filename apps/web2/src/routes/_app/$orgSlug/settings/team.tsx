@@ -1,19 +1,17 @@
 import { useAtomSet } from "@effect-atom/atom-react"
 import type { UserId } from "@hazel/db/schema"
-import {
-	ChatBubbleLeftIcon,
-	EllipsisVerticalIcon,
-	ExclamationTriangleIcon,
-	TrashIcon,
-	UserIcon,
-} from "@heroicons/react/20/solid"
+import { ExclamationTriangleIcon } from "@heroicons/react/20/solid"
 import { eq, useLiveQuery } from "@tanstack/react-db"
 import { createFileRoute } from "@tanstack/react-router"
 import { useState } from "react"
 import { toast } from "sonner"
 import { createDmChannelMutation } from "~/atoms/channel-atoms"
 import { openModal } from "~/atoms/modal-atoms"
+import IconCircleDottedUser from "~/components/icons/icon-circle-dotted-user"
+import IconDotsVertical from "~/components/icons/icon-dots-vertical"
+import IconMessage from "~/components/icons/icon-msgs"
 import IconPlus from "~/components/icons/icon-plus"
+import IconTrash from "~/components/icons/icon-trash"
 import { ChangeRoleModal } from "~/components/modals/change-role-modal"
 import { EmailInviteModal } from "~/components/modals/email-invite-modal"
 import { Avatar } from "~/components/ui/avatar"
@@ -257,7 +255,7 @@ function TeamSettings() {
 																aria-label="Actions"
 																className="inline-flex size-8 items-center justify-center rounded-lg hover:bg-secondary"
 															>
-																<EllipsisVerticalIcon className="size-5 text-muted-fg" />
+																<IconDotsVertical className="size-5 text-muted-fg" />
 															</MenuTrigger>
 															<MenuContent placement="bottom end">
 																<MenuItem
@@ -268,7 +266,7 @@ function TeamSettings() {
 																		)
 																	}
 																>
-																	<ChatBubbleLeftIcon data-slot="icon" />
+																	<IconMessage data-slot="icon" />
 																	<DropdownLabel>
 																		Send message
 																	</DropdownLabel>
@@ -291,7 +289,7 @@ function TeamSettings() {
 																		})
 																	}}
 																>
-																	<UserIcon data-slot="icon" />
+																	<IconCircleDottedUser data-slot="icon" />
 																	<DropdownLabel>Change role</DropdownLabel>
 																</MenuItem>
 																<DropdownSeparator />
@@ -301,7 +299,7 @@ function TeamSettings() {
 																		setRemoveUserId(member.userId)
 																	}
 																>
-																	<TrashIcon data-slot="icon" />
+																	<IconTrash data-slot="icon" />
 																	<DropdownLabel>
 																		Remove from team
 																	</DropdownLabel>

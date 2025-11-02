@@ -1,9 +1,11 @@
 import { useAtomSet } from "@effect-atom/atom-react"
 import type { OrganizationId } from "@hazel/db/schema"
-import { EnvelopeIcon, PlusIcon, XMarkIcon } from "@heroicons/react/20/solid"
 import { useState } from "react"
 import { toast } from "sonner"
 import { createInvitationMutation } from "~/atoms/invitation-atoms"
+import IconClose from "~/components/icons/icon-close"
+import IconEnvelope from "~/components/icons/icon-envelope"
+import IconPlus from "~/components/icons/icon-plus"
 import { Button } from "~/components/ui/button"
 import {
 	Dialog,
@@ -14,7 +16,7 @@ import {
 	DialogTitle,
 } from "~/components/ui/dialog"
 import { Label } from "~/components/ui/field"
-import { Input, InputGroup, InputIcon } from "~/components/ui/input"
+import { Input, InputGroup } from "~/components/ui/input"
 import { Modal, ModalContent } from "~/components/ui/modal"
 import { toastExit } from "~/lib/toast-exit"
 
@@ -125,9 +127,7 @@ export const EmailInviteModal = ({ isOpen, onOpenChange, organizationId }: Email
 								<div className="flex-1 space-y-1.5">
 									{index === 0 && <Label>Email address</Label>}
 									<InputGroup>
-										<InputIcon>
-											<EnvelopeIcon />
-										</InputIcon>
+										<IconEnvelope />
 										<Input
 											placeholder="colleague@company.com"
 											value={invite.email}
@@ -144,7 +144,7 @@ export const EmailInviteModal = ({ isOpen, onOpenChange, organizationId }: Email
 										onPress={() => removeInviteEntry(invite.id)}
 										aria-label="Remove invite"
 									>
-										<XMarkIcon data-slot="icon" />
+										<IconClose data-slot="icon" />
 									</Button>
 								)}
 							</div>
@@ -155,7 +155,7 @@ export const EmailInviteModal = ({ isOpen, onOpenChange, organizationId }: Email
 							onPress={addInviteEntry}
 							isDisabled={invites.length >= 10}
 						>
-							<PlusIcon data-slot="icon" />
+							<IconPlus data-slot="icon" />
 							Add another
 						</Button>
 					</DialogBody>

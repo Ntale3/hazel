@@ -15,6 +15,7 @@ import { Button } from "~/components/ui/button"
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator } from "~/components/ui/menu"
 import { SidebarItem, SidebarLabel } from "~/components/ui/sidebar"
 import { channelCollection, channelMemberCollection } from "~/db/collections"
+import { useOrganization } from "~/hooks/use-organization"
 
 interface ChannelItemProps {
 	channel: Channel
@@ -24,6 +25,8 @@ interface ChannelItemProps {
 export function ChannelItem({ channel, member }: ChannelItemProps) {
 	const [renameModalOpen, setRenameModalOpen] = useState(false)
 	const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+
+	const { slug } = useOrganization()
 
 	const handleToggleMute = async () => {
 		try {
@@ -71,7 +74,7 @@ export function ChannelItem({ channel, member }: ChannelItemProps) {
 
 	return (
 		<>
-			<SidebarItem href={"/"} tooltip={channel.name}>
+			<SidebarItem href={`/${slug}/chat/${channel.id}` as "/"} tooltip={channel.name}>
 				<IconHashtag />
 				<SidebarLabel>{channel.name}</SidebarLabel>
 				<Menu>
