@@ -156,7 +156,10 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
 
 			const handleGlobalKeyDown = (event: KeyboardEvent) => {
 				const target = event.target as HTMLElement
-				const hasDialog = !!document.querySelector('[role="dialog"]')
+				// Check if there's an actually visible/open dialog, excluding React Aria hidden templates
+				const hasDialog = !!document.querySelector(
+					'[role="dialog"]:not([data-react-aria-hidden="true"] *)',
+				)
 
 				console.log("[MarkdownEditor] Global keydown fired", {
 					key: event.key,
@@ -190,7 +193,10 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
 				const isPrintableChar = event.key.length === 1
 
 				if (isPrintableChar) {
-					console.log("[MarkdownEditor] Printable char detected, focusing and inserting:", event.key)
+					console.log(
+						"[MarkdownEditor] Printable char detected, focusing and inserting:",
+						event.key,
+					)
 					event.preventDefault()
 					focusAndInsertTextInternal(event.key)
 				}
