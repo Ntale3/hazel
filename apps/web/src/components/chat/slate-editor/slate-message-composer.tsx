@@ -2,7 +2,6 @@ import { and, eq, inArray, useLiveQuery } from "@tanstack/react-db"
 import { FileIcon } from "@untitledui/file-icons"
 import { useMemo, useRef } from "react"
 import IconClose from "~/components/icons/icon-close"
-import { MarkdownEditor, type MarkdownEditorRef } from "~/components/markdown-editor"
 import { Button } from "~/components/ui/button"
 import { Loader } from "~/components/ui/loader"
 import { attachmentCollection, channelMemberCollection } from "~/db/collections"
@@ -11,13 +10,15 @@ import { useAuth } from "~/lib/auth"
 import { cn } from "~/lib/utils"
 import { useChat } from "~/providers/chat-provider"
 import { formatFileSize, getFileTypeFromName } from "~/utils/file-utils"
-import { ReplyIndicator } from "./reply-indicator"
+import { MessageComposerActions } from "../message-composer-actions"
+import { ReplyIndicator } from "../reply-indicator"
+import { SlateMessageEditor, type SlateMessageEditorRef } from "./slate-message-editor"
 
-interface MessageComposerProps {
+interface SlateMessageComposerProps {
 	placeholder?: string
 }
 
-export const MessageComposer = ({ placeholder = "Type a message..." }: MessageComposerProps) => {
+export const SlateMessageComposer = ({ placeholder = "Type a message..." }: SlateMessageComposerProps) => {
 	const { user } = useAuth()
 	const {
 		sendMessage,
@@ -30,7 +31,7 @@ export const MessageComposer = ({ placeholder = "Type a message..." }: MessageCo
 		uploadingFiles,
 	} = useChat()
 
-	const editorRef = useRef<MarkdownEditorRef>(null)
+	const editorRef = useRef<SlateMessageEditorRef>(null)
 
 	const { data: channelMembersData } = useLiveQuery(
 		(q) =>
@@ -77,6 +78,10 @@ export const MessageComposer = ({ placeholder = "Type a message..." }: MessageCo
 
 		// Clear editor
 		editorRef.current?.clearContent()
+	}
+
+	const handleEmojiSelect = (emoji: string) => {
+		editorRef.current?.focusAndInsertText(emoji)
 	}
 
 	return (
@@ -160,18 +165,25 @@ export const MessageComposer = ({ placeholder = "Type a message..." }: MessageCo
 						onClose={() => setReplyToMessageId(null)}
 					/>
 				)}
-				<MarkdownEditor
-					ref={editorRef}
-					placeholder={placeholder}
+
+				{/* Editor container with actions */}
+				<div
 					className={cn(
-						"w-full",
+						"relative inset-ring inset-ring-secondary flex h-max flex-col rounded-xl bg-secondary",
 						(replyToMessageId || attachmentIds.length > 0 || uploadingFiles.length > 0) &&
 							"rounded-t-none",
 					)}
-					onSubmit={handleSubmit}
-					onUpdate={handleUpdate}
-					isUploading={isUploading}
-				/>
+				>
+					<SlateMessageEditor
+						ref={editorRef}
+						placeholder={placeholder}
+						className="w-full"
+						onSubmit={handleSubmit}
+						onUpdate={handleUpdate}
+						isUploading={isUploading}
+					/>
+					<MessageComposerActions onEmojiSelect={handleEmojiSelect} />
+				</div>
 			</div>
 		</div>
 	)
