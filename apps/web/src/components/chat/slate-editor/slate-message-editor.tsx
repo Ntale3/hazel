@@ -15,6 +15,7 @@ import {
 import { cx } from "~/utils/cx"
 import { CodeBlockElement } from "./code-block-element"
 import { MentionAutocomplete } from "./mention-autocomplete"
+import { MentionElement } from "./mention-element"
 import { MentionLeaf } from "./mention-leaf"
 import { decorateCodeBlock } from "./slate-code-decorator"
 import { decorateMarkdown } from "./slate-markdown-decorators"
@@ -169,6 +170,8 @@ const Element = (props: RenderElementProps) => {
 	const customElement = element as CustomElement
 
 	switch (customElement.type) {
+		case "mention":
+			return <MentionElement {...props} element={customElement as any} interactive={false} />
 		case "paragraph":
 			return (
 				<p {...attributes} className="my-0">

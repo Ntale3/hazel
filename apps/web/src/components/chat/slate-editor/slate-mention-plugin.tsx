@@ -1,5 +1,5 @@
 import type { BaseEditor } from "slate"
-import { Editor, Point, Range, Element as SlateElement, Text, Transforms } from "slate"
+import { Editor, Point, Range, Element as SlateElement, Transforms } from "slate"
 import type { HistoryEditor } from "slate-history"
 import type { ReactEditor } from "slate-react"
 
@@ -30,7 +30,7 @@ export interface MentionEditor extends CustomEditor {
  * Detects @ character and tracks mention state for autocomplete
  */
 export const withMentions = (editor: any): MentionEditor => {
-	const { insertText, deleteBackward, insertBreak } = editor
+	const { insertText, deleteBackward, insertBreak, isInline, isVoid, markableVoid } = editor
 	const mentionEditor = editor as MentionEditor
 
 	// Initialize mention state
@@ -39,6 +39,19 @@ export const withMentions = (editor: any): MentionEditor => {
 		search: "",
 		start: null,
 		target: null,
+	}
+
+	// Configure mention elements as inline and void
+	mentionEditor.isInline = (element: any) => {
+		return element.type === "mention" ? true : isInline(element)
+	}
+
+	mentionEditor.isVoid = (element: any) => {
+		return element.type === "mention" ? true : isVoid(element)
+	}
+
+	mentionEditor.markableVoid = (element: any) => {
+		return element.type === "mention" || markableVoid(element)
 	}
 
 	// Override insertText to detect @ and track search text
@@ -175,19 +188,23 @@ export function insertMention(
 		focus: target.focus,
 	}
 
-	// Create mention with appropriate prefix based on type
-	const mentionText =
-		mentionType === "user" ? `@[userId:${userId}]` : `@[directive:${mentionType}]`
+	// Create mention element (void inline node)
+	const mention: MentionElement = {
+		type: "mention",
+		userId: mentionType === "user" ? userId : mentionType,
+		displayName,
+		children: [{ text: "" }],
+	}
 
 	// Select the mention range and delete it
 	Transforms.select(editor, range)
 	Transforms.delete(editor)
 
-	// Insert the mention as plain text (will be decorated/parsed)
-	Transforms.insertText(editor, mentionText)
+	// Insert the mention element as a void node
+	Transforms.insertNodes(editor, mention)
 
-	// Add space after mention
-	Transforms.insertText(editor, " ")
+	// Move cursor after the mention
+	Transforms.move(editor)
 
 	// Reset mention state
 	editor.mentionState = {
@@ -196,9 +213,6 @@ export function insertMention(
 		start: null,
 		target: null,
 	}
-
-	// Focus editor
-	Editor.normalize(editor, { force: true })
 }
 
 /**
@@ -238,6 +252,7 @@ export function extractMentions(
 	const pattern = /@\[(userId|directive):([^\]]+)\]/g
 	let match: RegExpExecArray | null
 
+	// biome-ignore lint/suspicious/noAssignInExpressions: regex matching pattern
 	while ((match = pattern.exec(text)) !== null) {
 		const prefix = match[1] as "userId" | "directive"
 		const value = match[2]

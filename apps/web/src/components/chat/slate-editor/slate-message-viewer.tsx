@@ -7,6 +7,7 @@ import { Editable, type RenderElementProps, type RenderLeafProps, Slate, withRea
 import { isEmojiOnly } from "~/lib/emoji-utils"
 import { cx } from "~/utils/cx"
 import { CodeBlockElement } from "./code-block-element"
+import { MentionElement } from "./mention-element"
 import { MentionLeaf } from "./mention-leaf"
 import { decorateCodeBlock } from "./slate-code-decorator"
 import { decorateMarkdown } from "./slate-markdown-decorators"
@@ -23,6 +24,8 @@ const Element = (props: RenderElementProps) => {
 	const customElement = element as CustomElement
 
 	switch (customElement.type) {
+		case "mention":
+			return <MentionElement {...props} element={customElement as any} interactive={true} />
 		case "paragraph":
 			return (
 				<p {...attributes} className="my-0 last:empty:hidden">

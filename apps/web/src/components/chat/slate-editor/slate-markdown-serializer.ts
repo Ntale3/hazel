@@ -28,6 +28,13 @@ export interface ListItemElement {
 	children: CustomText[]
 }
 
+export interface MentionElement {
+	type: "mention"
+	userId: string
+	displayName: string
+	children: [{ text: "" }]
+}
+
 export interface CustomText {
 	text: string
 }
@@ -38,6 +45,7 @@ export type CustomElement =
 	| CodeBlockElement
 	| SubtextElement
 	| ListItemElement
+	| MentionElement
 export type CustomDescendant = CustomElement | CustomText
 
 /**
@@ -86,33 +94,96 @@ export function serializeToMarkdown(nodes: CustomDescendant[]): string {
 			}
 
 			const element = node as CustomElement
-			const text = Node.string(element)
 
 			switch (element.type) {
-				case "paragraph":
+				case "mention": {
+					// Serialize mention back to markdown syntax
+					const mentionElement = element as MentionElement
+					const isSpecialMention =
+						mentionElement.userId === "channel" || mentionElement.userId === "here"
+					return isSpecialMention
+						? `@[directive:${mentionElement.userId}]`
+						: `@[userId:${mentionElement.userId}]`
+				}
+				case "paragraph": {
+					// For paragraphs, we need to serialize children which might include mentions
+					const text = element.children.map((child) => serializeToMarkdown([child])).join("")
 					return text
-				case "blockquote":
+				}
+				case "blockquote": {
+					const text = element.children.map((child) => serializeToMarkdown([child])).join("")
 					// Prefix each line with "> "
 					return text
 						.split("\n")
 						.map((line) => `> ${line}`)
 						.join("\n")
+				}
 				case "code-block": {
+					const text = Node.string(element)
 					// Wrap in triple backticks with optional language
 					const lang = element.language || ""
 					return `\`\`\`${lang}\n${text}\n\`\`\``
 				}
-				case "subtext":
+				case "subtext": {
+					const text = element.children.map((child) => serializeToMarkdown([child])).join("")
 					// Prefix with -#
 					return `-# ${text}`
-				case "list-item":
+				}
+				case "list-item": {
+					const text = element.children.map((child) => serializeToMarkdown([child])).join("")
 					// Prefix with - for unordered or number for ordered
 					return element.ordered ? `1. ${text}` : `- ${text}`
-				default:
+				}
+				default: {
+					const text = Node.string(element)
 					return text
+				}
 			}
 		})
 		.join("\n")
+}
+
+/**
+ * Parse inline mentions and text into a mixed array of text and mention nodes
+ */
+function parseInlineContent(text: string): Array<CustomText | MentionElement> {
+	const nodes: Array<CustomText | MentionElement> = []
+	const mentionPattern = /@\[(userId|directive):([^\]]+)\]/g
+	let lastIndex = 0
+	let match: RegExpExecArray | null
+
+	// biome-ignore lint/suspicious/noAssignInExpressions: <explanation>
+	while ((match = mentionPattern.exec(text)) !== null) {
+		// Add text before the mention
+		if (match.index > lastIndex) {
+			nodes.push({ text: text.slice(lastIndex, match.index) })
+		}
+
+		// Add the mention element
+		const _prefix = match[1] as "userId" | "directive"
+		const value = match[2]
+
+		nodes.push({
+			type: "mention",
+			userId: value,
+			displayName: value,
+			children: [{ text: "" }],
+		})
+
+		lastIndex = match.index + match[0].length
+	}
+
+	// Add remaining text after last mention
+	if (lastIndex < text.length) {
+		nodes.push({ text: text.slice(lastIndex) })
+	}
+
+	// If no mentions found, return the text as-is
+	if (nodes.length === 0) {
+		nodes.push({ text })
+	}
+
+	return nodes
 }
 
 /**
@@ -171,7 +242,7 @@ export function deserializeFromMarkdown(markdown: string): CustomDescendant[] {
 
 			nodes.push({
 				type: "blockquote",
-				children: [{ text: fullQuote }],
+				children: parseInlineContent(fullQuote) as CustomText[],
 			})
 			break // Multi-line quote consumes rest of message
 		}
@@ -186,9 +257,10 @@ export function deserializeFromMarkdown(markdown: string): CustomDescendant[] {
 				i++
 			}
 
+			const quoteText = quoteLines.join("\n")
 			nodes.push({
 				type: "blockquote",
-				children: [{ text: quoteLines.join("\n") }],
+				children: parseInlineContent(quoteText) as CustomText[],
 			})
 			continue
 		}
@@ -198,7 +270,7 @@ export function deserializeFromMarkdown(markdown: string): CustomDescendant[] {
 			const subtextContent = line.slice(3) // Remove "-# "
 			nodes.push({
 				type: "subtext",
-				children: [{ text: subtextContent }],
+				children: parseInlineContent(subtextContent) as CustomText[],
 			})
 			i++
 			continue
@@ -210,7 +282,7 @@ export function deserializeFromMarkdown(markdown: string): CustomDescendant[] {
 			nodes.push({
 				type: "list-item",
 				ordered: false,
-				children: [{ text: listContent }],
+				children: parseInlineContent(listContent) as CustomText[],
 			})
 			i++
 			continue
@@ -222,16 +294,16 @@ export function deserializeFromMarkdown(markdown: string): CustomDescendant[] {
 			nodes.push({
 				type: "list-item",
 				ordered: true,
-				children: [{ text: listContent }],
+				children: parseInlineContent(listContent) as CustomText[],
 			})
 			i++
 			continue
 		}
 
-		// Default: paragraph
+		// Default: paragraph with inline content (including mentions)
 		nodes.push({
 			type: "paragraph",
-			children: [{ text: line }],
+			children: parseInlineContent(line) as CustomText[],
 		})
 		i++
 	}

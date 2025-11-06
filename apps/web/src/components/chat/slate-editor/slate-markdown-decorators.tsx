@@ -37,13 +37,10 @@ const MARKDOWN_PATTERNS = [
 	},
 ] as const
 
-// Mention pattern: @[userId:theID] or @[directive:channel]
-const MENTION_PATTERN = /@\[(userId|directive):([^\]]+)\]/g
-
 // Link pattern: [text](url)
 export const LINK_PATTERN = /\[([^\]]+)\]\(([^)]+)\)/g
 
-export type MarkdownDecorationType = (typeof MARKDOWN_PATTERNS)[number]["type"] | "mention" | "link"
+export type MarkdownDecorationType = (typeof MARKDOWN_PATTERNS)[number]["type"] | "link"
 
 export interface MarkdownRange extends BaseRange {
 	[key: string]: unknown
@@ -72,23 +69,7 @@ export function decorateMarkdown(entry: [node: any, path: number[]], parentEleme
 
 	const text = node.text
 
-	// Decorate mentions first (they have higher priority)
-	const mentionMatches = text.matchAll(MENTION_PATTERN)
-	for (const match of mentionMatches) {
-		if (match.index === undefined) continue
-
-		const fullMatch = match[0] // Full match: @[userId:theID] or @[directive:channel]
-
-		// Mark entire mention as a single range
-		ranges.push({
-			anchor: { path, offset: match.index },
-			focus: { path, offset: match.index + fullMatch.length },
-			type: "mention",
-			isMarker: false,
-		})
-	}
-
-	// Decorate links (also high priority)
+	// Decorate links (high priority)
 	const linkMatches = text.matchAll(LINK_PATTERN)
 	for (const match of linkMatches) {
 		if (match.index === undefined) continue
@@ -119,10 +100,10 @@ export function decorateMarkdown(entry: [node: any, path: number[]], parentEleme
 			// Skip if the markers are escaped or incomplete
 			if (!openMarker || !content || !closeMarker) continue
 
-			// Skip if this overlaps with a mention or link
+			// Skip if this overlaps with a link
 			const specialOverlap = ranges.some(
 				(range) =>
-					(range.type === "mention" || range.type === "link") &&
+					range.type === "link" &&
 					match.index !== undefined &&
 					match.index < range.focus.offset &&
 					match.index + fullMatch.length > range.anchor.offset,
@@ -223,11 +204,6 @@ export function MarkdownLeaf({ attributes, children, leaf, mode = "composer" }: 
 					case "link":
 						// Style links with primary color and underline
 						className = "text-primary underline cursor-pointer hover:text-primary-hover"
-						break
-					case "mention":
-						// Style mentions with blue background and text
-						className =
-							"bg-primary/10 text-primary rounded px-1 py-0.5 font-medium cursor-pointer hover:bg-primary/20 transition-colors"
 						break
 				}
 			}
