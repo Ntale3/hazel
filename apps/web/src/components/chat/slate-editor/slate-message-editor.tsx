@@ -15,7 +15,7 @@ import {
 } from "slate-react"
 import { cx } from "~/utils/cx"
 import { MentionAutocomplete } from "./mention-autocomplete"
-import { decorateMarkdown, MarkdownLeaf } from "./slate-markdown-decorators"
+import { decorateMarkdown } from "./slate-markdown-decorators"
 import {
 	type CustomDescendant,
 	type CustomElement,
@@ -23,6 +23,7 @@ import {
 	isValueEmpty,
 	serializeToMarkdown,
 } from "./slate-markdown-serializer"
+import { MentionLeaf } from "./mention-leaf"
 import { insertMention, type MentionEditor, withMentions } from "./slate-mention-plugin"
 
 // Extend the editor type with all plugins
@@ -137,7 +138,7 @@ const Element = ({ attributes, children, element }: RenderElementProps) => {
 	switch (customElement.type) {
 		case "paragraph":
 			return (
-				<p {...attributes} className="my-0 last:empty:hidden">
+				<p {...attributes} className="my-0">
 					{children}
 				</p>
 			)
@@ -166,9 +167,21 @@ const Element = ({ attributes, children, element }: RenderElementProps) => {
 	}
 }
 
-// Define custom leaf renderer with markdown highlighting
+// Define custom leaf renderer with markdown highlighting and mention display
 const Leaf = (props: RenderLeafProps) => {
-	return <MarkdownLeaf {...props} />
+	return <MentionLeaf {...props} interactive={false} />
+}
+
+// Check if placeholder should be hidden based on element types
+// Placeholder should hide when there are blockquotes or code blocks (even if empty)
+const shouldHidePlaceholder = (value: CustomDescendant[]): boolean => {
+	return value.some((node) => {
+		if ("type" in node) {
+			const element = node as CustomElement
+			return element.type === "blockquote" || element.type === "code-block"
+		}
+		return false
+	})
 }
 
 export const SlateMessageEditor = forwardRef<SlateMessageEditorRef, SlateMessageEditorProps>(
@@ -204,8 +217,6 @@ export const SlateMessageEditor = forwardRef<SlateMessageEditorRef, SlateMessage
 
 		// Clear content and focus
 		const resetAndFocus = useCallback(() => {
-			setValue(createEmptyValue())
-
 			// Reset the editor
 			Transforms.delete(editor, {
 				at: {
@@ -214,8 +225,8 @@ export const SlateMessageEditor = forwardRef<SlateMessageEditorRef, SlateMessage
 				},
 			})
 
-			// Insert new empty paragraph
-			Transforms.insertNodes(editor, createEmptyValue())
+			// Set the value to empty (this updates React state)
+			setValue(createEmptyValue())
 
 			setTimeout(() => {
 				const dialog = document.querySelector('[role="dialog"]')
@@ -557,7 +568,7 @@ export const SlateMessageEditor = forwardRef<SlateMessageEditorRef, SlateMessage
 							"focus:border-primary focus:outline-hidden",
 							"caret-primary",
 							"placeholder:text-muted-fg",
-							"min-h-16",
+							"min-h-10",
 							"leading-normal",
 							"**:data-slate-placeholder:top-2!",
 							"**:data-slate-placeholder:translate-y-0!",
@@ -567,6 +578,15 @@ export const SlateMessageEditor = forwardRef<SlateMessageEditorRef, SlateMessage
 						renderLeaf={Leaf}
 						decorate={decorate}
 						onKeyDown={handleKeyDown}
+						renderPlaceholder={({ attributes, children }) => {
+							// Don't render placeholder if there are blockquotes or code blocks
+							if (shouldHidePlaceholder(value)) {
+								// biome-ignore lint: Slate's type definition requires React.Element
+								return <></>
+							}
+
+							return <span {...attributes}>{children}</span>
+						}}
 					/>
 
 					{/* Render mention autocomplete when active */}
@@ -576,6 +596,8 @@ export const SlateMessageEditor = forwardRef<SlateMessageEditorRef, SlateMessage
 							search={editor.mentionState.search}
 							onSelect={(id, displayName, type) => {
 								insertMention(editor, id, displayName, type)
+								// Restore focus to the editor
+								ReactEditor.focus(editor)
 								// Force re-render after mention selection
 								setValue([...value])
 							}}
