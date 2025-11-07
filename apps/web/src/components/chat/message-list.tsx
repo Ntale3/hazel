@@ -36,6 +36,7 @@ const MessageVirtualList = memo(
 				alignItemsAtEnd
 				maintainScrollAtEnd
 				maintainVisibleContentPosition
+				suggestEstimatedItemSize
 				data={messageRows}
 				onStartReached={() => {
 					if (hasNextPage) {

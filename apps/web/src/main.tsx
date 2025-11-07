@@ -17,6 +17,15 @@ import { ThemeProvider } from "./components/theme-provider.tsx"
 import { Toast } from "./components/ui/toast.tsx"
 import reportWebVitals from "./reportWebVitals.ts"
 
+// Load react-scan if enabled in localStorage
+const reactScanEnabled = localStorage.getItem("react-scan-enabled")
+if (reactScanEnabled === "true") {
+	const script = document.createElement("script")
+	script.crossOrigin = "anonymous"
+	script.src = "//unpkg.com/react-scan/dist/auto.global.js"
+	document.head.appendChild(script)
+}
+
 export const router = createRouter({
 	routeTree,
 	context: {},

@@ -1,7 +1,8 @@
-import { useAtomSet } from "@effect-atom/atom-react"
+import { useAtomSet, useAtomValue } from "@effect-atom/atom-react"
 import { ExclamationTriangleIcon } from "@heroicons/react/20/solid"
 import { createFileRoute } from "@tanstack/react-router"
 import { useState } from "react"
+import { reactScanEnabledAtom } from "~/atoms/react-scan-atoms"
 import { IconServers } from "~/components/icons/icon-servers"
 import { Button } from "~/components/ui/button"
 import {
@@ -16,6 +17,7 @@ import {
 import { Modal, ModalContent } from "~/components/ui/modal"
 import { SectionHeader } from "~/components/ui/section-header"
 import { SectionLabel } from "~/components/ui/section-label"
+import { Switch, SwitchLabel } from "~/components/ui/switch"
 import { useOrganization } from "~/hooks/use-organization"
 import { HazelApiClient } from "~/lib/services/common/atom-client"
 import { toastExit } from "~/lib/toast-exit"
@@ -29,6 +31,9 @@ function DebugSettings() {
 	const [isGeneratingMockData, setIsGeneratingMockData] = useState(false)
 
 	const { organizationId } = useOrganization()
+
+	const reactScanEnabled = useAtomValue(reactScanEnabledAtom)
+	const setReactScanEnabled = useAtomSet(reactScanEnabledAtom)
 
 	const generateMockData = useAtomSet(HazelApiClient.mutation("mockData", "generate"), {
 		mode: "promiseExit",
@@ -83,6 +88,39 @@ function DebugSettings() {
 							</p>
 						</div>
 					</div>
+				</div>
+
+				{/* React-Scan Toggle Section */}
+				<div className="flex flex-col gap-5">
+					<div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(200px,280px)_1fr] lg:gap-8">
+						<SectionLabel.Root
+							size="sm"
+							title="React Performance Scanner"
+							description="Visualize component re-renders in real-time."
+						/>
+
+						<div className="flex flex-col gap-4">
+							<div className="rounded-lg border border-border bg-secondary/50 p-4">
+								<Switch
+									isSelected={reactScanEnabled ?? false}
+									onChange={(isSelected) => {
+										setReactScanEnabled(isSelected)
+										// Reload the page to apply changes
+										window.location.reload()
+									}}
+								>
+									<SwitchLabel>Enable React-Scan</SwitchLabel>
+								</Switch>
+								<p className="mt-3 text-muted-fg text-sm">
+									When enabled, React-Scan highlights components that re-render, helping you
+									identify performance bottlenecks. The page will reload when toggling this
+									setting.
+								</p>
+							</div>
+						</div>
+					</div>
+
+					<hr className="h-px w-full border-none bg-border" />
 				</div>
 
 				{/* Mock Data Section */}
