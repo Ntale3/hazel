@@ -1,9 +1,16 @@
 import type { Attachment, User } from "@hazel/db/models"
-import { ChevronLeft, ChevronRight, Copy01, Download01, LinkExternal01, X } from "@untitledui/icons"
+import {
+	ArrowDownTrayIcon,
+	ArrowTopRightOnSquareIcon,
+	ChevronLeftIcon,
+	ChevronRightIcon,
+} from "@heroicons/react/24/solid"
 import useEmblaCarousel from "embla-carousel-react"
 import { useCallback, useEffect, useState } from "react"
 import { createPortal } from "react-dom"
 import { toast } from "sonner"
+import IconClose from "~/components/icons/icon-close"
+import IconCopy from "~/components/icons/icon-copy"
 import { Avatar } from "~/components/ui/avatar/avatar"
 import { Button } from "~/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "~/components/ui/tooltip"
@@ -98,28 +105,20 @@ export function ImageViewerModal({
 	const currentImage = images[selectedIndex]
 	const currentImageUrl = currentImage ? `${publicUrl}/${currentImage.id}` : ""
 
-	const handleDownload = async () => {
+	const handleDownload = () => {
 		if (!currentImage) return
 
-		try {
-			const response = await fetch(currentImageUrl)
-			const blob = await response.blob()
-			const url = URL.createObjectURL(blob)
-			const a = document.createElement("a")
-			a.href = url
-			a.download = currentImage.fileName
-			a.click()
-			URL.revokeObjectURL(url)
+		const link = document.createElement("a")
+		link.href = currentImageUrl
+		link.download = currentImage.fileName
+		link.target = "_blank"
+		document.body.appendChild(link)
+		link.click()
+		document.body.removeChild(link)
 
-			toast.success("Image downloaded", {
-				description: "Your image has been downloaded.",
-			})
-		} catch (error) {
-			console.error("Failed to download image:", error)
-			toast.error("Download failed", {
-				description: "Could not download the image.",
-			})
-		}
+		toast.success("Image downloaded", {
+			description: "Your image has been downloaded.",
+		})
 	}
 
 	const handleCopyImage = async () => {
@@ -157,27 +156,27 @@ export function ImageViewerModal({
 	const imageActions = [
 		{
 			label: "Download",
-			icon: Download01,
+			icon: ArrowDownTrayIcon,
 			onClick: handleDownload,
 		},
 		{
 			label: "Copy Image",
-			icon: Copy01,
+			icon: IconCopy,
 			onClick: handleCopyImage,
 		},
 		{
 			label: "Copy URL",
-			icon: Copy01,
+			icon: IconCopy,
 			onClick: handleCopyUrl,
 		},
 		{
 			label: "Open in Browser",
-			icon: LinkExternal01,
+			icon: ArrowTopRightOnSquareIcon,
 			onClick: handleOpenInBrowser,
 		},
 		{
 			label: "Close",
-			icon: X,
+			icon: IconClose,
 			onClick: () => onOpenChange(false),
 		},
 	]
@@ -188,7 +187,7 @@ export function ImageViewerModal({
 		// biome-ignore lint/a11y/noStaticElementInteractions: <explanation>
 		// biome-ignore lint/a11y/useKeyWithClickEvents: <explanation>
 		<div
-			className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 transition-opacity duration-200"
+			className="isolate fixed inset-0 z-[100] flex items-center justify-center bg-black/90 transition-opacity duration-200"
 			onClick={(e) => {
 				if (e.target === e.currentTarget) {
 					onOpenChange(false)
@@ -240,7 +239,7 @@ export function ImageViewerModal({
 							className="-translate-y-1/2 absolute top-1/2 left-4 rounded-full bg-black/50 p-2 text-white transition-all hover:bg-black/70"
 							aria-label="Previous image"
 						>
-							<ChevronLeft className="size-6" />
+							<ChevronLeftIcon className="size-6" />
 						</button>
 						<button
 							type="button"
@@ -248,7 +247,7 @@ export function ImageViewerModal({
 							className="-translate-y-1/2 absolute top-1/2 right-4 rounded-full bg-black/50 p-2 text-white transition-all hover:bg-black/70"
 							aria-label="Next image"
 						>
-							<ChevronRight className="size-6" />
+							<ChevronRightIcon className="size-6" />
 						</button>
 					</>
 				)}

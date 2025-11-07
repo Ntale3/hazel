@@ -35,9 +35,7 @@ function ImageAttachmentItem({ attachment, imageCount, index, onClick }: ImageAt
 			<img
 				src={imageUrl}
 				alt={attachment.fileName}
-				className={
-					imageCount === 1 ? "max-h-[300px] max-w-full object-contain" : "size-full object-cover"
-				}
+				className={imageCount === 1 ? "block max-h-[300px] max-w-full" : "size-full object-cover"}
 				onError={() => setImageError(true)}
 				onClick={onClick}
 			/>
@@ -150,9 +148,9 @@ export function MessageAttachments({ messageId }: MessageAttachmentsProps) {
 
 	// Get wrapper classes for each image based on count and index
 	const getImageWrapperClass = (count: number, index: number) => {
-		// Single image: use aspect-auto to match image dimensions (no aspect-square)
+		// Single image: block element spanning both columns for full width
 		if (count === 1) {
-			return "group relative aspect-auto cursor-pointer overflow-hidden rounded-md border border-border transition-opacity hover:opacity-90 col-span-2"
+			return "group relative col-span-2 block w-fit cursor-pointer overflow-hidden rounded-md border border-border transition-opacity hover:opacity-90"
 		}
 
 		const baseClasses =
