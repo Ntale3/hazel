@@ -101,7 +101,7 @@ export const SlateMessageViewer = memo(({ content, className }: SlateMessageView
 			<Slate editor={editor} initialValue={value}>
 				<Editable
 					className={cx(
-						"wrap-break-word w-full cursor-text select-text whitespace-pre-wrap",
+						"w-full cursor-text select-text whitespace-pre-wrap break-words",
 						isOnlyEmojis ? "text-2xl" : "text-base",
 						"[&_strong]:font-bold",
 					)}

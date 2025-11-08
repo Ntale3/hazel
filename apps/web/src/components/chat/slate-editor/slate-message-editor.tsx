@@ -655,7 +655,7 @@ export const SlateMessageEditor = forwardRef<SlateMessageEditorRef, SlateMessage
 				<Slate editor={editor} initialValue={value} onChange={handleChange}>
 					<Editable
 						className={cx(
-							"w-full overflow-y-auto px-3 py-2 text-base md:text-sm",
+							"w-full whitespace-pre-wrap break-all px-3 py-2 text-base md:text-sm",
 							"rounded-xl bg-transparent",
 							"focus:border-primary focus:outline-hidden",
 							"caret-primary",

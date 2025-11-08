@@ -8,7 +8,12 @@ export interface CodeBlockElementProps extends RenderElementProps {
 	showControls?: boolean
 }
 
-export function CodeBlockElement({ attributes, children, element, showControls = true }: CodeBlockElementProps) {
+export function CodeBlockElement({
+	attributes,
+	children,
+	element,
+	showControls = true,
+}: CodeBlockElementProps) {
 	const [copied, setCopied] = useState(false)
 
 	// Extract the text content from the code block
@@ -28,9 +33,9 @@ export function CodeBlockElement({ attributes, children, element, showControls =
 	return (
 		<div {...attributes} className="group relative my-2">
 			{showControls && (
-				<div className="absolute right-2 top-2 z-10 flex items-center gap-2">
+				<div className="absolute top-2 right-2 z-10 flex items-center gap-2">
 					{language && language !== "plaintext" && (
-						<span className="rounded-md bg-info-subtle px-2 py-0.5 text-xs font-medium text-info-subtle-fg">
+						<span className="rounded-md bg-info-subtle px-2 py-0.5 font-medium text-info-subtle-fg text-xs">
 							{language}
 						</span>
 					)}
