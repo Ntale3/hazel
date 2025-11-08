@@ -220,7 +220,7 @@ function TweetMetrics({ tweet }: { tweet: EnrichedTweet }) {
 			{favoriteCount !== undefined && favoriteCount > 0 && (
 				<div className="flex items-center gap-1">
 					<span className="font-semibold">{favoriteCount.toLocaleString()}</span>
-					<span>Likes</span>
+					<span>{favoriteCount > 1 ? "Likes" : "Like"}</span>
 				</div>
 			)}
 		</div>

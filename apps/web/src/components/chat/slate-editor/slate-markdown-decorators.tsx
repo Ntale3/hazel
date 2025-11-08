@@ -40,12 +40,17 @@ const MARKDOWN_PATTERNS = [
 // Link pattern: [text](url)
 export const LINK_PATTERN = /\[([^\]]+)\]\(([^)]+)\)/g
 
-export type MarkdownDecorationType = (typeof MARKDOWN_PATTERNS)[number]["type"] | "link"
+// Plain URL pattern: matches http(s):// or www. URLs
+export const URL_PATTERN = /(https?:\/\/[^\s<>()]+|www\.[^\s<>()]+)/g
+
+export type MarkdownDecorationType = (typeof MARKDOWN_PATTERNS)[number]["type"] | "link" | "url"
 
 export interface MarkdownRange extends BaseRange {
 	[key: string]: unknown
 	type: MarkdownDecorationType
 	isMarker?: boolean
+	url?: string
+	linkText?: string
 }
 
 /**
@@ -69,19 +74,52 @@ export function decorateMarkdown(entry: [node: any, path: number[]], parentEleme
 
 	const text = node.text
 
-	// Decorate links (high priority)
+	// Decorate markdown links (high priority)
 	const linkMatches = text.matchAll(LINK_PATTERN)
 	for (const match of linkMatches) {
 		if (match.index === undefined) continue
 
 		const fullMatch = match[0] // Full match: [text](url)
+		const linkText = match[1] // Captured text between [ ]
+		const url = match[2] // Captured URL between ( )
 
-		// Mark entire link as a single range
+		// Mark entire link as a single range with metadata
 		ranges.push({
 			anchor: { path, offset: match.index },
 			focus: { path, offset: match.index + fullMatch.length },
 			type: "link",
 			isMarker: false,
+			url,
+			linkText,
+		})
+	}
+
+	// Decorate plain URLs (lower priority than markdown links)
+	const urlMatches = text.matchAll(URL_PATTERN)
+	for (const match of urlMatches) {
+		if (match.index === undefined) continue
+
+		const url = match[0]
+
+		// Skip if this URL is part of a markdown link
+		const overlapsMarkdownLink = ranges.some(
+			(range) =>
+				range.type === "link" &&
+				match.index !== undefined &&
+				match.index >= range.anchor.offset &&
+				match.index < range.focus.offset,
+		)
+		if (overlapsMarkdownLink) continue
+
+		// Normalize URL (add https:// if it starts with www.)
+		const normalizedUrl = url.startsWith("www.") ? `https://${url}` : url
+
+		ranges.push({
+			anchor: { path, offset: match.index },
+			focus: { path, offset: match.index + url.length },
+			type: "url",
+			isMarker: false,
+			url: normalizedUrl,
 		})
 	}
 
@@ -167,6 +205,38 @@ export function MarkdownLeaf({ attributes, children, leaf, mode = "composer" }: 
 		// Check if this leaf has markdown decoration
 		const markdownType = (leaf as any).type as MarkdownDecorationType | undefined
 		const isMarker = (leaf as any).isMarker as boolean | undefined
+		const url = (leaf as any).url as string | undefined
+		const linkText = (leaf as any).linkText as string | undefined
+
+		// Handle markdown links [text](url) - render as actual <a> tag
+		if (markdownType === "link" && url && linkText) {
+			return (
+				<a
+					{...attributes}
+					href={url}
+					target="_blank"
+					rel="noopener noreferrer"
+					className="cursor-pointer text-primary underline hover:text-primary-hover"
+				>
+					{linkText}
+				</a>
+			)
+		}
+
+		// Handle plain URLs - render as actual <a> tag
+		if (markdownType === "url" && url) {
+			return (
+				<a
+					{...attributes}
+					href={url}
+					target="_blank"
+					rel="noopener noreferrer"
+					className="cursor-pointer text-primary underline hover:text-primary-hover"
+				>
+					{children}
+				</a>
+			)
+		}
 
 		if (markdownType) {
 			if (isMarker) {
@@ -200,10 +270,6 @@ export function MarkdownLeaf({ attributes, children, leaf, mode = "composer" }: 
 						break
 					case "spoiler":
 						className = "bg-muted blur-sm hover:blur-none transition-all"
-						break
-					case "link":
-						// Style links with primary color and underline
-						className = "text-primary underline cursor-pointer hover:text-primary-hover"
 						break
 				}
 			}
