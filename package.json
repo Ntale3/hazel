@@ -20,12 +20,12 @@
 		"test:coverage": "vitest run --coverage --coverage.reporter=text"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "2.3.3",
-		"@vitest/coverage-v8": "^4.0.6",
-		"hast": "^1.0.0",
+		"@biomejs/biome": "2.3.4",
+		"@vitest/coverage-v8": "^4.0.8",
 		"turbo": "^2.6.0",
 		"typescript": "^5.9.3",
-		"vitest": "^4.0.8"
+		"vitest": "^4.0.8",
+		"wrangler": "^4.46.0"
 	},
 	"trustedDependencies": []
 }
