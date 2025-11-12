@@ -1,6 +1,6 @@
 import { Activity } from "@effect/workflow"
 import { and, Database, eq, isNull, ne, schema, sql } from "@hazel/db"
-import { Cluster } from "@hazel/domain"
+import { Cluster, type NotificationId } from "@hazel/domain"
 import { Effect, Schema } from "effect"
 
 export const MessageNotificationWorkflowLayer = Cluster.MessageNotificationWorkflow.toLayer(
@@ -68,7 +68,7 @@ export const MessageNotificationWorkflowLayer = Cluster.MessageNotificationWorkf
 			error: Schema.Union(Cluster.CreateNotificationError),
 			execute: Effect.gen(function* () {
 				const db = yield* Database.Database
-				const notificationIds: string[] = []
+				const notificationIds: NotificationId[] = []
 
 				yield* Effect.log(`Creating notifications for ${membersResult.members.length} members`)
 
