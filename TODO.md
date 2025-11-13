@@ -7,7 +7,6 @@
 - Onboarding
 - Electric proxy
 - Notifications 
- - Display Badge with number in sidebar
  - Play sound when new message
 
 - Migrate the missing icons to nucleo
