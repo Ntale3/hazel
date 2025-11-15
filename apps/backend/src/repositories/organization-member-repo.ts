@@ -158,6 +158,30 @@ export class OrganizationMemberRepo extends Effect.Service<OrganizationMemberRep
 					policyRequire("OrganizationMember", "delete"),
 				)({ organizationId, userId }, tx)
 
+			const updateMetadata = (
+				id: OrganizationMemberId,
+				metadata: Record<string, any>,
+				tx?: TxFn,
+			) =>
+				db
+					.makeQuery(
+						(execute, data: { id: OrganizationMemberId; metadata: Record<string, any> }) =>
+							execute((client) =>
+								client
+									.update(schema.organizationMembersTable)
+									.set({ metadata: data.metadata })
+									.where(
+										and(
+											eq(schema.organizationMembersTable.id, data.id),
+											isNull(schema.organizationMembersTable.deletedAt),
+										),
+									)
+									.returning(),
+							),
+						policyRequire("OrganizationMember", "update"),
+					)({ id, metadata }, tx)
+					.pipe(Effect.map((results) => Option.fromNullable(results[0])))
+
 			const bulkUpsertByOrgAndUser = (
 				members: Schema.Schema.Type<typeof OrganizationMember.Insert>[],
 			) => Effect.forEach(members, (data) => upsertByOrgAndUser(data), { concurrency: 10 })
@@ -170,6 +194,7 @@ export class OrganizationMemberRepo extends Effect.Service<OrganizationMemberRep
 				findAllActive,
 				softDelete,
 				softDeleteByOrgAndUser,
+				updateMetadata,
 				bulkUpsertByOrgAndUser,
 			}
 		}),

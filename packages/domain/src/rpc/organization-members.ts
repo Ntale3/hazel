@@ -101,6 +101,30 @@ export class OrganizationMemberRpcs extends RpcGroup.make(
 	}).middleware(AuthMiddleware),
 
 	/**
+	 * OrganizationMemberUpdateMetadata
+	 *
+	 * Updates an organization member's metadata (e.g., onboarding data).
+	 * Used to store additional information like role preferences and use cases from onboarding.
+	 *
+	 * @param payload - Organization member ID and metadata to update
+	 * @returns Updated organization member data and transaction ID
+	 * @throws OrganizationMemberNotFoundError if organization member doesn't exist
+	 * @throws UnauthorizedError if user lacks permission
+	 * @throws InternalServerError for unexpected errors
+	 */
+	Rpc.make("organizationMember.updateMetadata", {
+		payload: Schema.Struct({
+			id: OrganizationMemberId,
+			metadata: Schema.Struct({
+				role: Schema.optional(Schema.String),
+				useCases: Schema.optional(Schema.Array(Schema.String)),
+			}),
+		}),
+		success: OrganizationMemberResponse,
+		error: Schema.Union(OrganizationMemberNotFoundError, UnauthorizedError, InternalServerError),
+	}).middleware(AuthMiddleware),
+
+	/**
 	 * OrganizationMemberDelete
 	 *
 	 * Removes a user from an organization (soft delete).

@@ -38,6 +38,7 @@ export const organizationMembersTable = pgTable(
 		nickname: varchar({ length: 100 }),
 		joinedAt: timestamp({ mode: "date", withTimezone: true }).notNull().defaultNow(),
 		invitedBy: uuid().$type<UserId>(),
+		metadata: jsonb(),
 		createdAt: timestamp({ mode: "date", withTimezone: true }).notNull().defaultNow(),
 		deletedAt: timestamp({ mode: "date", withTimezone: true }),
 	},

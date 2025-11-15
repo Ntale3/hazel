@@ -8,7 +8,11 @@ import { AnimatePresence, motion } from "motion/react"
 import { useEffect, useState } from "react"
 import { fromPromise } from "xstate"
 import { createInvitationMutation } from "~/atoms/invitation-atoms"
-import { createOrganizationMutation, setOrganizationSlugMutation } from "~/atoms/organization-atoms"
+import {
+	createOrganizationMutation,
+	setOrganizationSlugMutation,
+	updateOrganizationMemberMetadataMutation,
+} from "~/atoms/organization-atoms"
 import { updateUserMutation } from "~/atoms/user-atoms"
 import { InviteTeamStep } from "~/components/onboarding/invite-team-step"
 import { OnboardingLayout } from "~/components/onboarding/onboarding-layout"
@@ -34,6 +38,9 @@ function RouteComponent() {
 	const setOrganizationSlugAction = useAtomSet(setOrganizationSlugMutation, { mode: "promiseExit" })
 	const updateUser = useAtomSet(updateUserMutation, { mode: "promiseExit" })
 	const createInvitation = useAtomSet(createInvitationMutation, { mode: "promiseExit" })
+	const updateOrganizationMemberMetadata = useAtomSet(updateOrganizationMemberMetadataMutation, {
+		mode: "promiseExit",
+	})
 
 	// Track transition direction for animations
 	const [direction, setDirection] = useState<"forward" | "backward">("forward")
@@ -56,6 +63,7 @@ function RouteComponent() {
 
 	const orgId = userOrganizations?.[0]?.org.id
 	const organization = userOrganizations?.[0]?.org
+	const organizationMemberId = userOrganizations?.[0]?.member.id
 
 	// Provide actor implementations with access to RPC functions
 	const machineWithActors = onboardingMachine.provide({
@@ -123,24 +131,23 @@ function RouteComponent() {
 						throw new Error("Organization ID is required")
 					}
 
-					// TODO: Save user preferences to organization settings
-					// await updateOrganization({
-					// 	payload: {
-					// 		id: input.orgId as OrganizationId,
-					// 		settings: {
-					// 			onboarding: {
-					// 				useCases: input.useCases,
-					// 				role: input.role,
-					// 				completedAt: new Date().toISOString(),
-					// 			},
-					// 		},
-					// 	},
-					// })
+					// Save user preferences to organization member metadata
+					if (organizationMemberId && user?.id) {
+						const metadataResult = await updateOrganizationMemberMetadata({
+							payload: {
+								id: organizationMemberId,
+								metadata: {
+									role: input.role,
+									useCases: input.useCases,
+								},
+							},
+						})
 
-					// TODO: For creators, create default channels (#general, #announcements)
-					// This requires implementing channel creation RPC or backend logic
+						if (!Exit.isSuccess(metadataResult)) {
+							console.error("Failed to save onboarding metadata:", metadataResult.cause)
+						}
+					}
 
-					// Send team invites
 					if (input.emails.length > 0) {
 						let successCount = 0
 						let errorCount = 0

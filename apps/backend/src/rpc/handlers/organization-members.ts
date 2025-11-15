@@ -1,7 +1,7 @@
 import { Database } from "@hazel/db"
 import { CurrentUser, InternalServerError, policyUse, withRemapDbErrors } from "@hazel/domain"
-import { OrganizationMemberRpcs } from "@hazel/domain/rpc"
-import { Effect } from "effect"
+import { OrganizationMemberNotFoundError, OrganizationMemberRpcs } from "@hazel/domain/rpc"
+import { Effect, Option } from "effect"
 import { generateTransactionId } from "../../lib/create-transactionId"
 import { OrganizationMemberPolicy } from "../../policies/organization-member-policy"
 import { OrganizationMemberRepo } from "../../repositories/organization-member-repo"
@@ -57,6 +57,41 @@ export const OrganizationMemberRpcLive = OrganizationMemberRpcs.toLayer(
 								id,
 								...payload,
 							})
+
+							const txid = yield* generateTransactionId()
+
+							return {
+								data: updatedOrganizationMember,
+								transactionId: txid,
+							}
+						}),
+					)
+					.pipe(
+						policyUse(OrganizationMemberPolicy.canUpdate(id)),
+						withRemapDbErrors("OrganizationMember", "update"),
+					),
+
+			"organizationMember.updateMetadata": ({ id, metadata }) =>
+				db
+					.transaction(
+						Effect.gen(function* () {
+							const updatedOrganizationMemberOption = yield* OrganizationMemberRepo.updateMetadata(
+								id,
+								metadata,
+							)
+
+							const updatedOrganizationMember = yield* Option.match(
+								updatedOrganizationMemberOption,
+								{
+									onNone: () =>
+										Effect.fail(
+											new OrganizationMemberNotFoundError({
+												organizationMemberId: id,
+											}),
+										),
+									onSome: (member) => Effect.succeed(member),
+								},
+							)
 
 							const txid = yield* generateTransactionId()
 
