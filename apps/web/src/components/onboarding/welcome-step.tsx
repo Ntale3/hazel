@@ -28,6 +28,14 @@ export function WelcomeStep({ onContinue, isCreatingOrg, organizationName }: Wel
 						<>
 							<li className="flex items-start gap-2">
 								<span className="text-primary">✓</span>
+								<span>Set up your profile</span>
+							</li>
+							<li className="flex items-start gap-2">
+								<span className="text-primary">✓</span>
+								<span>Choose your theme</span>
+							</li>
+							<li className="flex items-start gap-2">
+								<span className="text-primary">✓</span>
 								<span>Set up your organization workspace</span>
 							</li>
 							<li className="flex items-start gap-2">
@@ -45,6 +53,14 @@ export function WelcomeStep({ onContinue, isCreatingOrg, organizationName }: Wel
 						</>
 					) : (
 						<>
+							<li className="flex items-start gap-2">
+								<span className="text-primary">✓</span>
+								<span>Set up your profile</span>
+							</li>
+							<li className="flex items-start gap-2">
+								<span className="text-primary">✓</span>
+								<span>Choose your theme</span>
+							</li>
 							<li className="flex items-start gap-2">
 								<span className="text-primary">✓</span>
 								<span>Tell us about your use case</span>
