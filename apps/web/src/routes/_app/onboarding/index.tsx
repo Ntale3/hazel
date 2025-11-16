@@ -13,7 +13,7 @@ import {
 	setOrganizationSlugMutation,
 	updateOrganizationMemberMetadataMutation,
 } from "~/atoms/organization-atoms"
-import { updateUserMutation } from "~/atoms/user-atoms"
+import { finalizeOnboardingMutation, updateUserMutation } from "~/atoms/user-atoms"
 import { InviteTeamStep } from "~/components/onboarding/invite-team-step"
 import { OnboardingLayout } from "~/components/onboarding/onboarding-layout"
 import { OrgSetupStep } from "~/components/onboarding/org-setup-step"
@@ -37,6 +37,7 @@ function RouteComponent() {
 	const createOrganization = useAtomSet(createOrganizationMutation, { mode: "promiseExit" })
 	const setOrganizationSlugAction = useAtomSet(setOrganizationSlugMutation, { mode: "promiseExit" })
 	const updateUser = useAtomSet(updateUserMutation, { mode: "promiseExit" })
+	const finalizeOnboarding = useAtomSet(finalizeOnboardingMutation, { mode: "promiseExit" })
 	const createInvitation = useAtomSet(createInvitationMutation, { mode: "promiseExit" })
 	const updateOrganizationMemberMetadata = useAtomSet(updateOrganizationMemberMetadataMutation, {
 		mode: "promiseExit",
@@ -149,17 +150,10 @@ function RouteComponent() {
 					}
 
 					// Mark user as onboarded
-					if (user?.id) {
-						const userUpdateResult = await updateUser({
-							payload: {
-								id: user.id,
-								isOnboarded: true,
-							} as any,
-						})
+					const finalizeResult = await finalizeOnboarding({ payload: void 0 })
 
-						if (!Exit.isSuccess(userUpdateResult)) {
-							console.error("Failed to mark user as onboarded:", userUpdateResult.cause)
-						}
+					if (!Exit.isSuccess(finalizeResult)) {
+						console.error("Failed to finalize onboarding:", finalizeResult.cause)
 					}
 
 					if (input.emails.length > 0) {
@@ -319,7 +313,7 @@ function RouteComponent() {
 											id: user.id,
 											firstName: data.firstName,
 											lastName: data.lastName,
-										} as any, // TODO: Fix type - need to check RPC contract for partial update
+										},
 									})
 								}
 								sendWithDirection({ type: "PROFILE_INFO_CONTINUE", data })

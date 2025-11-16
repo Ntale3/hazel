@@ -55,8 +55,7 @@ export class UserRpcs extends RpcGroup.make(
 	Rpc.make("user.update", {
 		payload: Schema.Struct({
 			id: UserId,
-			...User.Model.jsonUpdate.fields,
-		}),
+		}).pipe(Schema.extend(Schema.partial(User.Model.jsonUpdate))),
 		success: UserResponse,
 		error: Schema.Union(UserNotFoundError, UnauthorizedError, InternalServerError),
 	}).middleware(AuthMiddleware),
@@ -77,5 +76,21 @@ export class UserRpcs extends RpcGroup.make(
 		payload: Schema.Struct({ id: UserId }),
 		success: Schema.Struct({ transactionId: TransactionId }),
 		error: Schema.Union(UserNotFoundError, UnauthorizedError, InternalServerError),
+	}).middleware(AuthMiddleware),
+
+	/**
+	 * UserFinalizeOnboarding
+	 *
+	 * Marks the current authenticated user as having completed onboarding.
+	 * This sets the isOnboarded flag to true.
+	 *
+	 * @returns Updated user data and transaction ID
+	 * @throws UnauthorizedError if user is not authenticated
+	 * @throws InternalServerError for unexpected errors
+	 */
+	Rpc.make("user.finalizeOnboarding", {
+		payload: Schema.Void,
+		success: UserResponse,
+		error: Schema.Union(UnauthorizedError, InternalServerError),
 	}).middleware(AuthMiddleware),
 ) {}

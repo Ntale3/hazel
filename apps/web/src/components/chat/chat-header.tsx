@@ -1,12 +1,11 @@
 import type { UserId } from "@hazel/schema"
 import IconHashtag from "~/components/icons/icon-hashtag"
-import IconPhone from "~/components/icons/icon-phone"
 import { Avatar } from "~/components/ui/avatar"
-import { Button } from "~/components/ui/button"
 import { useChannel } from "~/db/hooks"
 import { useChat } from "~/hooks/use-chat"
 import { useUserPresence } from "~/hooks/use-presence"
 import { useAuth } from "~/lib/auth"
+import { PinnedMessagesModal } from "./pinned-messages-modal"
 
 interface OtherMemberAvatarProps {
 	member: {
@@ -83,17 +82,7 @@ export function ChatHeader() {
 			</div>
 
 			<div className="flex items-center gap-2">
-				<Button
-					intent="plain"
-					size="sq-sm"
-					aria-label="Call"
-					// TODO: Add navigation when route is available
-					// onPress={() => navigate to call}
-				>
-					<IconPhone data-slot="icon" />
-				</Button>
-
-				{/* TODO: Add PinnedMessagesModal when available */}
+				<PinnedMessagesModal />
 			</div>
 		</div>
 	)

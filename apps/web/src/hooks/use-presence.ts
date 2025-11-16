@@ -16,7 +16,7 @@ const AFK_TIMEOUT = Duration.minutes(5)
 
 /**
  * Atom that tracks the last user activity timestamp
- * Updates on mousemove, keydown, scroll, click, touchstart
+ * Updates on mousemove, keydown, scroll, click, touchstart, and visibility changes
  */
 const lastActivityAtom = Atom.make((get) => {
 	let lastActivity = DateTime.unsafeMake(new Date())
@@ -26,15 +26,26 @@ const lastActivityAtom = Atom.make((get) => {
 		get.setSelf(lastActivity)
 	}
 
+	const handleVisibilityChange = () => {
+		if (document.visibilityState === "visible") {
+			// Reset activity timestamp when user returns to the tab
+			// This ensures users are marked back online when returning to the app
+			handleActivity()
+		}
+	}
+
 	const events = ["mousemove", "keydown", "scroll", "click", "touchstart"]
 	events.forEach((event) => {
 		window.addEventListener(event, handleActivity, { passive: true })
 	})
 
+	document.addEventListener("visibilitychange", handleVisibilityChange)
+
 	get.addFinalizer(() => {
 		events.forEach((event) => {
 			window.removeEventListener(event, handleActivity)
 		})
+		document.removeEventListener("visibilitychange", handleVisibilityChange)
 	})
 
 	return lastActivity
@@ -248,7 +259,7 @@ export function usePresence() {
 			if (!user?.id) return
 
 			Atom.batch(() => {
-				Atom.set(manualStatusAtom, {
+				return Atom.set(manualStatusAtom, {
 					status,
 					customMessage: customMessage ?? null,
 					previousStatus: previousManualStatusRef.current,

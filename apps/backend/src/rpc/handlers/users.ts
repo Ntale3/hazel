@@ -87,6 +87,28 @@ export const UserRpcLive = UserRpcs.toLayer(
 						}),
 					)
 					.pipe(withRemapDbErrors("User", "delete")),
+
+			"user.finalizeOnboarding": () =>
+				db
+					.transaction(
+						Effect.gen(function* () {
+							const currentUser = yield* CurrentUser.Context
+
+							// Update the current user's isOnboarded flag
+							const updatedUser = yield* UserRepo.update({
+								id: currentUser.id,
+								isOnboarded: true,
+							}).pipe(policyUse(UserPolicy.canUpdate(currentUser.id)))
+
+							const txid = yield* generateTransactionId()
+
+							return {
+								data: updatedUser,
+								transactionId: txid,
+							}
+						}),
+					)
+					.pipe(withRemapDbErrors("User", "update")),
 		}
 	}),
 )

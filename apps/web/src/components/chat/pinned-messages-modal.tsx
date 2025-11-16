@@ -1,9 +1,7 @@
 import { eq, useLiveQuery } from "@tanstack/react-db"
 import { format } from "date-fns"
-import { Button as PrimitiveButton } from "react-aria-components"
 import { messageCollection, pinnedMessageCollection, userCollection } from "~/db/collections"
 import { useChat } from "~/hooks/use-chat"
-import { cn } from "~/lib/utils"
 import IconClose from "../icons/icon-close"
 import IconPin from "../icons/icon-pin"
 import { Button } from "../ui/button"
@@ -55,7 +53,7 @@ export function PinnedMessagesModal() {
 
 	return (
 		<Popover>
-			<Button size="sm" intent="outline" aria-label="View pinned messages">
+			<Button size="sm" intent="plain" aria-label="View pinned messages">
 				<IconPin data-slot="icon" />
 			</Button>
 
