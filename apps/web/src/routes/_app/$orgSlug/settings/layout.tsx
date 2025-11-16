@@ -40,8 +40,8 @@ function RouteComponent() {
 	}, [currentTab])
 
 	return (
-		<main className="min-w-0 flex-1 bg-bg pt-8 pb-12">
-			<div className="flex flex-col gap-8">
+		<main className="w-full min-w-0 flex-1 bg-bg pt-8 pb-12">
+			<div className="flex w-full flex-col gap-8">
 				<div className="flex flex-col gap-5 px-4 lg:px-8">
 					{/* Page header simple with search */}
 					<div className="relative flex flex-col gap-5">
@@ -83,7 +83,7 @@ function RouteComponent() {
 					</div>
 
 					{/* Desktop tabs */}
-					<div className="-mx-4 -my-1 scrollbar-hide lg:-mx-8 flex overflow-auto px-4 py-1 lg:px-8">
+					<div className="-mx-4 -my-1 lg:-mx-8 flex w-full max-w-full overflow-scroll px-4 py-1 lg:px-8">
 						<Tabs
 							className="max-md:hidden"
 							selectedKey={selectedTab}
