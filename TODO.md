@@ -1,3 +1,9 @@
+# Today
+- Fix onboarding redirects 
+- Add local running version of electric + sequin + postgres and have it setup with one command
+
+
+
 # Project TODOs
 
 

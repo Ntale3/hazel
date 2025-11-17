@@ -117,6 +117,7 @@
         "@cloudflare/realtimekit-react": "^1.2.0",
         "@cloudflare/realtimekit-react-ui": "^1.0.6",
         "@effect-atom/atom-react": "catalog:effect",
+        "@effect/experimental": "catalog:effect",
         "@effect/platform": "catalog:effect",
         "@effect/platform-browser": "catalog:effect",
         "@effect/rpc": "catalog:effect",

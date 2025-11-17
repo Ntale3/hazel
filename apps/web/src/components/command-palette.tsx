@@ -86,26 +86,28 @@ export function CommandPalette(
 		props.onOpenChange?.(false)
 	}, [props])
 
-	// Reset navigation to initial page when modal opens
-	// Keep state when closing so it's preserved if reopened quickly
-	useEffect(() => {
-		if (props.isOpen) {
-			// Reset to initial page (defaults to home) when opening
-			setCommandPaletteState({
-				currentPage: props.initialPage || "home",
-				pageHistory: [],
-				inputValue: "",
-			})
+	const handleOpenChange = useCallback(
+		(open: boolean) => {
+			if (open) {
+				// Reset to initial page when opening
+				setCommandPaletteState({
+					currentPage: props.initialPage || "home",
+					pageHistory: [],
+					inputValue: "",
+				})
 
-			// Ensure search input gets focus when modal opens
-			setTimeout(() => {
-				const searchInput = document.querySelector('[role="dialog"] input') as HTMLInputElement
-				if (searchInput) {
-					searchInput.focus()
-				}
-			}, 100)
-		}
-	}, [props.isOpen, props.initialPage, setCommandPaletteState])
+				// Ensure search input gets focus when modal opens
+				setTimeout(() => {
+					const searchInput = document.querySelector('[role="dialog"] input') as HTMLInputElement
+					if (searchInput) {
+						searchInput.focus()
+					}
+				}, 100)
+			}
+			props.onOpenChange?.(open)
+		},
+		[props, setCommandPaletteState],
+	)
 
 	// Handle ESC key to go back
 	useEffect(() => {
@@ -138,7 +140,8 @@ export function CommandPalette(
 			shortcut="k"
 			inputValue={inputValue}
 			onInputChange={updateSearchInput}
-			{...props}
+			isOpen={props.isOpen}
+			onOpenChange={handleOpenChange}
 		>
 			<CommandMenuSearch placeholder={searchPlaceholder} />
 			<CommandMenuList>

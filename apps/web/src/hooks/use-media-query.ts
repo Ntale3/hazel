@@ -1,19 +1,13 @@
-import { useEffect, useState } from "react"
+import { useSyncExternalStore } from "react"
 
 export const useMediaQuery = (query: string) => {
-	const [value, setValue] = useState<boolean | undefined>()
-
-	useEffect(() => {
-		const onChange = (event: MediaQueryListEvent) => {
-			setValue(event.matches)
-		}
-
-		const result = matchMedia(query)
-		setValue(result.matches)
-		result.addEventListener("change", onChange)
-
-		return () => result.removeEventListener("change", onChange)
-	}, [query])
-
-	return value
+	return useSyncExternalStore(
+		(callback) => {
+			const result = matchMedia(query)
+			result.addEventListener("change", callback)
+			return () => result.removeEventListener("change", callback)
+		},
+		() => matchMedia(query).matches,
+		() => false, // Server-side snapshot
+	)
 }

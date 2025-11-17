@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import type { MessageWithPinned } from "~/atoms/chat-query-atoms"
 import { EmojiPickerDialog } from "~/components/emoji-picker"
 import { Button } from "~/components/ui/button"
@@ -27,7 +27,6 @@ export function MessageToolbar({ message, onMenuOpenChange }: MessageToolbarProp
 	const { addReaction } = useChat()
 	const { topEmojis, trackEmojiUsage } = useEmojiStats()
 	const [deleteModalOpen, setDeleteModalOpen] = useState(false)
-	const [dropdownOpen, _setDropdownOpen] = useState(false)
 
 	// Get message-specific handlers
 	const messageHandlers = useMessageHandlers(message)
@@ -62,11 +61,10 @@ export function MessageToolbar({ message, onMenuOpenChange }: MessageToolbarProp
 		messageHandlers.handlePin(isPinned, message.pinnedMessage?.id)
 	}
 
-	// Notify parent when any menu is open
-	useEffect(() => {
-		const isAnyMenuOpen = deleteModalOpen || dropdownOpen
-		onMenuOpenChange?.(isAnyMenuOpen)
-	}, [deleteModalOpen, dropdownOpen, onMenuOpenChange])
+	const handleDeleteModalChange = (open: boolean) => {
+		setDeleteModalOpen(open)
+		onMenuOpenChange?.(open)
+	}
 
 	return (
 		<div
@@ -140,7 +138,7 @@ export function MessageToolbar({ message, onMenuOpenChange }: MessageToolbarProp
 					<Button
 						size="sq-sm"
 						intent="plain"
-						onPress={() => setDeleteModalOpen(true)}
+						onPress={() => handleDeleteModalChange(true)}
 						aria-label="Delete message"
 						className="!p-1.5 text-danger hover:bg-danger/10"
 					>
@@ -186,7 +184,7 @@ export function MessageToolbar({ message, onMenuOpenChange }: MessageToolbarProp
 			{/* Delete Confirmation Modal */}
 			<DeleteMessageModal
 				isOpen={deleteModalOpen}
-				onOpenChange={setDeleteModalOpen}
+				onOpenChange={handleDeleteModalChange}
 				onConfirm={messageHandlers.handleDelete}
 			/>
 		</div>

@@ -5,7 +5,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useMachine } from "@xstate/react"
 import { Exit } from "effect"
 import { AnimatePresence, motion } from "motion/react"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { fromPromise } from "xstate"
 import { createInvitationMutation } from "~/atoms/invitation-atoms"
 import {
@@ -66,8 +66,19 @@ function RouteComponent() {
 	const organization = userOrganizations?.org
 	const organizationMemberId = userOrganizations?.member.id
 
-	// Provide actor implementations with access to RPC functions
+	// Provide actor implementations and actions with access to RPC functions and navigation
 	const machineWithActors = onboardingMachine.provide({
+		actions: {
+			navigateToOrg: ({ context }) => {
+				const slug = context.orgSlug || context.organization?.slug
+				if (slug) {
+					navigate({
+						to: "/$orgSlug",
+						params: { orgSlug: slug },
+					})
+				}
+			},
+		},
 		actors: {
 			handleOrgSetup: fromPromise(
 				async ({
@@ -211,19 +222,6 @@ function RouteComponent() {
 		},
 	})
 
-	// Navigate when onboarding is completed
-	useEffect(() => {
-		if (state.matches("completed")) {
-			const slug = state.context.orgSlug || state.context.organization?.slug
-			if (slug) {
-				navigate({
-					to: "/$orgSlug",
-					params: { orgSlug: slug },
-				})
-			}
-		}
-	}, [state, navigate])
-
 	// Determine if this is a creator or invited user
 	const isCreator = !orgId || !organization?.slug
 
@@ -311,7 +309,7 @@ function RouteComponent() {
 							onContinue={async (data) => {
 								// Save user profile info
 								if (user?.id) {
-									await updateUser({
+									const result = await updateUser({
 										payload: {
 											id: user.id,
 											firstName: data.firstName,
@@ -319,6 +317,11 @@ function RouteComponent() {
 										},
 										reactivityKeys: ["currentUser"],
 									})
+
+									if (!Exit.isSuccess(result)) {
+										console.error("Failed to update user profile:", result.cause)
+										return
+									}
 								}
 								sendWithDirection({ type: "PROFILE_INFO_CONTINUE", data })
 							}}

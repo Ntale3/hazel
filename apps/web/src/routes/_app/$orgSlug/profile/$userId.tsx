@@ -2,13 +2,12 @@ import { Result, useAtomValue } from "@effect-atom/atom-react"
 import type { UserId } from "@hazel/schema"
 import { createFileRoute } from "@tanstack/react-router"
 import { type } from "arktype"
-import { useEffect } from "react"
 import { toast } from "sonner"
 import { userWithPresenceAtomFamily } from "~/atoms/message-atoms"
 import IconEnvelope from "~/components/icons/icon-envelope"
 import { Avatar } from "~/components/ui/avatar"
 import { Button } from "~/components/ui/button"
-import { Description, FieldError, Label } from "~/components/ui/field"
+import { FieldError, Label } from "~/components/ui/field"
 import { Input, InputGroup } from "~/components/ui/input"
 import { SectionHeader } from "~/components/ui/section-header"
 import { SectionLabel } from "~/components/ui/section-label"
@@ -43,8 +42,8 @@ function ProfilePage() {
 
 	const form = useAppForm({
 		defaultValues: {
-			firstName: "",
-			lastName: "",
+			firstName: user?.firstName || "",
+			lastName: user?.lastName || "",
 		} as ProfileFormData,
 		validators: {
 			onChange: profileSchema,
@@ -64,13 +63,6 @@ function ProfilePage() {
 			}
 		},
 	})
-
-	useEffect(() => {
-		if (user) {
-			form.setFieldValue("firstName", user.firstName || "")
-			form.setFieldValue("lastName", user.lastName || "")
-		}
-	}, [user, form])
 
 	const getStatusColor = (status?: string) => {
 		switch (status) {
@@ -162,6 +154,7 @@ function ProfilePage() {
 	// Edit mode - editable form for own profile
 	return (
 		<form
+			key={userId}
 			className="flex flex-col gap-6 px-4 py-6 lg:px-8"
 			onSubmit={(e) => {
 				e.preventDefault()

@@ -68,6 +68,8 @@ export function useNotificationSound() {
 	useEffect(() => {
 		if (!audioElement || isPrimed) return
 
+		let mounted = true
+
 		const primeAudio = async () => {
 			try {
 				// Play at 0 volume then pause to satisfy autoplay policy
@@ -78,7 +80,10 @@ export function useNotificationSound() {
 				audioElement.pause()
 				audioElement.volume = originalVolume
 
-				setIsPrimed(true)
+				// Only update state if component is still mounted
+				if (mounted) {
+					setIsPrimed(true)
+				}
 			} catch (error) {
 				console.warn("Audio not primed yet:", error)
 			}
@@ -86,7 +91,10 @@ export function useNotificationSound() {
 
 		document.addEventListener("click", primeAudio, { once: true })
 
-		return () => document.removeEventListener("click", primeAudio)
+		return () => {
+			mounted = false
+			document.removeEventListener("click", primeAudio)
+		}
 	}, [audioElement, isPrimed])
 
 	const playSound = useCallback(async () => {

@@ -1,6 +1,6 @@
 import { useAtomValue } from "@effect-atom/atom-react"
 import type { OrganizationMemberId, UserId } from "@hazel/schema"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useState } from "react"
 import { toast } from "sonner"
 import { closeModal, modalAtomFamily } from "~/atoms/modal-atoms"
 import { Button } from "~/components/ui/button"
@@ -31,13 +31,6 @@ export function ChangeRoleModal() {
 
 	const [selectedRole, setSelectedRole] = useState(metadata?.role ?? "member")
 	const [isSubmitting, setIsSubmitting] = useState(false)
-
-	// Reset selected role when modal opens with new metadata
-	useEffect(() => {
-		if (modalState.isOpen && metadata?.role) {
-			setSelectedRole(metadata.role)
-		}
-	}, [modalState.isOpen, metadata?.role])
 
 	const handleClose = useCallback(() => {
 		closeModal("change-role")
@@ -87,6 +80,7 @@ export function ChangeRoleModal() {
 	return (
 		<Modal>
 			<ModalContent
+				key={metadata.userId}
 				isOpen={modalState.isOpen}
 				onOpenChange={(open) => !open && handleClose()}
 				size="md"

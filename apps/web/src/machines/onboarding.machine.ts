@@ -117,6 +117,9 @@ export const onboardingMachine = setup({
 		},
 	},
 	actions: {
+		navigateToOrg: () => {
+			// This action will be provided by the component with navigation logic
+		},
 		setOrgData: assign({
 			orgSlug: ({ event }) => {
 				if (event.type === "ORG_SETUP_CONTINUE") {
@@ -423,6 +426,7 @@ export const onboardingMachine = setup({
 		},
 		completed: {
 			type: "final",
+			entry: "navigateToOrg",
 		},
 	},
 })

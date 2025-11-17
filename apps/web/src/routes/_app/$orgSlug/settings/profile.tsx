@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { type } from "arktype"
-import { useEffect } from "react"
 import { toast } from "sonner"
 import IconEnvelope from "~/components/icons/icon-envelope"
 import { Button } from "~/components/ui/button"
@@ -29,8 +28,8 @@ function ProfileSettings() {
 
 	const form = useAppForm({
 		defaultValues: {
-			firstName: "",
-			lastName: "",
+			firstName: user?.firstName || "",
+			lastName: user?.lastName || "",
 		} as ProfileFormData,
 		validators: {
 			onChange: profileSchema,
@@ -51,15 +50,9 @@ function ProfileSettings() {
 		},
 	})
 
-	useEffect(() => {
-		if (user) {
-			form.setFieldValue("firstName", user.firstName || "")
-			form.setFieldValue("lastName", user.lastName || "")
-		}
-	}, [user, form])
-
 	return (
 		<form
+			key={user?.id}
 			className="flex flex-col gap-6 px-4 lg:px-8"
 			onSubmit={(e) => {
 				e.preventDefault()

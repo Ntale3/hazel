@@ -1,7 +1,7 @@
 import type { ChannelMember, User } from "@hazel/domain/models"
 import type { ChannelId } from "@hazel/schema"
 import { eq, useLiveQuery } from "@tanstack/react-db"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useReducer } from "react"
 import { channelMemberCollection, typingIndicatorCollection, userCollection } from "~/db/collections"
 import { useAuth } from "~/lib/auth"
 
@@ -76,12 +76,11 @@ export function useTypingIndicators({ channelId, staleThreshold = 5000 }: UseTyp
 			.filter((tu): tu is TypingUser => tu !== null)
 	}, [typingIndicatorsData, channelMembersData, usersData, currentChannelMember, staleThreshold])
 
-	// Auto-refresh to update typing indicators
-	const [, setRefreshTick] = useState(0)
+	// Periodically re-render to update staleness calculations
+	// Using useReducer to force re-renders is more semantic than updating dummy state
+	const [, forceUpdate] = useReducer((x: number) => x + 1, 0)
 	useEffect(() => {
-		const interval = setInterval(() => {
-			setRefreshTick((tick) => tick + 1)
-		}, 2000)
+		const interval = setInterval(forceUpdate, 2000)
 		return () => clearInterval(interval)
 	}, [])
 
