@@ -2,7 +2,7 @@
 
 import { ChevronDownIcon } from "@heroicons/react/24/solid"
 import { createLink } from "@tanstack/react-router"
-import { createContext, use, useCallback, useEffect, useMemo, useState } from "react"
+import { createContext, use, useCallback, useMemo, useState } from "react"
 import type {
 	ButtonProps,
 	DisclosureGroupProps,
@@ -25,6 +25,7 @@ import {
 } from "react-aria-components"
 import { twJoin, twMerge } from "tailwind-merge"
 import { SheetContent } from "~/components/ui/sheet"
+import { useKeyboardShortcut } from "~/hooks/use-keyboard-shortcut"
 import { useMediaQuery } from "~/hooks/use-media-query"
 import { cx } from "~/lib/primitive"
 import { Button } from "./button"
@@ -100,17 +101,8 @@ const SidebarProvider = ({
 		return isMobile ? setOpenMobile((open) => !open) : setOpen((open) => !open)
 	}, [isMobile, setOpen])
 
-	useEffect(() => {
-		const handleKeyDown = (event: KeyboardEvent) => {
-			if (event.key === shortcut && (event.metaKey || event.ctrlKey)) {
-				event.preventDefault()
-				toggleSidebar()
-			}
-		}
-
-		window.addEventListener("keydown", handleKeyDown)
-		return () => window.removeEventListener("keydown", handleKeyDown)
-	}, [toggleSidebar, shortcut])
+	// Keyboard shortcut to toggle sidebar (Ctrl/Cmd + shortcut key)
+	useKeyboardShortcut(shortcut, toggleSidebar, { ctrl: true, meta: true })
 
 	const state = open ? "expanded" : "collapsed"
 

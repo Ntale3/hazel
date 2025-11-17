@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, use, useEffect } from "react"
+import { createContext, use } from "react"
 import type {
 	AutocompleteProps,
 	CollectionRenderer,
@@ -28,6 +28,7 @@ import {
 } from "react-aria-components"
 import { twJoin, twMerge } from "tailwind-merge"
 import IconMagnifier from "~/components/icons/icon-magnifier-3"
+import { useKeyboardShortcut } from "~/hooks/use-keyboard-shortcut"
 import { cx } from "~/lib/primitive"
 import { DropdownKeyboard } from "./dropdown"
 import { Loader } from "./loader"
@@ -82,18 +83,14 @@ const CommandMenu = ({
 }: CommandMenuProps) => {
 	const { contains } = useFilter({ sensitivity: "base" })
 	const filter = (textValue: string, inputValue: string) => contains(textValue, inputValue)
-	useEffect(() => {
-		if (!shortcut) return
 
-		const onKeyDown = (e: KeyboardEvent) => {
-			if (e.key === shortcut && (e.metaKey || e.ctrlKey)) {
-				onOpenChange?.(true)
-			}
-		}
+	// Keyboard shortcut to open command menu (Ctrl/Cmd + shortcut key)
+	useKeyboardShortcut(
+		shortcut || "",
+		() => onOpenChange?.(true),
+		{ ctrl: true, meta: true, when: !!shortcut }
+	)
 
-		document.addEventListener("keydown", onKeyDown)
-		return () => document.removeEventListener("keydown", onKeyDown)
-	}, [shortcut, onOpenChange])
 	return (
 		<CommandMenuContext value={{ isPending: isPending, escapeButton: escapeButton }}>
 			<ModalContext value={{ isOpen: props.isOpen, onOpenChange: onOpenChange }}>

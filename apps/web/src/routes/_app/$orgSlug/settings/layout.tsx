@@ -1,5 +1,4 @@
 import { createFileRoute, Outlet, useLocation, useNavigate, useParams } from "@tanstack/react-router"
-import { useEffect, useState } from "react"
 import IconMagnifier from "~/components/icons/icon-magnifier-3"
 import { Input, InputGroup } from "~/components/ui/input"
 import { Tab, TabList, Tabs } from "~/components/ui/tabs"
@@ -26,18 +25,12 @@ function RouteComponent() {
 	const { orgSlug } = useParams({ from: "/_app/$orgSlug" })
 
 	// Extract the current tab from the pathname
+	// No need for state - just derive from the URL directly
 	const pathSegments = location.pathname.split("/")
-	const currentTab =
+	const selectedTab =
 		pathSegments[pathSegments.length - 1] === "settings"
 			? "appearance" // Default to appearance when at /_app/settings
 			: pathSegments[pathSegments.length - 1]
-
-	const [selectedTab, setSelectedTab] = useState<string>(currentTab!)
-
-	// Update selected tab when location changes
-	useEffect(() => {
-		setSelectedTab(currentTab!)
-	}, [currentTab])
 
 	return (
 		<main className="w-full min-w-0 flex-1 bg-bg pt-8 pb-12">

@@ -137,6 +137,8 @@ export function MentionAutocomplete({ editor, search, onSelect }: MentionAutocom
 	})
 
 	// Auto-select first item when menu opens or items change
+	// Note: This effect manages keyboard navigation state and must run separately
+	// from focus management to ensure proper Ariakit combobox behavior
 	useEffect(() => {
 		if (filteredOptions.length > 0 && !combobox.getState().activeId) {
 			combobox.setActiveId(combobox.first())
@@ -144,6 +146,8 @@ export function MentionAutocomplete({ editor, search, onSelect }: MentionAutocom
 	}, [combobox, filteredOptions])
 
 	// Focus the hidden combobox input when menu opens
+	// Note: This effect manages DOM focus separately from state to ensure
+	// the combobox captures keyboard events for navigation
 	useEffect(() => {
 		if (filteredOptions.length > 0) {
 			comboboxInputRef.current?.focus()
@@ -151,6 +155,10 @@ export function MentionAutocomplete({ editor, search, onSelect }: MentionAutocom
 	}, [filteredOptions.length])
 
 	// Update anchor position based on cursor location
+	// Note: This effect manages positioning and must stay separate as it:
+	// 1. Converts Slate ranges to DOM coordinates
+	// 2. Updates both Ariakit anchor state and DOM positioning
+	// 3. Handles error cases where ranges may be invalid
 	useEffect(() => {
 		const { target } = editor.mentionState
 

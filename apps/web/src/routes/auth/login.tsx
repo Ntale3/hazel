@@ -19,13 +19,23 @@ function LoginPage() {
 	const [isRedirecting, setIsRedirecting] = useState(false)
 
 	useEffect(() => {
+		// Cleanup flag to prevent race conditions
+		let isCleanedUp = false
+
 		if (!user && !isLoading && !isRedirecting && !error) {
 			// Attempt to login
 			setIsRedirecting(true)
 			login({ returnTo: `${location.origin}${search.returnTo}` || location.href }).catch((err) => {
-				setError(err.message || "Failed to initiate login")
-				setIsRedirecting(false)
+				// Only update state if component is still mounted
+				if (!isCleanedUp) {
+					setError(err.message || "Failed to initiate login")
+					setIsRedirecting(false)
+				}
 			})
+		}
+
+		return () => {
+			isCleanedUp = true
 		}
 	}, [user, isLoading, login, search.returnTo, isRedirecting, error])
 

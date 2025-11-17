@@ -13,6 +13,7 @@ import {
 	Slate,
 	withReact,
 } from "slate-react"
+import { useGlobalKeyboardFocus } from "~/hooks/use-global-keyboard-focus"
 import { cx } from "~/utils/cx"
 import { CodeBlockElement } from "./code-block-element"
 import { MentionAutocomplete } from "./mention-autocomplete"
@@ -590,45 +591,9 @@ export const SlateMessageEditor = forwardRef<SlateMessageEditorRef, SlateMessage
 		}
 
 		// Global keydown listener to focus editor on typing
-		useEffect(() => {
-			const handleGlobalKeyDown = (event: KeyboardEvent) => {
-				const target = event.target as HTMLElement
-
-				// Check if there's an actually visible/open dialog
-				const hasDialog = !!document.querySelector(
-					'[role="dialog"]:not([data-react-aria-hidden="true"] *)',
-				)
-
-				if (
-					target.tagName === "INPUT" ||
-					target.tagName === "TEXTAREA" ||
-					target.contentEditable === "true"
-				) {
-					return
-				}
-
-				if (hasDialog) {
-					return
-				}
-
-				if (event.ctrlKey || event.altKey || event.metaKey) {
-					return
-				}
-
-				const isPrintableChar = event.key.length === 1
-
-				if (isPrintableChar) {
-					event.preventDefault()
-					focusAndInsertTextInternal(event.key)
-				}
-			}
-
-			document.addEventListener("keydown", handleGlobalKeyDown)
-
-			return () => {
-				document.removeEventListener("keydown", handleGlobalKeyDown)
-			}
-		}, [focusAndInsertTextInternal])
+		useGlobalKeyboardFocus({
+			onInsertText: focusAndInsertTextInternal,
+		})
 
 		// Custom decorator that handles both markdown and code syntax highlighting
 		const decorate = useCallback(

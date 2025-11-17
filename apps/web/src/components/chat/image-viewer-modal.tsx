@@ -1,9 +1,10 @@
 import type { Attachment, User } from "@hazel/domain/models"
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/solid"
 import useEmblaCarousel from "embla-carousel-react"
-import { useCallback, useEffect, useState } from "react"
 import { createPortal } from "react-dom"
 import { toast } from "sonner"
+import { useEmblaCarouselSync } from "~/hooks/use-embla-carousel-sync"
+import { useKeyboardShortcut } from "~/hooks/use-keyboard-shortcut"
 import IconClose from "~/components/icons/icon-close"
 import IconCopy from "~/components/icons/icon-copy"
 import { Avatar } from "~/components/ui/avatar/avatar"
@@ -41,75 +42,26 @@ export function ImageViewerModal({
 	author,
 	createdAt,
 }: ImageViewerModalProps) {
-	const [selectedIndex, setSelectedIndex] = useState(initialIndex)
 	const [emblaRef, emblaApi] = useEmblaCarousel({ startIndex: initialIndex, loop: false })
 	const [emblaThumbsRef, emblaThumbsApi] = useEmblaCarousel({
 		containScroll: "keepSnaps",
 		dragFree: true,
 	})
 
+	// Manage carousel state and synchronization
+	const { selectedIndex, scrollPrev, scrollNext, scrollTo } = useEmblaCarouselSync({
+		mainApi: emblaApi,
+		thumbsApi: emblaThumbsApi,
+		initialIndex,
+		shouldReset: isOpen,
+	})
+
 	const publicUrl = import.meta.env.VITE_R2_PUBLIC_URL || "https://cdn.hazel.sh"
 
-	// Update selected index when embla scrolls
-	useEffect(() => {
-		if (!emblaApi) return
-
-		const onSelect = () => {
-			setSelectedIndex(emblaApi.selectedScrollSnap())
-		}
-
-		emblaApi.on("select", onSelect)
-		onSelect()
-
-		return () => {
-			emblaApi.off("select", onSelect)
-		}
-	}, [emblaApi])
-
-	// Sync thumbnail carousel with main carousel
-	useEffect(() => {
-		if (!emblaApi || !emblaThumbsApi) return
-
-		const onSelect = () => {
-			const index = emblaApi.selectedScrollSnap()
-			emblaThumbsApi.scrollTo(index)
-		}
-
-		emblaApi.on("select", onSelect)
-		onSelect()
-	}, [emblaApi, emblaThumbsApi])
-
-	// Keyboard navigation
-	useEffect(() => {
-		if (!isOpen) return
-
-		const handleKeyDown = (e: KeyboardEvent) => {
-			if (e.key === "Escape") {
-				onOpenChange(false)
-			} else if (e.key === "ArrowLeft") {
-				e.preventDefault()
-				emblaApi?.scrollPrev()
-			} else if (e.key === "ArrowRight") {
-				e.preventDefault()
-				emblaApi?.scrollNext()
-			}
-		}
-
-		window.addEventListener("keydown", handleKeyDown)
-		return () => window.removeEventListener("keydown", handleKeyDown)
-	}, [isOpen, emblaApi, onOpenChange])
-
-	// Reset to initial index when modal opens
-	useEffect(() => {
-		if (isOpen && emblaApi) {
-			emblaApi.scrollTo(initialIndex, true)
-			setSelectedIndex(initialIndex)
-		}
-	}, [isOpen, initialIndex, emblaApi])
-
-	const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi])
-	const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi])
-	const scrollTo = useCallback((index: number) => emblaApi?.scrollTo(index), [emblaApi])
+	// Keyboard navigation shortcuts
+	useKeyboardShortcut("Escape", () => onOpenChange(false), { when: isOpen })
+	useKeyboardShortcut("ArrowLeft", scrollPrev, { when: isOpen })
+	useKeyboardShortcut("ArrowRight", scrollNext, { when: isOpen })
 
 	const currentImage = images[selectedIndex]
 	const currentImageUrl = currentImage
