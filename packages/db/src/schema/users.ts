@@ -1,5 +1,5 @@
-import { boolean, index, jsonb, pgEnum, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core"
 import type { UserId } from "@hazel/schema"
+import { boolean, index, jsonb, pgEnum, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core"
 
 export const userTypeEnum = pgEnum("user_type", ["user", "machine"])
 

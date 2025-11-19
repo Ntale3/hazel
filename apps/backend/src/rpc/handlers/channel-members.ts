@@ -98,9 +98,7 @@ export const ChannelMemberRpcLive = ChannelMemberRpcs.toLayer(
 									yield* ChannelMemberRepo.update({
 										id: memberOption.value.id,
 										notificationCount: 0,
-									}).pipe(
-										policyUse(ChannelMemberPolicy.canUpdate(memberOption.value.id)),
-									)
+									}).pipe(policyUse(ChannelMemberPolicy.canUpdate(memberOption.value.id)))
 								}
 
 								const txid = yield* generateTransactionId()

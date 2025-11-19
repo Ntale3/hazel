@@ -1,6 +1,6 @@
 import { and, Database, eq, isNull, ModelRepository, schema, type TransactionClient } from "@hazel/db"
-import { OrganizationMember } from "@hazel/domain/models"
 import { type OrganizationId, type OrganizationMemberId, policyRequire, type UserId } from "@hazel/domain"
+import { OrganizationMember } from "@hazel/domain/models"
 import { Effect, Option, type Schema } from "effect"
 import { DatabaseLive } from "../services/database"
 
@@ -158,11 +158,7 @@ export class OrganizationMemberRepo extends Effect.Service<OrganizationMemberRep
 					policyRequire("OrganizationMember", "delete"),
 				)({ organizationId, userId }, tx)
 
-			const updateMetadata = (
-				id: OrganizationMemberId,
-				metadata: Record<string, any>,
-				tx?: TxFn,
-			) =>
+			const updateMetadata = (id: OrganizationMemberId, metadata: Record<string, any>, tx?: TxFn) =>
 				db
 					.makeQuery(
 						(execute, data: { id: OrganizationMemberId; metadata: Record<string, any> }) =>

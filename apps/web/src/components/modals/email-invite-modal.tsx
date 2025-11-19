@@ -95,9 +95,7 @@ export const EmailInviteModal = ({
 			const { successCount, errorCount } = result.value
 
 			if (successCount > 0 && errorCount === 0) {
-				toast.success(
-					`Successfully sent ${successCount} invitation${successCount > 1 ? "s" : ""}`,
-				)
+				toast.success(`Successfully sent ${successCount} invitation${successCount > 1 ? "s" : ""}`)
 				onOpenChange(false)
 				setInvites([{ id: "1", email: "", role: "member" }])
 			} else if (successCount > 0 && errorCount > 0) {

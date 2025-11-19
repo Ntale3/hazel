@@ -85,11 +85,11 @@ const CommandMenu = ({
 	const filter = (textValue: string, inputValue: string) => contains(textValue, inputValue)
 
 	// Keyboard shortcut to open command menu (Ctrl/Cmd + shortcut key)
-	useKeyboardShortcut(
-		shortcut || "",
-		() => onOpenChange?.(true),
-		{ ctrl: true, meta: true, when: !!shortcut }
-	)
+	useKeyboardShortcut(shortcut || "", () => onOpenChange?.(true), {
+		ctrl: true,
+		meta: true,
+		when: !!shortcut,
+	})
 
 	return (
 		<CommandMenuContext value={{ isPending: isPending, escapeButton: escapeButton }}>

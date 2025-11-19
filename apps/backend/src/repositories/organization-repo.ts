@@ -1,10 +1,10 @@
 import { and, Database, eq, isNull, ModelRepository, schema, type TransactionClient } from "@hazel/db"
+import { type OrganizationId, policyRequire, type UserId, withSystemActor } from "@hazel/domain"
 import { Organization } from "@hazel/domain/models"
-import { type OrganizationId, type UserId, policyRequire, withSystemActor } from "@hazel/domain"
 import { Effect, Option } from "effect"
+import { DatabaseLive } from "../services/database"
 import { ChannelMemberRepo } from "./channel-member-repo"
 import { ChannelRepo } from "./channel-repo"
-import { DatabaseLive } from "../services/database"
 
 type TxFn = <T>(fn: (client: TransactionClient) => Promise<T>) => Effect.Effect<T, any, never>
 
@@ -78,7 +78,10 @@ export class OrganizationRepo extends Effect.Service<OrganizationRepo>()("Organi
 						parentChannelId: null,
 						deletedAt: null,
 					})
-					.pipe(Effect.map((res) => res[0]!), withSystemActor)
+					.pipe(
+						Effect.map((res) => res[0]!),
+						withSystemActor,
+					)
 
 				// Add creator as channel member
 				yield* channelMemberRepo

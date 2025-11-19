@@ -75,10 +75,8 @@ export const OrganizationMemberRpcLive = OrganizationMemberRpcs.toLayer(
 				db
 					.transaction(
 						Effect.gen(function* () {
-							const updatedOrganizationMemberOption = yield* OrganizationMemberRepo.updateMetadata(
-								id,
-								metadata,
-							)
+							const updatedOrganizationMemberOption =
+								yield* OrganizationMemberRepo.updateMetadata(id, metadata)
 
 							const updatedOrganizationMember = yield* Option.match(
 								updatedOrganizationMemberOption,

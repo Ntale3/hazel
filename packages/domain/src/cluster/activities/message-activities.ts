@@ -1,5 +1,12 @@
+import {
+	ChannelId,
+	ChannelMemberId,
+	MessageId,
+	NotificationId,
+	OrganizationMemberId,
+	UserId,
+} from "@hazel/schema"
 import { Schema } from "effect"
-import { ChannelId, ChannelMemberId, MessageId, NotificationId, OrganizationMemberId, UserId } from "@hazel/schema"
 
 // Channel member with notification preferences
 export const ChannelMemberForNotification = Schema.Struct({

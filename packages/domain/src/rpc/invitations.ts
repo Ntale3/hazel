@@ -31,11 +31,13 @@ export class InvitationBatchResult extends Schema.Class<InvitationBatchResult>("
  * Response schema for batch invitation operations.
  * Contains results for each invite and aggregate counts.
  */
-export class InvitationBatchResponse extends Schema.Class<InvitationBatchResponse>("InvitationBatchResponse")({
-	results: Schema.Array(InvitationBatchResult),
-	successCount: Schema.Number,
-	errorCount: Schema.Number,
-}) {}
+export class InvitationBatchResponse extends Schema.Class<InvitationBatchResponse>("InvitationBatchResponse")(
+	{
+		results: Schema.Array(InvitationBatchResult),
+		successCount: Schema.Number,
+		errorCount: Schema.Number,
+	},
+) {}
 
 /**
  * Error thrown when an invitation is not found.

@@ -1,5 +1,5 @@
-import * as BrowserSocket from "@effect/platform-browser/BrowserSocket"
 import { Reactivity } from "@effect/experimental"
+import * as BrowserSocket from "@effect/platform-browser/BrowserSocket"
 import { RpcClient as RpcClientBuilder, RpcSerialization } from "@effect/rpc"
 import { AtomRpc } from "@effect-atom/atom-react"
 import { AuthMiddlewareClientLive } from "@hazel/backend/rpc/middleware/client"

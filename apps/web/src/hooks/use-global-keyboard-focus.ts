@@ -31,7 +31,7 @@ export function useGlobalKeyboardFocus(options: UseGlobalKeyboardFocusOptions) {
 	const { onInsertText, when = true } = options
 
 	// Wrap onInsertText in useCallback to prevent recreating the effect unnecessarily
-	const handleInsertText = useCallback(onInsertText, [onInsertText])
+	const handleInsertText = useCallback(onInsertText, [])
 
 	useEffect(() => {
 		if (!when) return

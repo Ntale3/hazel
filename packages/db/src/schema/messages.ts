@@ -1,5 +1,5 @@
-import { index, pgTable, text, timestamp, unique, uuid, varchar } from "drizzle-orm/pg-core"
 import type { ChannelId, MessageId, MessageReactionId, UserId } from "@hazel/schema"
+import { index, pgTable, text, timestamp, unique, uuid, varchar } from "drizzle-orm/pg-core"
 
 // Messages table
 export const messagesTable = pgTable(

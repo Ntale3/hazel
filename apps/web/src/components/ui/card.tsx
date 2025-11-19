@@ -11,17 +11,14 @@ interface CardTitleProps extends HTMLAttributes<HTMLHeadingElement> {}
 
 const CardTitle = ({ className, ...props }: CardTitleProps) => {
 	return (
-		<h2
-			className={twMerge("text-2xl font-semibold leading-none tracking-tight", className)}
-			{...props}
-		/>
+		<h2 className={twMerge("font-semibold text-2xl leading-none tracking-tight", className)} {...props} />
 	)
 }
 
 interface CardDescriptionProps extends HTMLAttributes<HTMLParagraphElement> {}
 
 const CardDescription = ({ className, ...props }: CardDescriptionProps) => {
-	return <p className={twMerge("text-sm text-muted-fg", className)} {...props} />
+	return <p className={twMerge("text-muted-fg text-sm", className)} {...props} />
 }
 
 export { CardHeader, CardTitle, CardDescription }

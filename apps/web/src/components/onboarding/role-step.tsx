@@ -10,12 +10,7 @@ import {
 } from "@heroicons/react/24/outline"
 import { useState } from "react"
 import { CardDescription, CardHeader, CardTitle } from "~/components/ui/card"
-import {
-	ChoiceBox,
-	ChoiceBoxDescription,
-	ChoiceBoxItem,
-	ChoiceBoxLabel,
-} from "~/components/ui/choice-box"
+import { ChoiceBox, ChoiceBoxDescription, ChoiceBoxItem, ChoiceBoxLabel } from "~/components/ui/choice-box"
 import { OnboardingNavigation } from "./onboarding-navigation"
 
 const roles = [
@@ -129,11 +124,7 @@ export function RoleStep({ onBack, onContinue, defaultSelection }: RoleStepProps
 				</ChoiceBox>
 			</div>
 
-			<OnboardingNavigation
-				onBack={onBack}
-				onContinue={handleContinue}
-				canContinue={!!selected}
-			/>
+			<OnboardingNavigation onBack={onBack} onContinue={handleContinue} canContinue={!!selected} />
 		</div>
 	)
 }

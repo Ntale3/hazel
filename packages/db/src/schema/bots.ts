@@ -1,5 +1,5 @@
-import { boolean, index, integer, jsonb, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core"
 import type { BotId, UserId } from "@hazel/schema"
+import { boolean, index, integer, jsonb, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core"
 
 export const botsTable = pgTable(
 	"bots",

@@ -1,5 +1,5 @@
-import { bigint, index, pgTable, uniqueIndex, uuid } from "drizzle-orm/pg-core"
 import type { ChannelId, ChannelMemberId, TypingIndicatorId } from "@hazel/schema"
+import { bigint, index, pgTable, uniqueIndex, uuid } from "drizzle-orm/pg-core"
 
 // Typing indicators table - ephemeral data for real-time typing status
 export const typingIndicatorsTable = pgTable(

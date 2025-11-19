@@ -1,5 +1,5 @@
-import { index, integer, pgEnum, pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core"
 import type { AttachmentId, ChannelId, MessageId, OrganizationId, UserId } from "@hazel/schema"
+import { index, integer, pgEnum, pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core"
 
 // Attachment status
 export const attachmentStatusEnum = pgEnum("attachment_status", ["uploading", "complete", "failed"])

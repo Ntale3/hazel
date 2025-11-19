@@ -89,7 +89,9 @@ export const onboardingMachine = setup({
 	},
 	actors: {
 		handleOrgSetup: fromPromise(
-			async (_: { input: { orgId?: OrganizationId; createdOrgId?: OrganizationId; name: string; slug: string } }) => {
+			async (_: {
+				input: { orgId?: OrganizationId; createdOrgId?: OrganizationId; name: string; slug: string }
+			}) => {
 				return {} as { orgId: OrganizationId }
 			},
 		),
