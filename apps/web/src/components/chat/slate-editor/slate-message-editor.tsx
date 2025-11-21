@@ -21,7 +21,6 @@ import { MentionElement } from "./mention-element"
 import { MentionLeaf } from "./mention-leaf"
 import { decorateCodeBlock } from "./slate-code-decorator"
 import { decorateMarkdown } from "./slate-markdown-decorators"
-import { isCodeBlockElement } from "./types"
 import {
 	type CustomDescendant,
 	type CustomElement,
@@ -30,6 +29,7 @@ import {
 	serializeToMarkdown,
 } from "./slate-markdown-serializer"
 import { insertMention, type MentionEditor, withMentions } from "./slate-mention-plugin"
+import { isCodeBlockElement } from "./types"
 
 // Extend the editor type with all plugins
 type CustomEditor = MentionEditor

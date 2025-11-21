@@ -1,6 +1,6 @@
 import { useState } from "react"
-import type { RenderElementProps } from "slate-react"
 import type { Text } from "slate"
+import type { RenderElementProps } from "slate-react"
 import IconCheck from "~/components/icons/icon-check"
 import IconCopy from "~/components/icons/icon-copy"
 import type { CodeBlockElement as CodeBlockElementType } from "./types"

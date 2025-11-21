@@ -2,7 +2,7 @@
 - Electric Proxy Table Queries for Bots 
 
 Deploy production
-- make webhooks work (required XD)
+- make webhooks work (required)
 
 
 
@@ -13,12 +13,10 @@ Deploy production
 
 # Before release
 - Test Invite Flow
-- Electric proxy
 
 - Migrate the missing icons to nucleo
 
 - setup webhooks for workos
-- connect app.hazel.sh to production
 
 
 

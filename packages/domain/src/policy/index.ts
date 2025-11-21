@@ -41,7 +41,11 @@ export const policyCompose =
 	<Actor2 extends AuthorizedActor<any, any>, E2, R2>(
 		self: Effect.Effect<Actor2, E2, R2>,
 	): Effect.Effect<Actor | Actor2, E | UnauthorizedError, R | CurrentUser.Context> =>
-		Effect.zipRight(self, that) as Effect.Effect<Actor | Actor2, E | UnauthorizedError, R | CurrentUser.Context>
+		Effect.zipRight(self, that) as Effect.Effect<
+			Actor | Actor2,
+			E | UnauthorizedError,
+			R | CurrentUser.Context
+		>
 
 export const policyUse =
 	<Actor extends AuthorizedActor<any, any>, E, R>(policy: Effect.Effect<Actor, E, R>) =>

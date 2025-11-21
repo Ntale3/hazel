@@ -33,8 +33,8 @@ function RouteComponent() {
 			: pathSegments[pathSegments.length - 1]
 
 	return (
-		<main className="w-full min-w-0 flex-1 bg-bg pt-8 pb-12">
-			<div className="flex w-full flex-col gap-8">
+		<main className="h-full w-full min-w-0 bg-bg">
+			<div className="flex h-full min-h-0 w-full flex-col gap-8 overflow-y-auto pt-8 pb-12">
 				<div className="flex flex-col gap-5 px-4 lg:px-8">
 					{/* Page header simple with search */}
 					<div className="relative flex flex-col gap-5">

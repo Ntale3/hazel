@@ -1,8 +1,8 @@
 "use client"
 
-import type { RenderLeafProps } from "slate-react"
 import type { Text } from "slate"
-import { LINK_PATTERN, type MarkdownRange, MarkdownLeaf } from "./slate-markdown-decorators"
+import type { RenderLeafProps } from "slate-react"
+import { LINK_PATTERN, MarkdownLeaf, type MarkdownRange } from "./slate-markdown-decorators"
 
 interface LinkLeafProps extends RenderLeafProps {
 	/** Whether to make links interactive (clickable) */

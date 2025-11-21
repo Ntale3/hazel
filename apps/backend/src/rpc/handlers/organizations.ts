@@ -201,7 +201,9 @@ export const OrganizationRpcLive = OrganizationRpcs.toLayer(
 							return {
 								data: {
 									...createdOrganization,
-									settings: createdOrganization.settings as { readonly [x: string]: unknown } | null,
+									settings: createdOrganization.settings as {
+										readonly [x: string]: unknown
+									} | null,
 								},
 								transactionId: txid,
 							}
@@ -224,7 +226,9 @@ export const OrganizationRpcLive = OrganizationRpcs.toLayer(
 							return {
 								data: {
 									...updatedOrganization,
-									settings: updatedOrganization.settings as { readonly [x: string]: unknown } | null,
+									settings: updatedOrganization.settings as {
+										readonly [x: string]: unknown
+									} | null,
 								},
 								transactionId: txid,
 							}
@@ -264,7 +268,9 @@ export const OrganizationRpcLive = OrganizationRpcs.toLayer(
 							return {
 								data: {
 									...updatedOrganization,
-									settings: updatedOrganization.settings as { readonly [x: string]: unknown } | null,
+									settings: updatedOrganization.settings as {
+										readonly [x: string]: unknown
+									} | null,
 								},
 								transactionId: txid,
 							}

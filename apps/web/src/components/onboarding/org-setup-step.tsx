@@ -128,7 +128,9 @@ export function OrgSetupStep({ onBack, onContinue, defaultName = "", defaultSlug
 											<span className="text-muted-fg text-sm">hazel.app/</span>
 											<Input
 												value={field.state.value}
-												onChange={(e) => field.handleChange(sanitizeSlug(e.target.value))}
+												onChange={(e) =>
+													field.handleChange(sanitizeSlug(e.target.value))
+												}
 												onBlur={field.handleBlur}
 												placeholder="acme"
 												aria-invalid={!!field.state.meta.errors?.length}
@@ -139,19 +141,24 @@ export function OrgSetupStep({ onBack, onContinue, defaultName = "", defaultSlug
 										<FieldError>{field.state.meta.errors[0].message}</FieldError>
 									) : (
 										<Description>
-											Your unique workspace URL (lowercase letters, numbers, and hyphens)
+											Your unique workspace URL (lowercase letters, numbers, and
+											hyphens)
 										</Description>
 									)}
 								</TextField>
 
-								{field.state.value && field.state.value.length >= 3 && !field.state.meta.errors?.length && (
-									<div className="rounded-lg border border-border bg-muted/30 p-4">
-										<p className="text-muted-fg text-sm">
-											Your workspace will be accessible at:{" "}
-											<span className="font-medium text-fg">hazel.app/{field.state.value}</span>
-										</p>
-									</div>
-								)}
+								{field.state.value &&
+									field.state.value.length >= 3 &&
+									!field.state.meta.errors?.length && (
+										<div className="rounded-lg border border-border bg-muted/30 p-4">
+											<p className="text-muted-fg text-sm">
+												Your workspace will be accessible at:{" "}
+												<span className="font-medium text-fg">
+													hazel.app/{field.state.value}
+												</span>
+											</p>
+										</div>
+									)}
 							</>
 						)}
 					/>

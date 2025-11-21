@@ -173,7 +173,11 @@ export function createInsertSchema<TTable extends Drizzle.Table, TRefine extends
 			typeof refineColumn === "function" &&
 			!Schema.isSchema(refineColumn) &&
 			!Schema.isPropertySignature(refineColumn)
-				? (refineColumn as (schema: Schema.Schema.All | Schema.PropertySignature.All) => Schema.Schema.All | Schema.PropertySignature.All)(schemaEntries[name]!)
+				? (
+						refineColumn as (
+							schema: Schema.Schema.All | Schema.PropertySignature.All,
+						) => Schema.Schema.All | Schema.PropertySignature.All
+					)(schemaEntries[name]!)
 				: refineColumn,
 		])
 
@@ -217,7 +221,11 @@ export function createSelectSchema<TTable extends Drizzle.Table, TRefine extends
 			typeof refineColumn === "function" &&
 			!Schema.isSchema(refineColumn) &&
 			!Schema.isPropertySignature(refineColumn)
-				? (refineColumn as (schema: Schema.Schema.All | Schema.PropertySignature.All) => Schema.Schema.All | Schema.PropertySignature.All)(schemaEntries[name]!)
+				? (
+						refineColumn as (
+							schema: Schema.Schema.All | Schema.PropertySignature.All,
+						) => Schema.Schema.All | Schema.PropertySignature.All
+					)(schemaEntries[name]!)
 				: refineColumn,
 		])
 
