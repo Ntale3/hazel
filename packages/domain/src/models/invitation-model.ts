@@ -8,6 +8,7 @@ export type InvitationStatus = Schema.Schema.Type<typeof InvitationStatus>
 
 export class Model extends M.Class<Model>("Invitation")({
 	id: M.Generated(InvitationId),
+	invitationUrl: Schema.String,
 	workosInvitationId: Schema.String,
 	organizationId: OrganizationId,
 	email: Schema.String,
