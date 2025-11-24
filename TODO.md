@@ -1,6 +1,7 @@
 # Today
 - Invitation flow (how to even accept an visition /login make work)
 - Electric Proxy Table Queries for Bots 
+- rpc client for bot
 
 Deploy production
 - make webhooks work (required)
