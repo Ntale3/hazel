@@ -79,7 +79,7 @@ function TweetHeader({ tweet }: { tweet: EnrichedTweet }) {
 					>
 						{truncate(tweet.user.name, 20)}
 						{(tweet.user.verified || tweet.user.is_blue_verified) && (
-							<VerifiedIcon className="ml-1 inline size-4 text-blue-500" />
+							<VerifiedIcon className="ml-1 inline size-4 text-verified" />
 						)}
 					</a>
 					<div className="flex items-center space-x-1">
@@ -218,7 +218,7 @@ function TweetMetrics({ tweet }: { tweet: EnrichedTweet }) {
 			)}
 			{favoriteCount !== undefined && favoriteCount > 0 && (
 				<div className="flex items-center gap-1">
-					<IconHeart className="size-3 text-blue-400" />
+					<IconHeart className="size-3 text-primary" />
 
 					<span className="font-semibold">{favoriteCount.toLocaleString()}</span>
 

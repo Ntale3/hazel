@@ -195,7 +195,7 @@ export const DmChannelItem = ({ channelId }: DmChannelItemProps) => {
 									<IconStar
 										className={
 											channel.currentUser.isFavorite
-												? "size-4 text-yellow-500"
+												? "size-4 text-favorite"
 												: "size-4"
 										}
 									/>

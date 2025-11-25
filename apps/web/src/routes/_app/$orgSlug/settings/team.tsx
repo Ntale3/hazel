@@ -64,7 +64,7 @@ function TeamSettings() {
 
 	const roleToBadgeColors = {
 		owner: "bg-primary text-primary-fg",
-		admin: "bg-pink-600 text-white",
+		admin: "bg-primary text-primary-fg",
 		member: "bg-secondary text-fg",
 	}
 

@@ -50,7 +50,7 @@ export function CodeBlockElement({
 						title="Copy code"
 					>
 						{copied ? (
-							<IconCheck data-slot="icon" className="size-3.5 text-green-11" />
+							<IconCheck data-slot="icon" className="size-3.5 text-success" />
 						) : (
 							<IconCopy data-slot="icon" className="size-3.5" />
 						)}

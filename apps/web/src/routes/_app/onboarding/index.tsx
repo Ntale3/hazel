@@ -451,7 +451,7 @@ function RouteComponent() {
 							<p className="font-medium text-lg">Setting up your workspace...</p>
 							<p className="text-muted-fg text-sm">This will just take a moment</p>
 							{state.context.error && (
-								<p className="text-red-600 text-sm">{state.context.error}</p>
+								<p className="text-danger text-sm">{state.context.error}</p>
 							)}
 						</div>
 					</motion.div>

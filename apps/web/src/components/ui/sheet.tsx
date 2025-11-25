@@ -94,7 +94,7 @@ const SheetContent = ({
 			isDismissable={isDismissable}
 			className={({ isExiting, isEntering }) =>
 				twJoin(
-					"fixed inset-0 z-50 h-(--visual-viewport-height,100vh) w-screen overflow-hidden bg-black/15",
+					"fixed inset-0 z-50 h-(--visual-viewport-height,100vh) w-screen overflow-hidden bg-overlay-backdrop",
 					isEntering && "fade-in animate-in duration-500",
 					isExiting && "fade-out animate-out duration-300",
 					isBlurred && "backdrop-blur-sm backdrop-filter",

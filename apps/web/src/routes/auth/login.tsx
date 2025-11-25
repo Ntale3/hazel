@@ -42,7 +42,7 @@ function LoginPage() {
 	if (isLoading) {
 		return (
 			<div className="flex h-screen items-center justify-center">
-				<div className="h-8 w-8 animate-spin rounded-full border-gray-900 border-b-2"></div>
+				<div className="h-8 w-8 animate-spin rounded-full border-border border-b-2"></div>
 			</div>
 		)
 	}
@@ -55,8 +55,8 @@ function LoginPage() {
 		return (
 			<div className="flex h-screen items-center justify-center">
 				<div className="max-w-md text-center">
-					<h1 className="mb-4 font-semibold text-2xl text-red-600">Login Failed</h1>
-					<p className="mb-6 text-gray-600">{error}</p>
+					<h1 className="mb-4 font-semibold text-2xl text-danger">Login Failed</h1>
+					<p className="mb-6 text-muted-fg">{error}</p>
 					<Button
 						onClick={() => {
 							setError(null)

@@ -84,6 +84,15 @@ If you want to use the typography plugin, uncomment the line below.
     --color-chart-4: var(--chart-4);
     --color-chart-5: var(--chart-5);
 
+    --color-favorite: var(--favorite);
+    --color-favorite-fg: var(--favorite-fg);
+    --color-highlight: var(--highlight);
+    --color-highlight-fg: var(--highlight-fg);
+    --color-verified: var(--verified);
+    --color-selection-bg: var(--selection-bg);
+    --color-selection-fg: var(--selection-fg);
+    --color-overlay-backdrop: var(--overlay-backdrop);
+
     --animate-marquee: marquee var(--duration) infinite linear;
     --animate-marquee-vertical: marquee-vertical var(--duration) linear infinite;
 
@@ -137,8 +146,8 @@ If you want to use the typography plugin, uncomment the line below.
 
   --primary: var(--color-brand-600);
   --primary-fg: oklch(1 0 0);
-  --primary-subtle: theme('color-teal-500/15%');
-  --primary-subtle-fg: var(--color-teal-700);
+  --primary-subtle: rgb(from var(--color-brand-500) r g b / 15%);
+  --primary-subtle-fg: var(--color-brand-700);
 
   --secondary: var(--color-zinc-100);
   --secondary-fg: var(--color-zinc-950);
@@ -192,6 +201,15 @@ If you want to use the typography plugin, uncomment the line below.
   --chart-4: var(--color-teal-200);
   --chart-5: var(--color-teal-100);
 
+  --favorite: var(--color-amber-400);
+  --favorite-fg: var(--color-amber-600);
+  --highlight: var(--color-amber-200);
+  --highlight-fg: var(--color-amber-900);
+  --verified: var(--color-brand-500);
+  --selection-bg: var(--color-brand-100);
+  --selection-fg: var(--color-brand-700);
+  --overlay-backdrop: oklch(0 0 0 / 0.15);
+
   --radius-lg: 0.5rem;
   --radius-xs: calc(var(--radius-lg) * 0.25);
   --radius-sm: calc(var(--radius-lg) * 0.5);
@@ -203,8 +221,8 @@ If you want to use the typography plugin, uncomment the line below.
 
 
   ::selection {
-    background-color: #cbfbf1;
-    color: #0e766e;
+    background-color: var(--selection-bg);
+    color: var(--selection-fg);
   }
 }
 
@@ -214,8 +232,8 @@ If you want to use the typography plugin, uncomment the line below.
 
   --primary: var(--color-brand-600);
   --primary-fg: oklch(1 0 0);
-  --primary-subtle: theme('color-teal-500/10%');
-  --primary-subtle-fg: var(--color-teal-300);
+  --primary-subtle: rgb(from var(--color-brand-500) r g b / 10%);
+  --primary-subtle-fg: var(--color-brand-300);
 
   --secondary: var(--color-zinc-800);
   --secondary-fg: var(--color-zinc-50);
@@ -268,10 +286,18 @@ If you want to use the typography plugin, uncomment the line below.
   --chart-4: var(--color-teal-300);
   --chart-5: var(--color-teal-200);
 
+  --favorite: var(--color-amber-400);
+  --favorite-fg: var(--color-amber-300);
+  --highlight: theme('colors.amber.400/20%');
+  --highlight-fg: var(--color-amber-200);
+  --verified: var(--color-brand-400);
+  --selection-bg: var(--color-brand-900);
+  --selection-fg: var(--color-brand-200);
+  --overlay-backdrop: oklch(0 0 0 / 0.15);
 
   ::selection {
-    background-color: #042f2e;
-    color: #2dd4bf;
+    background-color: var(--selection-bg);
+    color: var(--selection-fg);
   }
 }
 

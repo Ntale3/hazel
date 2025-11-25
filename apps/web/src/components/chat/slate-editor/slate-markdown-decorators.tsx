@@ -267,7 +267,7 @@ export function MarkdownLeaf({ attributes, children, leaf, mode = "composer" }: 
 						className = "underline"
 						break
 					case "highlight":
-						className = "bg-yellow-9/30 dark:bg-yellow-9/20 rounded px-0.5"
+						className = "bg-highlight rounded px-0.5"
 						break
 					case "spoiler":
 						className = "bg-muted blur-sm hover:blur-none transition-all"

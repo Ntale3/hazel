@@ -144,7 +144,7 @@ export function ChannelItem({ channel, member }: ChannelItemProps) {
 							<MenuLabel>{member.isMuted ? "Unmute" : "Mute"}</MenuLabel>
 						</MenuItem>
 						<MenuItem onAction={handleToggleFavorite}>
-							<IconStar className={member.isFavorite ? "size-4 text-yellow-500" : "size-4"} />
+							<IconStar className={member.isFavorite ? "size-4 text-favorite" : "size-4"} />
 							<MenuLabel>{member.isFavorite ? "Unfavorite" : "Favorite"}</MenuLabel>
 						</MenuItem>
 						<MenuSeparator />
