@@ -212,26 +212,12 @@ export function getWhereClauseForTable(
 			),
 		),
 
-		Match.when("message_reactions", () => {
-			// Reactions on messages from accessible channels
-			// Uses a subquery since reactions don't have channelId directly
-			const channelIds = [...user.accessContext.channelIds].sort()
-
-			if (channelIds.length === 0) {
-				return Effect.succeed({
-					whereClause: "false",
-					params: [],
-				} satisfies WhereClauseResult)
-			}
-
-			// Build parameterized subquery with unqualified column names
-			const placeholders = channelIds.map((_, i) => `$${i + 1}`).join(", ")
-
-			return Effect.succeed({
-				whereClause: `"messageId" IN (SELECT "id" FROM "messages" WHERE "channelId" IN (${placeholders}) AND "deletedAt" IS NULL)`,
-				params: channelIds,
-			} satisfies WhereClauseResult)
-		}),
+		Match.when("message_reactions", () =>
+			// Reactions from accessible channels (channelId is denormalized on the table)
+			Effect.succeed(
+				buildInClause(schema.messageReactionsTable.channelId, user.accessContext.channelIds),
+			),
+		),
 
 		Match.when("attachments", () =>
 			// Attachments from accessible channels only

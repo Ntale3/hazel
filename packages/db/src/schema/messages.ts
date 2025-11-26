@@ -33,11 +33,13 @@ export const messageReactionsTable = pgTable(
 	{
 		id: uuid().primaryKey().defaultRandom().$type<MessageReactionId>(),
 		messageId: uuid().notNull().$type<MessageId>(),
+		channelId: uuid().notNull().$type<ChannelId>(),
 		userId: uuid().notNull().$type<UserId>(),
 		emoji: varchar({ length: 50 }).notNull(),
 		createdAt: timestamp({ mode: "date", withTimezone: true }).notNull().defaultNow(),
 	},
 	(table) => [
+		index("reactions_channel_id_idx").on(table.channelId),
 		index("reactions_message_id_idx").on(table.messageId),
 		index("reactions_user_id_idx").on(table.userId),
 		index("reactions_message_user_emoji_idx").on(table.messageId, table.userId, table.emoji),

@@ -198,10 +198,11 @@ export class HazelBotClient extends Effect.Service<HazelBotClient>()("HazelBotCl
 
 				/**
 				 * Toggle a reaction on a message
-				 * @param messageId - Message ID to react to
+				 * @param message - The message to react to
 				 * @param emoji - Emoji to toggle
 				 */
-				react: (messageId: MessageId, emoji: string) => rpc.messageReaction.toggle({ messageId, emoji }),
+				react: (message: MessageType, emoji: string) =>
+					rpc.messageReaction.toggle({ messageId: message.id, channelId: message.channelId, emoji }),
 			},
 
 			/**

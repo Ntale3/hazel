@@ -75,7 +75,7 @@ export function MessageItem({
 		if (!message) return
 		trackEmojiUsage(emoji)
 		// addReaction now handles the toggle logic internally
-		addReaction(message.id, emoji)
+		addReaction(message.id, message.channelId, emoji)
 	}
 
 	if (!message) return null

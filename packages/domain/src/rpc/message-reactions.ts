@@ -46,6 +46,7 @@ export class MessageReactionRpcs extends RpcGroup.make(
 	Rpc.make("messageReaction.toggle", {
 		payload: Schema.Struct({
 			messageId: MessageReaction.Insert.fields.messageId,
+			channelId: MessageReaction.Insert.fields.channelId,
 			emoji: MessageReaction.Insert.fields.emoji,
 		}),
 		success: Schema.Struct({

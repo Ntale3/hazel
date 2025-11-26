@@ -38,7 +38,7 @@ export function MessageToolbar({ message, onMenuOpenChange }: MessageToolbarProp
 	const handleReaction = (emoji: string | { emoji: string; label: string }) => {
 		const emojiString = typeof emoji === "string" ? emoji : emoji.emoji
 		trackEmojiUsage(emojiString)
-		addReaction(message.id, emojiString)
+		addReaction(message.id, message.channelId, emojiString)
 	}
 
 	const handleEdit = () => {

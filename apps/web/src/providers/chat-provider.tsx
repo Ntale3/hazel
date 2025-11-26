@@ -38,7 +38,7 @@ interface ChatContextValue {
 	sendMessage: (props: { content: string; attachments?: AttachmentId[] }) => void
 	editMessage: (messageId: MessageId, content: string) => Promise<void>
 	deleteMessage: (messageId: MessageId) => void
-	addReaction: (messageId: MessageId, emoji: string) => void
+	addReaction: (messageId: MessageId, channelId: ChannelId, emoji: string) => void
 	removeReaction: (reactionId: MessageReactionId) => void
 	pinMessage: (messageId: MessageId) => void
 	unpinMessage: (pinnedMessageId: PinnedMessageId) => void
@@ -187,11 +187,12 @@ export function ChatProvider({ channelId, organizationId, children, onMessageSen
 	}, [])
 
 	const addReaction = useCallback(
-		async (messageId: MessageId, emoji: string) => {
+		async (messageId: MessageId, channelId: ChannelId, emoji: string) => {
 			if (!user?.id) return
 
 			const tx = await toggleReactionMutation({
 				messageId,
+				channelId,
 				emoji,
 				userId: UserId.make(user.id),
 			})

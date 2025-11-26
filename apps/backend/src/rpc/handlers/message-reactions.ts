@@ -16,7 +16,7 @@ export const MessageReactionRpcLive = MessageReactionRpcs.toLayer(
 					.transaction(
 						Effect.gen(function* () {
 							const user = yield* CurrentUser.Context
-							const { messageId, emoji } = payload
+							const { messageId, channelId, emoji } = payload
 
 							const existingReaction = yield* MessageReactionRepo.findByMessageUserEmoji(
 								messageId,
@@ -42,6 +42,7 @@ export const MessageReactionRpcLive = MessageReactionRpcs.toLayer(
 							// Otherwise, create a new reaction
 							const createdMessageReaction = yield* MessageReactionRepo.insert({
 								messageId,
+								channelId,
 								emoji,
 								userId: user.id,
 							}).pipe(

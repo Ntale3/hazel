@@ -93,7 +93,7 @@ const program = Effect.gen(function* () {
 	yield* bot.onMessage((message) =>
 		Effect.gen(function* () {
 			if (message.content.toLowerCase().includes("hello")) {
-				yield* bot.message.react(message.id, "👋").pipe(
+				yield* bot.message.react(message, "👋").pipe(
 					Effect.tap(() => Effect.log("👋 Waved at hello message")),
 					Effect.catchAll((error) => Effect.logError(`Failed to react: ${error}`)),
 				)

@@ -221,7 +221,7 @@ export const createOrganization = createEffectOptimisticAction({
 })
 
 export const toggleReactionEffect = createEffectOptimisticAction({
-	onMutate: (props: { messageId: MessageId; emoji: string; userId: UserId }) => {
+	onMutate: (props: { messageId: MessageId; channelId: ChannelId; emoji: string; userId: UserId }) => {
 		// Check if reaction already exists in the collection
 		const reactionsMap = messageReactionCollection.state
 		const existingReaction = Array.from(reactionsMap.values()).find(
@@ -239,6 +239,7 @@ export const toggleReactionEffect = createEffectOptimisticAction({
 		messageReactionCollection.insert({
 			id: reactionId,
 			messageId: props.messageId,
+			channelId: props.channelId,
 			userId: props.userId,
 			emoji: props.emoji,
 			createdAt: new Date(),
@@ -246,13 +247,14 @@ export const toggleReactionEffect = createEffectOptimisticAction({
 
 		return { wasCreated: true, reactionId }
 	},
-	mutationFn: (props: { messageId: MessageId; emoji: string; userId: UserId }, _params) =>
+	mutationFn: (props: { messageId: MessageId; channelId: ChannelId; emoji: string; userId: UserId }, _params) =>
 		Effect.gen(function* () {
 			const client = yield* HazelRpcClient
 
 			// Call the toggle RPC endpoint
 			const result = yield* client("messageReaction.toggle", {
 				messageId: props.messageId,
+				channelId: props.channelId,
 				emoji: props.emoji,
 			})
 
