@@ -14,6 +14,7 @@ import {
 	withSystemActor,
 } from "@hazel/domain"
 import { Config, Effect, Option, Schema } from "effect"
+import { TreeFormatter } from "effect/ParseResult"
 import { createRemoteJWKSet, decodeJwt, jwtVerify } from "jose"
 import { UserRepo } from "../repositories/user-repo"
 import { WorkOS } from "./workos"
@@ -114,7 +115,7 @@ export class SessionManager extends Effect.Service<SessionManager>()("SessionMan
 						(error) =>
 							new InvalidJwtPayloadError({
 								message: "Invalid JWT payload from WorkOS",
-								detail: String(error),
+								detail: TreeFormatter.formatErrorSync(error),
 							}),
 					),
 				)
@@ -188,7 +189,7 @@ export class SessionManager extends Effect.Service<SessionManager>()("SessionMan
 					(error) =>
 						new InvalidJwtPayloadError({
 							message: "Invalid JWT payload from WorkOS",
-							detail: String(error),
+							detail: TreeFormatter.formatErrorSync(error),
 						}),
 				),
 			)

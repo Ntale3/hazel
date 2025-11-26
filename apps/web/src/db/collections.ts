@@ -127,7 +127,7 @@ export const messageCollection = createEffectCollection({
 		params: {
 			table: "messages",
 		},
-		liveSse: true,
+		// liveSse: true,
 		parser: {
 			timestamptz: (date) => new Date(date),
 		},
