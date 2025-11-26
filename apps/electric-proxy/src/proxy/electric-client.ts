@@ -70,6 +70,7 @@ export const proxyElectricRequest = (originUrl: URL) =>
 		headers.delete("content-encoding")
 		headers.delete("content-length")
 		headers.set("vary", "cookie")
+		headers.set("X-Accel-Buffering", "no") // Disable proxy buffering for streaming
 
 		// Return response with body stream - zero-copy passthrough
 		return new Response(response.body, {
