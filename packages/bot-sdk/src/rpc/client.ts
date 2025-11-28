@@ -7,12 +7,7 @@
 
 import * as BunSocket from "@effect/platform-bun/BunSocket"
 import { RpcClient, RpcSerialization } from "@effect/rpc"
-import {
-	ChannelRpcs,
-	MessageReactionRpcs,
-	MessageRpcs,
-	TypingIndicatorRpcs,
-} from "@hazel/domain/rpc"
+import { ChannelRpcs, MessageReactionRpcs, MessageRpcs, TypingIndicatorRpcs } from "@hazel/domain/rpc"
 import { Context, Effect, Layer } from "effect"
 import { createBotAuthMiddleware } from "./auth-middleware.ts"
 
@@ -79,15 +74,9 @@ export const makeBotRpcClient = (config: BotRpcClientConfig) => {
 	// Create protocol layer with proper layer composition
 	const ProtocolLayer = RpcClient.layerProtocolSocket({
 		retryTransientErrors: true,
-	}).pipe(
-		Layer.provide(
-			Layer.mergeAll(BunSocket.layerWebSocket(wsUrl), RpcSerialization.layerNdjson),
-		),
-	)
+	}).pipe(Layer.provide(Layer.mergeAll(BunSocket.layerWebSocket(wsUrl), RpcSerialization.layerNdjson)))
 
 	const AuthMiddlewareLayer = createBotAuthMiddleware(config.botToken)
 
-	return RpcClient.make(BotRpcs).pipe(
-		Effect.provide(Layer.mergeAll(ProtocolLayer, AuthMiddlewareLayer)),
-	)
+	return RpcClient.make(BotRpcs).pipe(Effect.provide(Layer.mergeAll(ProtocolLayer, AuthMiddlewareLayer)))
 }

@@ -1,5 +1,5 @@
-import { Config, Effect, Fiber, Layer, Schedule, type Scope } from "effect"
 import type { ConfigError } from "effect"
+import { Config, Effect, Fiber, Layer, Schedule, type Scope } from "effect"
 import { HandlerError } from "../errors.ts"
 import { composeMiddleware, type Middleware } from "../middleware.ts"
 import type { EventType } from "../types/events.ts"
@@ -92,9 +92,7 @@ export class EventDispatcher extends Effect.Service<EventDispatcher>()("EventDis
 								Effect.logError("Handler failed after retries", {
 									cause,
 									eventType,
-								}).pipe(
-									Effect.annotateLogs("service", "EventDispatcher"),
-								),
+								}).pipe(Effect.annotateLogs("service", "EventDispatcher")),
 							),
 						)
 					},
@@ -120,9 +118,7 @@ export class EventDispatcher extends Effect.Service<EventDispatcher>()("EventDis
 										yield* Effect.logError("Failed to take event from queue", {
 											error,
 											eventType,
-										}).pipe(
-											Effect.annotateLogs("service", "EventDispatcher"),
-										)
+										}).pipe(Effect.annotateLogs("service", "EventDispatcher"))
 										// Wait a bit before retrying
 										yield* Effect.sleep(1000)
 										// Return null to skip this iteration
@@ -186,9 +182,7 @@ export class EventDispatcher extends Effect.Service<EventDispatcher>()("EventDis
 				yield* Effect.logInfo(`Event dispatcher started`, {
 					eventTypesCount: eventTypes.length,
 					eventTypes: eventTypes.join(", "),
-				}).pipe(
-					Effect.annotateLogs("service", "EventDispatcher"),
-				)
+				}).pipe(Effect.annotateLogs("service", "EventDispatcher"))
 			}),
 		}
 	}),
@@ -199,7 +193,5 @@ export class EventDispatcher extends Effect.Service<EventDispatcher>()("EventDis
 	static readonly layerConfig = (
 		config: Config.Config.Wrap<EventDispatcherConfig>,
 	): Layer.Layer<EventDispatcher, ConfigError.ConfigError, ElectricEventQueue> =>
-		Layer.unwrapEffect(
-			Config.unwrap(config).pipe(Effect.map((cfg) => EventDispatcher.Default(cfg))),
-		)
+		Layer.unwrapEffect(Config.unwrap(config).pipe(Effect.map((cfg) => EventDispatcher.Default(cfg))))
 }

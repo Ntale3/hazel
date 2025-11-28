@@ -80,12 +80,10 @@ const program = Effect.gen(function* () {
 			}
 
 			// Echo the message back using bot.message.reply
-			yield* bot.message
-				.reply(message, `Echo: ${message.content}`)
-				.pipe(
-					Effect.tap((sentMessage) => Effect.log(`✅ Echoed message: ${sentMessage.id}`)),
-					Effect.catchAll((error) => Effect.logError(`Failed to send echo: ${error}`)),
-				)
+			yield* bot.message.reply(message, `Echo: ${message.content}`).pipe(
+				Effect.tap((sentMessage) => Effect.log(`✅ Echoed message: ${sentMessage.id}`)),
+				Effect.catchAll((error) => Effect.logError(`Failed to send echo: ${error}`)),
+			)
 		}),
 	)
 

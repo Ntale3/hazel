@@ -127,7 +127,9 @@ export const EmailInviteModal = ({
 																	placeholder="colleague@company.com"
 																	value={emailField.state.value}
 																	onChange={(e) =>
-																		emailField.handleChange(e.target.value)
+																		emailField.handleChange(
+																			e.target.value,
+																		)
 																	}
 																	onBlur={emailField.handleBlur}
 																/>
@@ -149,7 +151,9 @@ export const EmailInviteModal = ({
 															>
 																<SelectTrigger />
 																<SelectContent>
-																	<SelectItem id="member">Member</SelectItem>
+																	<SelectItem id="member">
+																		Member
+																	</SelectItem>
 																	<SelectItem id="admin">Admin</SelectItem>
 																</SelectContent>
 															</Select>
@@ -172,9 +176,7 @@ export const EmailInviteModal = ({
 										<Button
 											intent="plain"
 											size="md"
-											onPress={() =>
-												field.pushValue({ email: "", role: "member" })
-											}
+											onPress={() => field.pushValue({ email: "", role: "member" })}
 											isDisabled={field.state.value.length >= 10}
 											type="button"
 										>

@@ -16,6 +16,7 @@ import { userCollection } from "~/db/collections"
 import { useAppForm } from "~/hooks/use-app-form"
 import { useAuth } from "~/lib/auth"
 import { cn } from "~/lib/utils"
+import { getStatusBadgeColor, getStatusDotColor, getStatusLabel } from "~/utils/status"
 
 export const Route = createFileRoute("/_app/$orgSlug/profile/$userId")({
 	component: ProfilePage,
@@ -64,25 +65,6 @@ function ProfilePage() {
 		},
 	})
 
-	const getStatusColor = (status?: string) => {
-		switch (status) {
-			case "online":
-				return "text-success bg-success"
-			case "away":
-			case "busy":
-				return "text-warning bg-warning"
-			case "dnd":
-				return "text-danger bg-danger"
-			default:
-				return "text-muted-fg bg-muted"
-		}
-	}
-
-	const getStatusLabel = (status?: string) => {
-		if (!status) return "Offline"
-		return status.charAt(0).toUpperCase() + status.slice(1)
-	}
-
 	if (!user) {
 		return (
 			<div className="flex flex-col items-center justify-center gap-4 p-8">
@@ -116,7 +98,7 @@ function ProfilePage() {
 								<span
 									className={cn(
 										"absolute right-0 bottom-0 size-3 rounded-full border-2 border-bg",
-										getStatusColor(presence.status),
+										getStatusDotColor(presence.status),
 									)}
 								/>
 							)}
@@ -127,7 +109,7 @@ function ProfilePage() {
 								<span
 									className={cn(
 										"inline-flex w-fit items-center gap-1.5 rounded-full px-2 py-0.5 text-xs",
-										getStatusColor(presence.status),
+										getStatusBadgeColor(presence.status),
 									)}
 								>
 									<span className="size-1.5 rounded-full bg-current" />
@@ -180,7 +162,7 @@ function ProfilePage() {
 							<span
 								className={cn(
 									"absolute right-0 bottom-0 size-3 rounded-full border-2 border-bg",
-									getStatusColor(presence.status),
+									getStatusDotColor(presence.status),
 								)}
 							/>
 						)}
@@ -191,7 +173,7 @@ function ProfilePage() {
 							<span
 								className={cn(
 									"inline-flex w-fit items-center gap-1.5 rounded-full px-2 py-0.5 text-xs",
-									getStatusColor(presence.status),
+									getStatusBadgeColor(presence.status),
 								)}
 							>
 								<span className="size-1.5 rounded-full bg-current" />

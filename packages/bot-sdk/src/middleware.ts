@@ -34,10 +34,7 @@ export const composeMiddleware = <A = any, E = any, R = never>(
 	}
 
 	return (event, eventType, next) => {
-		const composed = middleware.reduceRight(
-			(acc, mw) => mw(event, eventType, acc),
-			next,
-		)
+		const composed = middleware.reduceRight((acc, mw) => mw(event, eventType, acc), next)
 		return composed
 	}
 }
@@ -72,9 +69,7 @@ export const metricsMiddleware: Middleware = (_event, eventType, next) =>
 
 		// Increment event counter
 		const eventsReceived = Metric.counter("bot_events_received")
-		yield* Metric.increment(eventsReceived).pipe(
-			Effect.tagMetrics("event_type", eventType),
-		)
+		yield* Metric.increment(eventsReceived).pipe(Effect.tagMetrics("event_type", eventType))
 
 		// Execute handler
 		const result = yield* Effect.either(next)
@@ -90,16 +85,12 @@ export const metricsMiddleware: Middleware = (_event, eventType, next) =>
 		// Track success/failure
 		if (result._tag === "Left") {
 			const handlerErrors = Metric.counter("bot_handler_errors")
-			yield* Metric.increment(handlerErrors).pipe(
-				Effect.tagMetrics("event_type", eventType),
-			)
+			yield* Metric.increment(handlerErrors).pipe(Effect.tagMetrics("event_type", eventType))
 			return yield* Effect.fail(result.left)
 		}
 
 		const handlerSuccess = Metric.counter("bot_handler_success")
-		yield* Metric.increment(handlerSuccess).pipe(
-			Effect.tagMetrics("event_type", eventType),
-		)
+		yield* Metric.increment(handlerSuccess).pipe(Effect.tagMetrics("event_type", eventType))
 	})
 
 /**
@@ -112,12 +103,11 @@ export const errorTrackingMiddleware: Middleware = (_event, eventType, next) =>
 				yield* Effect.logError(`Handler error`, {
 					eventType,
 					error,
-					errorType: typeof error === "object" && error !== null && "_tag" in error
-						? error._tag
-						: "unknown",
-				}).pipe(
-					Effect.annotateLogs("middleware", "errorTracking"),
-				)
+					errorType:
+						typeof error === "object" && error !== null && "_tag" in error
+							? error._tag
+							: "unknown",
+				}).pipe(Effect.annotateLogs("middleware", "errorTracking"))
 
 				return yield* Effect.fail(error)
 			}),

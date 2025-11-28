@@ -17,6 +17,7 @@ import { Textarea } from "~/components/ui/textarea"
 import { useOrganization } from "~/hooks/use-organization"
 import { useAuth } from "~/lib/auth"
 import { cn } from "~/lib/utils"
+import { getStatusBadgeColor, getStatusDotColor, getStatusLabel } from "~/utils/status"
 
 interface UserProfilePopoverProps {
 	userId: UserId
@@ -70,25 +71,6 @@ export function UserProfilePopover({ userId }: UserProfilePopoverProps) {
 		toast.info("Calling...", {
 			description: `Starting call with ${fullName}`,
 		})
-	}
-
-	const getStatusColor = (status?: string) => {
-		switch (status) {
-			case "online":
-				return "text-success bg-success/10"
-			case "away":
-			case "busy":
-				return "text-warning bg-warning/10"
-			case "dnd":
-				return "text-danger bg-danger/10"
-			default:
-				return "text-muted-fg bg-muted/10"
-		}
-	}
-
-	const getStatusLabel = (status?: string) => {
-		if (!status) return "Offline"
-		return status.charAt(0).toUpperCase() + status.slice(1)
 	}
 
 	return (
@@ -154,7 +136,7 @@ export function UserProfilePopover({ userId }: UserProfilePopoverProps) {
 								<span
 									className={cn(
 										"absolute right-1 bottom-1 size-3 rounded-full border-2 border-bg",
-										getStatusColor(presence.status),
+										getStatusDotColor(presence.status),
 									)}
 								/>
 							)}
@@ -166,7 +148,7 @@ export function UserProfilePopover({ userId }: UserProfilePopoverProps) {
 								<span
 									className={cn(
 										"mt-1 inline-flex w-fit items-center gap-1.5 rounded-full px-2 py-0.5 text-xs",
-										getStatusColor(presence.status),
+										getStatusBadgeColor(presence.status),
 									)}
 								>
 									<span className="size-1.5 rounded-full bg-current" />

@@ -1,6 +1,6 @@
 import { isChangeMessage, type Message, ShapeStream } from "@electric-sql/client"
-import { Config, Effect, Layer, Schema, type Scope, Stream } from "effect"
 import type { ConfigError } from "effect"
+import { Config, Effect, Layer, Schema, type Scope, Stream } from "effect"
 import type { ShapeStreamError } from "../errors.ts"
 import type { ElectricEvent } from "../types/events.ts"
 import { ElectricEventQueue } from "./electric-event-queue.ts"
@@ -61,9 +61,7 @@ export class ShapeStreamSubscriber extends Effect.Service<ShapeStreamSubscriber>
 						table: subscription.table,
 						where: subscription.where,
 						columns: subscription.columns?.join(", "),
-					}).pipe(
-						Effect.annotateLogs("service", "ShapeStreamSubscriber"),
-					)
+					}).pipe(Effect.annotateLogs("service", "ShapeStreamSubscriber"))
 
 					const stream = new ShapeStream({
 						url: config.electricUrl,
@@ -95,32 +93,23 @@ export class ShapeStreamSubscriber extends Effect.Service<ShapeStreamSubscriber>
 						Effect.gen(function* () {
 							yield* Effect.logInfo(`Unsubscribing from shape stream`, {
 								table: subscription.table,
-							}).pipe(
-								Effect.annotateLogs("service", "ShapeStreamSubscriber"),
-							)
+							}).pipe(Effect.annotateLogs("service", "ShapeStreamSubscriber"))
 							yield* Effect.sync(() => unsubscribe())
 						}),
 					)
 
 					yield* Effect.logInfo(`Shape stream subscription active`, {
 						table: subscription.table,
-					}).pipe(
-						Effect.annotateLogs("service", "ShapeStreamSubscriber"),
-					)
+					}).pipe(Effect.annotateLogs("service", "ShapeStreamSubscriber"))
 				}),
 			)
 
 		return {
 			start: Effect.gen(function* () {
-				yield* Effect.logInfo(
-					`Starting shape stream subscriptions`,
-					{
-						tablesCount: config.subscriptions.length,
-						tables: config.subscriptions.map((s) => s.table).join(", "),
-					},
-				).pipe(
-					Effect.annotateLogs("service", "ShapeStreamSubscriber"),
-				)
+				yield* Effect.logInfo(`Starting shape stream subscriptions`, {
+					tablesCount: config.subscriptions.length,
+					tables: config.subscriptions.map((s) => s.table).join(", "),
+				}).pipe(Effect.annotateLogs("service", "ShapeStreamSubscriber"))
 
 				yield* Effect.forEach(
 					config.subscriptions,

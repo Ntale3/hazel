@@ -8,9 +8,7 @@ import type { EventType } from "./events.ts"
  * @template E - The error type (defaults to HandlerError)
  * @template R - The required context/services
  */
-export type EventHandler<A = any, E = HandlerError, R = never> = (
-	value: A,
-) => Effect.Effect<void, E, R>
+export type EventHandler<A = any, E = HandlerError, R = never> = (value: A) => Effect.Effect<void, E, R>
 
 /**
  * Registry of all event handlers

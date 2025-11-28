@@ -156,9 +156,7 @@ export const HttpAuthLive = HttpApiBuilder.group(HazelApi, "auth", (handlers) =>
 
 					// Fetch org by WorkOS org ID to get our internal org ID
 					const workosOrg = yield* workos
-						.call((client) =>
-							client.organizations.getOrganization(authResponse.organizationId!),
-						)
+						.call((client) => client.organizations.getOrganization(authResponse.organizationId!))
 						.pipe(Effect.catchAll(() => Effect.succeed(null)))
 
 					if (workosOrg?.externalId && Option.isSome(user)) {

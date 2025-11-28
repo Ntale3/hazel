@@ -10,6 +10,7 @@ import { Avatar } from "~/components/ui/avatar"
 import { Button } from "~/components/ui/button"
 import { Popover, PopoverContent } from "~/components/ui/popover"
 import { cn } from "~/lib/utils"
+import { getStatusDotColor } from "~/utils/status"
 import type { MentionElement as MentionElementType } from "./slate-mention-plugin"
 
 interface MentionElementProps extends RenderElementProps {
@@ -80,20 +81,6 @@ export function MentionElement({ attributes, children, element, interactive = fa
 		)
 	}
 
-	const getStatusColor = (status?: string) => {
-		switch (status) {
-			case "online":
-				return "bg-success"
-			case "away":
-			case "busy":
-				return "bg-warning"
-			case "dnd":
-				return "bg-danger"
-			default:
-				return "bg-muted"
-		}
-	}
-
 	// Render interactive mention with popover
 	return (
 		<Popover>
@@ -119,7 +106,7 @@ export function MentionElement({ attributes, children, element, interactive = fa
 								<span
 									className={cn(
 										"absolute right-0 bottom-0 size-3 rounded-full border-2 border-bg",
-										getStatusColor(presence.status),
+										getStatusDotColor(presence.status),
 									)}
 								/>
 							)}

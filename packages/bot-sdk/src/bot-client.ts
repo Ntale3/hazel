@@ -4,10 +4,7 @@ import { BotStartError } from "./errors.ts"
 import { EventDispatcher } from "./services/event-dispatcher.ts"
 import { ShapeStreamSubscriber, type ShapeSubscriptionConfig } from "./services/shape-stream-subscriber.ts"
 import type { EventHandler } from "./types/handlers.ts"
-import type {
-	EventSchemaMap,
-	SubscriptionEventTypes,
-} from "./types/subscription-types.ts"
+import type { EventSchemaMap, SubscriptionEventTypes } from "./types/subscription-types.ts"
 
 /**
  * Bot client interface with typed event handlers
@@ -51,9 +48,7 @@ export const BotClient = Context.GenericTag<TypedBotClient<any>>("BotClient")
 /**
  * Create a BotClient layer from its dependencies
  */
-export const createBotClientLayer = <
-	Subs extends readonly ShapeSubscriptionConfig[],
->(): Layer.Layer<
+export const createBotClientLayer = <Subs extends readonly ShapeSubscriptionConfig[]>(): Layer.Layer<
 	TypedBotClient<Subs>,
 	never,
 	EventDispatcher | ShapeStreamSubscriber | BotAuth

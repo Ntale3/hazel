@@ -21,6 +21,7 @@ import { useAuth } from "~/lib/auth"
 import { findExistingDmChannel } from "~/lib/channels"
 import { toastExit } from "~/lib/toast-exit"
 import { cn } from "~/lib/utils"
+import { getStatusDotColor } from "~/utils/status"
 
 export const Route = createFileRoute("/_app/$orgSlug/")({
 	component: RouteComponent,
@@ -107,20 +108,6 @@ function RouteComponent() {
 		}
 	}
 
-	const getStatusColor = (status?: string) => {
-		switch (status) {
-			case "online":
-				return "text-success"
-			case "away":
-			case "busy":
-				return "text-warning"
-			case "dnd":
-				return "text-danger"
-			default:
-				return "text-muted-fg"
-		}
-	}
-
 	const handleCopyEmail = async (email: string) => {
 		try {
 			await navigator.clipboard.writeText(email)
@@ -195,10 +182,7 @@ function RouteComponent() {
 											<span
 												className={cn(
 													"absolute right-0 bottom-0 size-2.5 rounded-full border-2 border-bg",
-													getStatusColor(member.presence.status).replace(
-														"text-",
-														"bg-",
-													),
+													getStatusDotColor(member.presence.status),
 												)}
 											/>
 										)}

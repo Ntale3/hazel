@@ -33,6 +33,7 @@ import { useAuth } from "~/lib/auth"
 import { findExistingDmChannel } from "~/lib/channels"
 import { toastExit } from "~/lib/toast-exit"
 import { cn } from "~/lib/utils"
+import { getStatusBadgeColor, getStatusLabel } from "~/utils/status"
 
 export const Route = createFileRoute("/_app/$orgSlug/settings/team")({
 	component: TeamSettings,
@@ -106,20 +107,6 @@ function TeamSettings() {
 		return false
 	}
 
-	const getStatusColor = (status?: string) => {
-		switch (status) {
-			case "online":
-				return "text-success"
-			case "away":
-			case "busy":
-				return "text-warning"
-			case "dnd":
-				return "text-danger"
-			default:
-				return "text-muted-fg"
-		}
-	}
-
 	const handleMessageUser = async (targetUserId: UserId, targetUserName: string) => {
 		if (!user?.id || !organizationId || !orgSlug) return
 
@@ -131,7 +118,7 @@ function TeamSettings() {
 				params: { orgSlug, id: existingChannel.id },
 			})
 		} else {
-			const result = await toastExit(
+			const _result = await toastExit(
 				createDmChannel({
 					payload: {
 						organizationId,
@@ -141,12 +128,12 @@ function TeamSettings() {
 				}),
 				{
 					loading: `Starting conversation with ${targetUserName}...`,
-					success: (data) => {
+					success: ({ data }) => {
 						// Navigate to the newly created channel
-						if (data.channel?.id) {
+						if (data?.id) {
 							navigate({
 								to: "/$orgSlug/chat/$id",
-								params: { orgSlug, id: data.channel.id },
+								params: { orgSlug, id: data.id },
 							})
 						}
 						return `Started conversation with ${targetUserName}`
@@ -226,14 +213,11 @@ function TeamSettings() {
 											<span
 												className={cn(
 													"inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 font-medium text-xs",
-													getStatusColor(member.presence?.status),
+													getStatusBadgeColor(member.presence?.status),
 												)}
 											>
 												<span className="size-1.5 rounded-full bg-current" />
-												{member.presence?.status
-													? member.presence.status.charAt(0).toUpperCase() +
-														member.presence.status.slice(1)
-													: "Offline"}
+												{getStatusLabel(member.presence?.status)}
 											</span>
 										</td>
 										<td className="px-4 py-4">

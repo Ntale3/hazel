@@ -1,2 +1,2 @@
 export { WorkOS, WorkOSApiError } from "./workos"
-export { WorkOSSync, WorkOSSyncError, type SyncResult, type FullSyncResult } from "./workos-sync"
+export { type FullSyncResult, type SyncResult, WorkOSSync, WorkOSSyncError } from "./workos-sync"

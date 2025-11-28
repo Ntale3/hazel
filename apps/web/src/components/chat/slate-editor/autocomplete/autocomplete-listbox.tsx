@@ -103,7 +103,11 @@ function Option<T>({ item, index, isActive, onSelect, onHover, renderItem }: Opt
 				!isActive && "hover:bg-muted",
 			)}
 		>
-			{renderItem ? renderItem({ option: item, isFocused: isActive }) : <DefaultItemContent option={item} />}
+			{renderItem ? (
+				renderItem({ option: item, isFocused: isActive })
+			) : (
+				<DefaultItemContent option={item} />
+			)}
 		</div>
 	)
 }
@@ -117,7 +121,9 @@ function DefaultItemContent<T>({ option }: { option: AutocompleteOption<T> }) {
 			{option.icon && <span className="shrink-0">{option.icon}</span>}
 			<div className="min-w-0 flex-1">
 				<div className="truncate font-medium">{option.label}</div>
-				{option.description && <div className="truncate text-xs opacity-70">{option.description}</div>}
+				{option.description && (
+					<div className="truncate text-xs opacity-70">{option.description}</div>
+				)}
 			</div>
 		</>
 	)

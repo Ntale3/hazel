@@ -194,9 +194,7 @@ export const DmChannelItem = ({ channelId }: DmChannelItemProps) => {
 								<MenuItem onAction={handleToggleFavorite}>
 									<IconStar
 										className={
-											channel.currentUser.isFavorite
-												? "size-4 text-favorite"
-												: "size-4"
+											channel.currentUser.isFavorite ? "size-4 text-favorite" : "size-4"
 										}
 									/>
 									<MenuLabel>

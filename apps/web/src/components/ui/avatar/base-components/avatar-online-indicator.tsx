@@ -1,4 +1,5 @@
 import { cx } from "~/utils/cx"
+import { getStatusDotColor, type PresenceStatus } from "~/utils/status"
 
 const sizes = {
 	xs: "size-1.5",
@@ -18,7 +19,7 @@ const sizes = {
 
 interface AvatarOnlineIndicatorProps {
 	size: "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl" | "6xl" | "7xl" | "8xl" | "9xl"
-	status: "online" | "offline"
+	status: PresenceStatus
 	className?: string
 }
 
@@ -26,7 +27,7 @@ export const AvatarOnlineIndicator = ({ size, status, className }: AvatarOnlineI
 	<span
 		className={cx(
 			"absolute right-0 bottom-0 rounded-full ring-[1.5px] ring-bg",
-			status === "online" ? "bg-success" : "bg-muted",
+			getStatusDotColor(status),
 			sizes[size],
 			className,
 		)}

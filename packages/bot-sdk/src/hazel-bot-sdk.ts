@@ -5,7 +5,14 @@
  * All Hazel domain schemas are pre-configured, making it trivial to build integrations.
  */
 
-import type { AttachmentId, ChannelId, ChannelMemberId, MessageId, TypingIndicatorId, UserId } from "@hazel/domain/ids"
+import type {
+	AttachmentId,
+	ChannelId,
+	ChannelMemberId,
+	MessageId,
+	TypingIndicatorId,
+	UserId,
+} from "@hazel/domain/ids"
 import { Channel, ChannelMember, Message } from "@hazel/domain/models"
 import { Config, Context, Effect, Layer, ManagedRuntime, type Schema, type Scope } from "effect"
 import { BotAuth, createAuthContextFromToken } from "./auth.ts"
@@ -14,7 +21,6 @@ import type { HandlerError } from "./errors.ts"
 import { BotRpcClient, BotRpcClientConfigTag, BotRpcClientLive } from "./rpc/client.ts"
 import type { EventQueueConfig } from "./services/index.ts"
 import { ElectricEventQueue, EventDispatcher, ShapeStreamSubscriber } from "./services/index.ts"
-
 
 /**
  * Pre-configured Hazel domain subscriptions
@@ -48,12 +54,8 @@ export type ChannelMemberType = Schema.Schema.Type<typeof ChannelMember.Model.js
 /**
  * Hazel-specific event handlers
  */
-export type MessageHandler<E = HandlerError, R = never> = (
-	message: MessageType,
-) => Effect.Effect<void, E, R>
-export type ChannelHandler<E = HandlerError, R = never> = (
-	channel: ChannelType,
-) => Effect.Effect<void, E, R>
+export type MessageHandler<E = HandlerError, R = never> = (message: MessageType) => Effect.Effect<void, E, R>
+export type ChannelHandler<E = HandlerError, R = never> = (channel: ChannelType) => Effect.Effect<void, E, R>
 export type ChannelMemberHandler<E = HandlerError, R = never> = (
 	member: ChannelMemberType,
 ) => Effect.Effect<void, E, R>
@@ -160,7 +162,11 @@ export class HazelBotClient extends Effect.Service<HazelBotClient>()("HazelBotCl
 				 * @param content - Reply content
 				 * @param options - Optional settings (thread, attachments)
 				 */
-				reply: (message: MessageType, content: string, options?: Omit<SendMessageOptions, "replyToMessageId">) =>
+				reply: (
+					message: MessageType,
+					content: string,
+					options?: Omit<SendMessageOptions, "replyToMessageId">,
+				) =>
 					rpc.message
 						.create({
 							channelId: message.channelId,
@@ -202,7 +208,11 @@ export class HazelBotClient extends Effect.Service<HazelBotClient>()("HazelBotCl
 				 * @param emoji - Emoji to toggle
 				 */
 				react: (message: MessageType, emoji: string) =>
-					rpc.messageReaction.toggle({ messageId: message.id, channelId: message.channelId, emoji }),
+					rpc.messageReaction.toggle({
+						messageId: message.id,
+						channelId: message.channelId,
+						emoji,
+					}),
 			},
 
 			/**

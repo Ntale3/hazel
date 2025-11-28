@@ -1,11 +1,7 @@
 import { schema } from "@hazel/db"
 import { Effect, Match, Schema } from "effect"
 import type { AuthenticatedUserWithContext } from "../auth/user-auth"
-import {
-	buildInClause,
-	buildInClauseWithDeletedAt,
-	type WhereClauseResult,
-} from "./where-clause-builder"
+import { buildInClause, buildInClauseWithDeletedAt, type WhereClauseResult } from "./where-clause-builder"
 
 /**
  * Error thrown when table access is denied or where clause cannot be generated
@@ -241,7 +237,9 @@ export function getWhereClauseForTable(
 
 		Match.when("pinned_messages", () =>
 			// Pinned messages from accessible channels
-			Effect.succeed(buildInClause(schema.pinnedMessagesTable.channelId, user.accessContext.channelIds)),
+			Effect.succeed(
+				buildInClause(schema.pinnedMessagesTable.channelId, user.accessContext.channelIds),
+			),
 		),
 
 		// ===========================================

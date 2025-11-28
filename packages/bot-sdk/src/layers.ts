@@ -2,8 +2,8 @@ import { Config, Effect, Layer, ManagedRuntime, Schema } from "effect"
 import { BotAuth, createAuthContextFromToken } from "./auth.ts"
 import { createBotClientLayer, createBotClientTag, type TypedBotClient } from "./bot-client.ts"
 import type { BotConfig } from "./config.ts"
-import type { ShapeSubscriptionConfig } from "./services/shape-stream-subscriber.ts"
 import { ElectricEventQueue, EventDispatcher, ShapeStreamSubscriber } from "./services/index.ts"
+import type { ShapeSubscriptionConfig } from "./services/shape-stream-subscriber.ts"
 
 /**
  * Create the full bot runtime from configuration with strongly typed subscriptions
