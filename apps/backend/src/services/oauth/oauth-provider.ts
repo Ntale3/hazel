@@ -1,5 +1,10 @@
 import { Data, Effect } from "effect"
-import type { IntegrationProvider, OAuthAccountInfo, OAuthProviderConfig, OAuthTokens } from "./provider-config"
+import type {
+	IntegrationProvider,
+	OAuthAccountInfo,
+	OAuthProviderConfig,
+	OAuthTokens,
+} from "./provider-config"
 
 /**
  * Error when exchanging authorization code for tokens fails.

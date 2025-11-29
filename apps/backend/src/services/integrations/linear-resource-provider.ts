@@ -1,0 +1,188 @@
+import { Data, Effect, Schema } from "effect"
+
+/**
+ * Linear issue URL pattern: https://linear.app/{workspace}/issue/{ISSUE-ID}
+ * Example: https://linear.app/acme/issue/ENG-123
+ */
+const LINEAR_ISSUE_URL_REGEX = /^https:\/\/linear\.app\/([^/]+)\/issue\/([A-Z]+-\d+)/i
+
+/**
+ * GraphQL query to fetch full issue details from Linear
+ */
+const ISSUE_QUERY = `
+query GetIssue($issueId: String!) {
+  issue(id: $issueId) {
+    id
+    identifier
+    title
+    description
+    url
+    state {
+      id
+      name
+      color
+    }
+    assignee {
+      id
+      name
+      avatarUrl
+    }
+    priority
+    priorityLabel
+    labels {
+      nodes {
+        id
+        name
+        color
+      }
+    }
+  }
+}
+`
+
+// Schema for Linear issue state
+export const LinearIssueState = Schema.Struct({
+	id: Schema.String,
+	name: Schema.String,
+	color: Schema.String,
+})
+
+// Schema for Linear issue assignee
+export const LinearIssueAssignee = Schema.Struct({
+	id: Schema.String,
+	name: Schema.String,
+	avatarUrl: Schema.NullOr(Schema.String),
+})
+
+// Schema for Linear issue label
+export const LinearIssueLabel = Schema.Struct({
+	id: Schema.String,
+	name: Schema.String,
+	color: Schema.String,
+})
+
+// Full Linear issue schema
+export const LinearIssue = Schema.Struct({
+	id: Schema.String,
+	identifier: Schema.String,
+	title: Schema.String,
+	description: Schema.NullOr(Schema.String),
+	url: Schema.String,
+	state: Schema.NullOr(LinearIssueState),
+	assignee: Schema.NullOr(LinearIssueAssignee),
+	priority: Schema.Number,
+	priorityLabel: Schema.String,
+	labels: Schema.Array(LinearIssueLabel),
+})
+
+export type LinearIssue = typeof LinearIssue.Type
+
+// Error for when Linear API request fails
+export class LinearApiError extends Data.TaggedError("LinearApiError")<{
+	readonly message: string
+	readonly cause?: unknown
+}> {}
+
+// Error for when issue is not found
+export class LinearIssueNotFoundError extends Data.TaggedError("LinearIssueNotFoundError")<{
+	readonly issueId: string
+}> {}
+
+/**
+ * Parse a Linear issue URL to extract workspace and issue key
+ */
+export const parseLinearIssueUrl = (url: string): { workspace: string; issueKey: string } | null => {
+	const match = url.match(LINEAR_ISSUE_URL_REGEX)
+	if (!match) return null
+	return {
+		workspace: match[1],
+		issueKey: match[2],
+	}
+}
+
+/**
+ * Check if a URL is a Linear issue URL
+ */
+export const isLinearIssueUrl = (url: string): boolean => {
+	return LINEAR_ISSUE_URL_REGEX.test(url)
+}
+
+/**
+ * Fetch a Linear issue by its key (e.g., "ENG-123") using the provided access token
+ */
+export const fetchLinearIssue = (
+	issueKey: string,
+	accessToken: string,
+): Effect.Effect<LinearIssue, LinearApiError | LinearIssueNotFoundError> =>
+	Effect.gen(function* () {
+		const response = yield* Effect.tryPromise({
+			try: async () => {
+				const res = await fetch("https://api.linear.app/graphql", {
+					method: "POST",
+					headers: {
+						Authorization: `Bearer ${accessToken}`,
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({
+						query: ISSUE_QUERY,
+						variables: { issueId: issueKey },
+					}),
+				})
+
+				if (!res.ok) {
+					throw new Error(`Linear API returned ${res.status}: ${await res.text()}`)
+				}
+
+				return res.json()
+			},
+			catch: (error) =>
+				new LinearApiError({
+					message: `Failed to fetch Linear issue: ${String(error)}`,
+					cause: error,
+				}),
+		})
+
+		// Check for GraphQL errors
+		if (response.errors && response.errors.length > 0) {
+			const errorMessages = response.errors.map((e: { message: string }) => e.message).join(", ")
+			return yield* Effect.fail(
+				new LinearApiError({ message: `Linear GraphQL error: ${errorMessages}` }),
+			)
+		}
+
+		// Check if issue was found
+		const issue = response.data?.issue
+		if (!issue) {
+			return yield* Effect.fail(new LinearIssueNotFoundError({ issueId: issueKey }))
+		}
+
+		// Transform and validate the response
+		return {
+			id: issue.id,
+			identifier: issue.identifier,
+			title: issue.title,
+			description: issue.description ?? null,
+			url: issue.url,
+			state: issue.state
+				? {
+						id: issue.state.id,
+						name: issue.state.name,
+						color: issue.state.color,
+					}
+				: null,
+			assignee: issue.assignee
+				? {
+						id: issue.assignee.id,
+						name: issue.assignee.name,
+						avatarUrl: issue.assignee.avatarUrl ?? null,
+					}
+				: null,
+			priority: issue.priority ?? 0,
+			priorityLabel: issue.priorityLabel ?? "No priority",
+			labels: (issue.labels?.nodes ?? []).map((label: { id: string; name: string; color: string }) => ({
+				id: label.id,
+				name: label.name,
+				color: label.color,
+			})),
+		}
+	})

@@ -104,12 +104,12 @@ export const IntegrationConnectionId = Schema.UUID.pipe(
 })
 export type IntegrationConnectionId = Schema.Schema.Type<typeof IntegrationConnectionId>
 
-export const IntegrationTokenId = Schema.UUID.pipe(
-	Schema.brand("@HazelChat/IntegrationTokenId"),
-).annotations({
-	description: "The ID of an integration token record",
-	title: "Integration Token ID",
-})
+export const IntegrationTokenId = Schema.UUID.pipe(Schema.brand("@HazelChat/IntegrationTokenId")).annotations(
+	{
+		description: "The ID of an integration token record",
+		title: "Integration Token ID",
+	},
+)
 export type IntegrationTokenId = Schema.Schema.Type<typeof IntegrationTokenId>
 
 export const MessageIntegrationLinkId = Schema.UUID.pipe(

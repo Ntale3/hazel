@@ -91,7 +91,11 @@ function IntegrationCard({
 	integration,
 	connected,
 	onClick,
-}: { integration: Integration; connected: boolean; onClick: () => void }) {
+}: {
+	integration: Integration
+	connected: boolean
+	onClick: () => void
+}) {
 	return (
 		<button
 			type="button"
@@ -103,7 +107,9 @@ function IntegrationCard({
 					<div className="flex items-center gap-3">
 						<div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-black/8">
 							<img
-								src={getBrandfetchIcon(integration.logoDomain, { type: integration.logoType })}
+								src={getBrandfetchIcon(integration.logoDomain, {
+									type: integration.logoType,
+								})}
 								alt={`${integration.name} logo`}
 								className="size-10 object-contain"
 							/>

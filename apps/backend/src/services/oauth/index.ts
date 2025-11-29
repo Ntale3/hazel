@@ -111,7 +111,7 @@
  * @module oauth
  */
 
-export * from "./provider-config"
 export * from "./oauth-provider"
 export * from "./oauth-provider-registry"
+export * from "./provider-config"
 export * from "./providers/linear-oauth-provider"

@@ -8,10 +8,13 @@ import { toast } from "sonner"
 import type { MessageWithPinned } from "~/atoms/chat-query-atoms"
 import { processedReactionsAtomFamily } from "~/atoms/message-atoms"
 import IconPin from "~/components/icons/icon-pin"
+import { LinearIssueEmbed } from "~/components/integrations"
 import {
+	extractLinearIssueKey,
 	extractTweetId,
 	extractUrls,
 	extractYoutubeVideoId,
+	isLinearIssueUrl,
 	isTweetUrl,
 	isYoutubeUrl,
 	LinkPreview,
@@ -145,12 +148,15 @@ export function MessageItem({
 					) : (
 						<>
 							<SlateMessageViewer content={message.content} />
-							{/* Tweet Embeds, YouTube Embeds, and Link Previews */}
+							{/* Tweet Embeds, YouTube Embeds, Linear Issue Embeds, and Link Previews */}
 							{(() => {
 								const urls = extractUrls(message.content)
 								const tweetUrls = urls.filter((url) => isTweetUrl(url))
 								const youtubeUrls = urls.filter((url) => isYoutubeUrl(url))
-								const otherUrls = urls.filter((url) => !isTweetUrl(url) && !isYoutubeUrl(url))
+								const linearUrls = urls.filter((url) => isLinearIssueUrl(url))
+								const otherUrls = urls.filter(
+									(url) => !isTweetUrl(url) && !isYoutubeUrl(url) && !isLinearIssueUrl(url),
+								)
 
 								return (
 									<>
@@ -172,6 +178,11 @@ export function MessageItem({
 											return videoId ? (
 												<YoutubeEmbed key={url} videoId={videoId} url={url} />
 											) : null
+										})}
+										{/* Render all Linear issue embeds */}
+										{linearUrls.map((url) => {
+											const issueKey = extractLinearIssueKey(url)
+											return issueKey ? <LinearIssueEmbed key={url} url={url} /> : null
 										})}
 										{/* Render last other URL as link preview */}
 										{otherUrls.length > 0 && otherUrls[otherUrls.length - 1] && (

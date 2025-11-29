@@ -1,11 +1,11 @@
 import { Effect, Redacted } from "effect"
-import type { OAuthProviderConfig } from "../provider-config"
 import {
 	AccountInfoError,
 	createBaseAuthorizationUrl,
 	makeTokenExchangeRequest,
 	type OAuthProvider,
 } from "../oauth-provider"
+import type { OAuthProviderConfig } from "../provider-config"
 
 /**
  * Linear OAuth Provider Implementation.

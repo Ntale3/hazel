@@ -162,3 +162,29 @@ export function extractYoutubeTimestamp(url: string): number | null {
 		return null
 	}
 }
+
+/**
+ * Check if a URL is a Linear issue URL
+ * Format: https://linear.app/{workspace}/issue/{ISSUE-ID}
+ */
+export function isLinearIssueUrl(url: string): boolean {
+	try {
+		const parsed = new URL(url)
+		return parsed.hostname === "linear.app" && /\/[^/]+\/issue\/[A-Z]+-\d+/i.test(parsed.pathname)
+	} catch {
+		return false
+	}
+}
+
+/**
+ * Extract the issue key from a Linear issue URL
+ * Returns the issue key (e.g., "ENG-123") or null if not a valid Linear URL
+ */
+export function extractLinearIssueKey(url: string): string | null {
+	try {
+		const match = url.match(/\/issue\/([A-Z]+-\d+)/i)
+		return match?.[1]?.toUpperCase() ?? null
+	} catch {
+		return null
+	}
+}

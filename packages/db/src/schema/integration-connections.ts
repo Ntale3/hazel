@@ -1,5 +1,15 @@
 import type { IntegrationConnectionId, OrganizationId, UserId } from "@hazel/schema"
-import { index, jsonb, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid, varchar } from "drizzle-orm/pg-core"
+import {
+	index,
+	jsonb,
+	pgEnum,
+	pgTable,
+	text,
+	timestamp,
+	uniqueIndex,
+	uuid,
+	varchar,
+} from "drizzle-orm/pg-core"
 
 export const integrationProviderEnum = pgEnum("integration_provider", ["linear", "github", "figma", "notion"])
 
@@ -40,7 +50,11 @@ export const integrationConnectionsTable = pgTable(
 		index("int_conn_provider_idx").on(table.provider),
 		index("int_conn_status_idx").on(table.status),
 		index("int_conn_deleted_at_idx").on(table.deletedAt),
-		uniqueIndex("int_conn_org_user_provider_unique").on(table.organizationId, table.userId, table.provider),
+		uniqueIndex("int_conn_org_user_provider_unique").on(
+			table.organizationId,
+			table.userId,
+			table.provider,
+		),
 	],
 )
 

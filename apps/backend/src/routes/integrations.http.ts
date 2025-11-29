@@ -1,5 +1,12 @@
 import { HttpApiBuilder, HttpServerResponse } from "@effect/platform"
-import { CurrentUser, InternalServerError, type OrganizationId, UnauthorizedError, type UserId, withSystemActor } from "@hazel/domain"
+import {
+	CurrentUser,
+	InternalServerError,
+	type OrganizationId,
+	UnauthorizedError,
+	type UserId,
+	withSystemActor,
+} from "@hazel/domain"
 import {
 	ConnectionStatusResponse,
 	IntegrationNotConnectedError,
@@ -9,8 +16,8 @@ import { Config, Effect, Option, Schema } from "effect"
 import { HazelApi } from "../api"
 import { IntegrationConnectionRepo } from "../repositories/integration-connection-repo"
 import { OrganizationRepo } from "../repositories/organization-repo"
-import { OAuthProviderRegistry } from "../services/oauth"
 import { IntegrationTokenService } from "../services/integration-token-service"
+import { OAuthProviderRegistry } from "../services/oauth"
 
 /**
  * OAuth state schema - encoded in the state parameter during OAuth flow.
@@ -45,11 +52,12 @@ export const HttpIntegrationLive = HttpApiBuilder.group(HazelApi, "integrations"
 				// Get the OAuth provider from registry
 				const registry = yield* OAuthProviderRegistry
 				const oauthProvider = yield* registry.getProvider(provider).pipe(
-					Effect.mapError((error) =>
-						new InternalServerError({
-							message: `Provider not available: ${error._tag}`,
-							detail: String(error),
-						}),
+					Effect.mapError(
+						(error) =>
+							new InternalServerError({
+								message: `Provider not available: ${error._tag}`,
+								detail: String(error),
+							}),
 					),
 				)
 
@@ -57,18 +65,16 @@ export const HttpIntegrationLive = HttpApiBuilder.group(HazelApi, "integrations"
 
 				// Get org slug for redirect URL
 				const orgRepo = yield* OrganizationRepo
-				const orgOption = yield* orgRepo
-					.findById(currentUser.organizationId)
-					.pipe(
-						withSystemActor,
-						Effect.mapError(
-							(error) =>
-								new InternalServerError({
-									message: "Failed to fetch organization",
-									detail: String(error),
-								}),
-						),
-					)
+				const orgOption = yield* orgRepo.findById(currentUser.organizationId).pipe(
+					withSystemActor,
+					Effect.mapError(
+						(error) =>
+							new InternalServerError({
+								message: "Failed to fetch organization",
+								detail: String(error),
+							}),
+					),
+				)
 				const org = yield* Option.match(orgOption, {
 					onNone: () =>
 						Effect.fail(
@@ -107,17 +113,19 @@ export const HttpIntegrationLive = HttpApiBuilder.group(HazelApi, "integrations"
 
 				// Parse and validate state
 				const parsedState = yield* Effect.try({
-					try: () => Schema.decodeUnknownSync(OAuthState)(JSON.parse(decodeURIComponent(encodedState))),
+					try: () =>
+						Schema.decodeUnknownSync(OAuthState)(JSON.parse(decodeURIComponent(encodedState))),
 					catch: () => new InvalidOAuthStateError({ message: "Invalid OAuth state" }),
 				})
 
 				// Get the OAuth provider from registry
 				const registry = yield* OAuthProviderRegistry
 				const oauthProvider = yield* registry.getProvider(provider).pipe(
-					Effect.mapError((error) =>
-						new InvalidOAuthStateError({
-							message: `Provider not available: ${error._tag}`,
-						}),
+					Effect.mapError(
+						(error) =>
+							new InvalidOAuthStateError({
+								message: `Provider not available: ${error._tag}`,
+							}),
 					),
 				)
 
@@ -126,19 +134,21 @@ export const HttpIntegrationLive = HttpApiBuilder.group(HazelApi, "integrations"
 
 				// Exchange code for tokens using the provider
 				const tokens = yield* oauthProvider.exchangeCodeForTokens(code).pipe(
-					Effect.mapError((error) =>
-						new InvalidOAuthStateError({
-							message: error.message,
-						}),
+					Effect.mapError(
+						(error) =>
+							new InvalidOAuthStateError({
+								message: error.message,
+							}),
 					),
 				)
 
 				// Get account info from provider
 				const accountInfo = yield* oauthProvider.getAccountInfo(tokens.accessToken).pipe(
-					Effect.mapError((error) =>
-						new InvalidOAuthStateError({
-							message: error.message,
-						}),
+					Effect.mapError(
+						(error) =>
+							new InvalidOAuthStateError({
+								message: error.message,
+							}),
 					),
 				)
 
@@ -178,11 +188,25 @@ export const HttpIntegrationLive = HttpApiBuilder.group(HazelApi, "integrations"
 			}).pipe(
 				Effect.catchTags({
 					DatabaseError: (error) =>
-						Effect.fail(new InternalServerError({ message: "Database error during OAuth callback", detail: String(error) })),
+						Effect.fail(
+							new InternalServerError({
+								message: "Database error during OAuth callback",
+								detail: String(error),
+							}),
+						),
 					ParseError: (error) =>
-						Effect.fail(new InvalidOAuthStateError({ message: `Failed to parse response: ${String(error)}` })),
+						Effect.fail(
+							new InvalidOAuthStateError({
+								message: `Failed to parse response: ${String(error)}`,
+							}),
+						),
 					IntegrationEncryptionError: (error) =>
-						Effect.fail(new InternalServerError({ message: "Failed to encrypt tokens", detail: String(error) })),
+						Effect.fail(
+							new InternalServerError({
+								message: "Failed to encrypt tokens",
+								detail: String(error),
+							}),
+						),
 				}),
 			),
 		)
@@ -233,7 +257,12 @@ export const HttpIntegrationLive = HttpApiBuilder.group(HazelApi, "integrations"
 				})
 			}).pipe(
 				Effect.catchTag("DatabaseError", (error) =>
-					Effect.fail(new InternalServerError({ message: "Failed to get connection status", detail: String(error) })),
+					Effect.fail(
+						new InternalServerError({
+							message: "Failed to get connection status",
+							detail: String(error),
+						}),
+					),
 				),
 			),
 		)
@@ -269,7 +298,12 @@ export const HttpIntegrationLive = HttpApiBuilder.group(HazelApi, "integrations"
 				yield* connectionRepo.softDelete(connection.id).pipe(withSystemActor)
 			}).pipe(
 				Effect.catchTag("DatabaseError", (error) =>
-					Effect.fail(new InternalServerError({ message: "Failed to disconnect integration", detail: String(error) })),
+					Effect.fail(
+						new InternalServerError({
+							message: "Failed to disconnect integration",
+							detail: String(error),
+						}),
+					),
 				),
 			),
 		),

@@ -31,7 +31,10 @@ export class IntegrationConnectionRepo extends Effect.Service<IntegrationConnect
 					.makeQuery(
 						(
 							execute,
-							data: { organizationId: OrganizationId; provider: IntegrationConnection.IntegrationProvider },
+							data: {
+								organizationId: OrganizationId
+								provider: IntegrationConnection.IntegrationProvider
+							},
 						) =>
 							execute((client) =>
 								client
@@ -39,7 +42,10 @@ export class IntegrationConnectionRepo extends Effect.Service<IntegrationConnect
 									.from(schema.integrationConnectionsTable)
 									.where(
 										and(
-											eq(schema.integrationConnectionsTable.organizationId, data.organizationId),
+											eq(
+												schema.integrationConnectionsTable.organizationId,
+												data.organizationId,
+											),
 											eq(schema.integrationConnectionsTable.provider, data.provider),
 											isNull(schema.integrationConnectionsTable.userId),
 											eq(schema.integrationConnectionsTable.level, "organization"),
@@ -75,7 +81,10 @@ export class IntegrationConnectionRepo extends Effect.Service<IntegrationConnect
 									.from(schema.integrationConnectionsTable)
 									.where(
 										and(
-											eq(schema.integrationConnectionsTable.organizationId, data.organizationId),
+											eq(
+												schema.integrationConnectionsTable.organizationId,
+												data.organizationId,
+											),
 											eq(schema.integrationConnectionsTable.userId, data.userId),
 											eq(schema.integrationConnectionsTable.provider, data.provider),
 											eq(schema.integrationConnectionsTable.level, "user"),
@@ -98,7 +107,10 @@ export class IntegrationConnectionRepo extends Effect.Service<IntegrationConnect
 								.from(schema.integrationConnectionsTable)
 								.where(
 									and(
-										eq(schema.integrationConnectionsTable.organizationId, data.organizationId),
+										eq(
+											schema.integrationConnectionsTable.organizationId,
+											data.organizationId,
+										),
 										isNull(schema.integrationConnectionsTable.deletedAt),
 									),
 								),
@@ -169,7 +181,13 @@ export class IntegrationConnectionRepo extends Effect.Service<IntegrationConnect
 					if (Option.isSome(existing)) {
 						// Update existing connection
 						const results = yield* db.makeQuery(
-							(execute, updateParams: { id: IntegrationConnectionId; data: Partial<typeof IntegrationConnection.Update.Type> }) =>
+							(
+								execute,
+								updateParams: {
+									id: IntegrationConnectionId
+									data: Partial<typeof IntegrationConnection.Update.Type>
+								},
+							) =>
 								execute((client) =>
 									client
 										.update(schema.integrationConnectionsTable)
