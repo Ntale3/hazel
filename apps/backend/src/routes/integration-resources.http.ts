@@ -2,6 +2,7 @@ import { HttpApiBuilder } from "@effect/platform"
 import { CurrentUser, InternalServerError, UnauthorizedError, withSystemActor } from "@hazel/domain"
 import {
 	IntegrationNotConnectedForPreviewError,
+	IntegrationResourceError,
 	LinearIssueResourceResponse,
 	ResourceNotFoundError,
 } from "@hazel/domain/http"
@@ -93,9 +94,10 @@ export const HttpIntegrationResourceLive = HttpApiBuilder.group(
 						Effect.fail(new IntegrationNotConnectedForPreviewError({ provider: "linear" })),
 					LinearApiError: (error: LinearApiError) =>
 						Effect.fail(
-							new InternalServerError({
-								message: "Failed to fetch issue from Linear",
-								detail: error.message,
+							new IntegrationResourceError({
+								url: urlParams.url,
+								message: error.message,
+								provider: "linear",
 							}),
 						),
 					LinearIssueNotFoundError: (error: LinearIssueNotFoundError) =>

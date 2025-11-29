@@ -108,6 +108,31 @@ export const isLinearIssueUrl = (url: string): boolean => {
 }
 
 /**
+ * Parse Linear API error to provide user-friendly messages
+ */
+const parseLinearErrorMessage = (errorMessage: string): string => {
+	const lowerMessage = errorMessage.toLowerCase()
+
+	// Entity not found (common when user doesn't have access to workspace)
+	if (lowerMessage.includes("entity not found") || lowerMessage.includes("not found")) {
+		return "Issue not found or you don't have access"
+	}
+
+	// Authentication errors
+	if (lowerMessage.includes("unauthorized") || lowerMessage.includes("authentication")) {
+		return "Linear authentication failed"
+	}
+
+	// Rate limiting
+	if (lowerMessage.includes("rate limit") || lowerMessage.includes("too many requests")) {
+		return "Rate limit exceeded, try again later"
+	}
+
+	// Return original message if no specific case matches
+	return errorMessage
+}
+
+/**
  * Fetch a Linear issue by its key (e.g., "ENG-123") using the provided access token
  */
 export const fetchLinearIssue = (
@@ -130,24 +155,31 @@ export const fetchLinearIssue = (
 				})
 
 				if (!res.ok) {
-					throw new Error(`Linear API returned ${res.status}: ${await res.text()}`)
+					// Handle HTTP-level errors
+					if (res.status === 401 || res.status === 403) {
+						throw new Error("Linear authentication failed")
+					}
+					if (res.status === 429) {
+						throw new Error("Rate limit exceeded, try again later")
+					}
+					throw new Error(`Could not connect to Linear (${res.status})`)
 				}
 
 				return res.json()
 			},
 			catch: (error) =>
 				new LinearApiError({
-					message: `Failed to fetch Linear issue: ${String(error)}`,
+					message:
+						error instanceof Error ? error.message : "Could not connect to Linear",
 					cause: error,
 				}),
 		})
 
 		// Check for GraphQL errors
 		if (response.errors && response.errors.length > 0) {
-			const errorMessages = response.errors.map((e: { message: string }) => e.message).join(", ")
-			return yield* Effect.fail(
-				new LinearApiError({ message: `Linear GraphQL error: ${errorMessages}` }),
-			)
+			const firstError = response.errors[0]?.message || "Unknown error"
+			const userFriendlyMessage = parseLinearErrorMessage(firstError)
+			return yield* Effect.fail(new LinearApiError({ message: userFriendlyMessage }))
 		}
 
 		// Check if issue was found

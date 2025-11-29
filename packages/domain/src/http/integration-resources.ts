@@ -61,12 +61,23 @@ export class ResourceNotFoundError extends Schema.TaggedError<ResourceNotFoundEr
 	},
 ) {}
 
+// Error when integration API returns an error (authorization, rate limit, etc.)
+export class IntegrationResourceError extends Schema.TaggedError<IntegrationResourceError>()(
+	"IntegrationResourceError",
+	{
+		url: Schema.String,
+		message: Schema.String,
+		provider: IntegrationProvider,
+	},
+) {}
+
 // API Group for integration resources
 export class IntegrationResourceGroup extends HttpApiGroup.make("integration-resources")
 	.add(
 		HttpApiEndpoint.get("fetchLinearIssue", `/linear/issue`)
 			.addSuccess(LinearIssueResourceResponse)
 			.addError(IntegrationNotConnectedForPreviewError)
+			.addError(IntegrationResourceError)
 			.addError(ResourceNotFoundError)
 			.addError(UnauthorizedError)
 			.addError(InternalServerError)

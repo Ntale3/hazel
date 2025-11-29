@@ -139,6 +139,7 @@ export function LinearIssueEmbed({ url }: LinearIssueEmbedProps) {
 	// Error handling
 	if (Result.isFailure(resourceResult)) {
 		const errorOption = Result.error(resourceResult)
+		const issueKey = extractLinearIssueKey(url)
 
 		if (Option.isSome(errorOption)) {
 			const error = errorOption.value
@@ -150,30 +151,63 @@ export function LinearIssueEmbed({ url }: LinearIssueEmbedProps) {
 						providerName={theme.name}
 						iconUrl={theme.iconUrl}
 						accentColor={theme.color}
-						resourceLabel={extractLinearIssueKey(url) ?? undefined}
+						resourceLabel={issueKey ?? undefined}
 					/>
 				)
 			}
 
-			// Show specific error message if available
+			// Show the actual error message from the integration
+			if ("_tag" in error && error._tag === "IntegrationResourceError") {
+				return (
+					<Embed.Error
+						iconUrl={theme.iconUrl}
+						accentColor={theme.color}
+						message={error.message}
+						url={url}
+						resourceLabel={issueKey ?? undefined}
+					/>
+				)
+			}
+
+			// Show specific error message for not found
 			if ("_tag" in error && error._tag === "ResourceNotFoundError") {
 				return (
 					<Embed.Error
 						iconUrl={theme.iconUrl}
 						accentColor={theme.color}
-						message="Issue not found"
+						message={error.message ?? "Issue not found"}
+						url={url}
+						resourceLabel={issueKey ?? undefined}
 					/>
 				)
 			}
 		}
 
-		return <Embed.Error iconUrl={theme.iconUrl} accentColor={theme.color} />
+		// Fallback for unknown errors
+		return (
+			<Embed.Error
+				iconUrl={theme.iconUrl}
+				accentColor={theme.color}
+				message="Could not load content"
+				url={url}
+				resourceLabel={issueKey ?? undefined}
+			/>
+		)
 	}
 
 	const issue = Result.getOrElse(resourceResult, () => null)
 
 	if (!issue) {
-		return <Embed.Error iconUrl={theme.iconUrl} accentColor={theme.color} />
+		const issueKey = extractLinearIssueKey(url)
+		return (
+			<Embed.Error
+				iconUrl={theme.iconUrl}
+				accentColor={theme.color}
+				message="Issue not found"
+				url={url}
+				resourceLabel={issueKey ?? undefined}
+			/>
+		)
 	}
 
 	// Build fields array for priority and labels
