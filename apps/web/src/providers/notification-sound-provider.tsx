@@ -30,7 +30,6 @@ export function NotificationSoundProvider({ children }: NotificationSoundProvide
 
 	const organizationMemberId = member?.id
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: quiet hours dependencies needed when uncommented
 	useEffect(() => {
 		// Don't start stream until audio is primed (user has clicked)
 		if (!isPrimed) {

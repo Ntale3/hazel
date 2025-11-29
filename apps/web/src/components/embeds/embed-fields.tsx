@@ -1,0 +1,51 @@
+"use client"
+
+import type { ReactNode } from "react"
+import { cn } from "~/lib/utils"
+
+export interface EmbedField {
+	/** Field label/name */
+	name: string
+	/** Field value - can be a string or React node (e.g., avatar, badge) */
+	value: ReactNode
+	/** If true, displays inline with other inline fields (like Discord) */
+	inline?: boolean
+}
+
+export interface EmbedFieldsProps {
+	/** Array of fields to display */
+	fields: EmbedField[]
+	/** Additional class names */
+	className?: string
+}
+
+/**
+ * Flexible metadata grid for the embed - like Discord's embed fields.
+ * Inline fields display side-by-side, non-inline fields take full width.
+ */
+export function EmbedFields({ fields, className }: EmbedFieldsProps) {
+	if (fields.length === 0) return null
+
+	return (
+		<div
+			className={cn(
+				"flex flex-wrap items-center gap-x-3 gap-y-1.5",
+				"border-border/40 border-t bg-muted/10 px-3 py-2",
+				className,
+			)}
+		>
+			{fields.map((field, index) => (
+				<div
+					key={`${field.name}-${index}`}
+					className={cn("flex items-center gap-1.5", !field.inline && "w-full")}
+				>
+					{typeof field.value === "string" ? (
+						<span className="text-muted-fg text-xs">{field.value}</span>
+					) : (
+						field.value
+					)}
+				</div>
+			))}
+		</div>
+	)
+}

@@ -188,3 +188,53 @@ export function extractLinearIssueKey(url: string): string | null {
 		return null
 	}
 }
+
+/**
+ * Check if a URL is a GitHub PR URL
+ * Format: https://github.com/{owner}/{repo}/pull/{number}
+ */
+export function isGitHubPRUrl(url: string): boolean {
+	try {
+		const parsed = new URL(url)
+		return parsed.hostname === "github.com" && /\/[^/]+\/[^/]+\/pull\/\d+/.test(parsed.pathname)
+	} catch {
+		return false
+	}
+}
+
+/**
+ * Check if a URL is a GitHub Issue URL
+ * Format: https://github.com/{owner}/{repo}/issues/{number}
+ */
+export function isGitHubIssueUrl(url: string): boolean {
+	try {
+		const parsed = new URL(url)
+		return parsed.hostname === "github.com" && /\/[^/]+\/[^/]+\/issues\/\d+/.test(parsed.pathname)
+	} catch {
+		return false
+	}
+}
+
+/**
+ * Extract GitHub PR/Issue info from URL
+ */
+export function extractGitHubInfo(url: string): {
+	owner: string
+	repo: string
+	number: number
+	type: "pull" | "issues"
+} | null {
+	try {
+		const parsed = new URL(url)
+		const match = parsed.pathname.match(/\/([^/]+)\/([^/]+)\/(pull|issues)\/(\d+)/)
+		if (!match || !match[1] || !match[2] || !match[3] || !match[4]) return null
+		return {
+			owner: match[1],
+			repo: match[2],
+			type: match[3] as "pull" | "issues",
+			number: Number.parseInt(match[4], 10),
+		}
+	} catch {
+		return null
+	}
+}

@@ -4,7 +4,8 @@ import { Result, useAtomValue } from "@effect-atom/atom-react"
 import { Option } from "effect"
 import { HazelApiClient } from "~/lib/services/common/atom-client"
 import { cn } from "~/lib/utils"
-import { LinearConnectPrompt } from "./linear-connect-prompt"
+import { Embed, useEmbedTheme } from "../embeds"
+import { extractLinearIssueKey } from "../link-preview"
 
 interface LinearIssueEmbedProps {
 	url: string
@@ -19,8 +20,8 @@ const PRIORITY_CONFIG = {
 	4: { label: "Low", color: "text-blue-600", bg: "bg-blue-500/10" },
 } as const
 
-// Priority icon SVG paths
-const PriorityIcon = ({ priority, className }: { priority: number; className?: string }) => {
+// Priority icon SVG
+function PriorityIcon({ priority, className }: { priority: number; className?: string }) {
 	const config = PRIORITY_CONFIG[priority as keyof typeof PRIORITY_CONFIG] ?? PRIORITY_CONFIG[0]
 
 	if (priority === 0) {
@@ -44,179 +45,188 @@ const PriorityIcon = ({ priority, className }: { priority: number; className?: s
 	)
 }
 
-// Linear logo - using Brandfetch CDN
-const LINEAR_LOGO_URL = "https://cdn.brandfetch.io/linear.app/w/64/h/64/theme/dark/icon"
-
-// Loading skeleton
-function LinearIssueSkeleton() {
+// Status badge component
+function StatusBadge({ name, color }: { name: string; color: string }) {
 	return (
-		<div className="mt-2 flex max-w-md flex-col overflow-hidden rounded-lg border border-border/60 bg-linear-to-br from-muted/30 to-muted/50">
-			{/* Header skeleton */}
-			<div className="flex items-center gap-2 border-border/40 border-b bg-muted/20 px-3 py-2">
-				<div className="size-4 animate-pulse rounded bg-muted" />
-				<div className="h-4 w-16 animate-pulse rounded bg-muted" />
-				<div className="h-5 w-20 animate-pulse rounded-full bg-muted" />
-			</div>
-			{/* Content skeleton */}
-			<div className="space-y-2 p-3">
-				<div className="h-5 w-4/5 animate-pulse rounded bg-muted" />
-				<div className="h-3 w-full animate-pulse rounded bg-muted" />
-				<div className="h-3 w-2/3 animate-pulse rounded bg-muted" />
-			</div>
-			{/* Footer skeleton */}
-			<div className="flex items-center gap-3 border-border/40 border-t bg-muted/10 px-3 py-2">
-				<div className="flex items-center gap-1.5">
-					<div className="size-5 animate-pulse rounded-full bg-muted" />
-					<div className="h-3 w-16 animate-pulse rounded bg-muted" />
+		<span
+			className="rounded-full px-2 py-0.5 font-medium text-[11px] transition-transform group-hover:scale-105"
+			style={{
+				backgroundColor: `${color}18`,
+				color: color,
+			}}
+		>
+			{name}
+		</span>
+	)
+}
+
+// Assignee avatar component
+function AssigneeAvatar({
+	name,
+	avatarUrl,
+	accentColor,
+}: {
+	name: string
+	avatarUrl?: string | null
+	accentColor: string
+}) {
+	return (
+		<div className="flex items-center gap-1.5">
+			{avatarUrl ? (
+				<img src={avatarUrl} alt="" className="size-5 rounded-full ring-1 ring-border/50" />
+			) : (
+				<div
+					className="flex size-5 items-center justify-center rounded-full font-medium text-[10px] text-white"
+					style={{
+						background: `linear-gradient(to bottom right, ${accentColor}, #7C3AED)`,
+					}}
+				>
+					{name.charAt(0).toUpperCase()}
 				</div>
-				<div className="h-4 w-12 animate-pulse rounded bg-muted" />
-			</div>
+			)}
+			<span className="text-muted-fg text-xs">{name}</span>
 		</div>
 	)
 }
 
-// Error state
-function LinearIssueError({ message }: { message?: string }) {
+// Priority badge component
+function PriorityBadge({ priority, label }: { priority: number; label: string }) {
+	const config = PRIORITY_CONFIG[priority as keyof typeof PRIORITY_CONFIG] ?? PRIORITY_CONFIG[0]
+
 	return (
-		<div className="mt-2 flex max-w-md items-center gap-3 rounded-lg border border-border/60 bg-muted/30 p-3">
-			<img src={LINEAR_LOGO_URL} alt="" className="size-5 opacity-50" />
-			<span className="text-muted-fg text-sm">{message || "Could not load Linear issue"}</span>
+		<div
+			className={cn(
+				"flex items-center gap-1 rounded px-1.5 py-0.5 font-medium text-[10px]",
+				config.bg,
+				config.color,
+			)}
+		>
+			<PriorityIcon priority={priority} />
+			<span>{label}</span>
 		</div>
+	)
+}
+
+// Label badge component
+function LabelBadge({ name, color }: { name: string; color: string }) {
+	return (
+		<span
+			className="rounded px-1.5 py-0.5 font-medium text-[10px]"
+			style={{
+				backgroundColor: `${color}18`,
+				color: color,
+			}}
+		>
+			{name}
+		</span>
 	)
 }
 
 export function LinearIssueEmbed({ url }: LinearIssueEmbedProps) {
+	const theme = useEmbedTheme("linear")
+
 	const resourceResult = useAtomValue(
 		HazelApiClient.query("integration-resources", "fetchLinearIssue", {
 			urlParams: { url },
 		}),
 	)
 
-	const isLoading = Result.isInitial(resourceResult)
-
-	if (isLoading) {
-		return <LinearIssueSkeleton />
+	// Loading state
+	if (Result.isInitial(resourceResult)) {
+		return <Embed.Skeleton accentColor={theme.color} />
 	}
 
-	// Handle errors
+	// Error handling
 	if (Result.isFailure(resourceResult)) {
 		const errorOption = Result.error(resourceResult)
 
-		// Unwrap the Option to get the actual error
 		if (Option.isSome(errorOption)) {
 			const error = errorOption.value
 
 			// Show connect prompt if not connected
 			if ("_tag" in error && error._tag === "IntegrationNotConnectedForPreviewError") {
-				return <LinearConnectPrompt url={url} />
+				return (
+					<Embed.ConnectPrompt
+						providerName={theme.name}
+						iconUrl={theme.iconUrl}
+						accentColor={theme.color}
+						resourceLabel={extractLinearIssueKey(url) ?? undefined}
+					/>
+				)
 			}
 
 			// Show specific error message if available
 			if ("_tag" in error && error._tag === "ResourceNotFoundError") {
-				return <LinearIssueError message="Issue not found" />
+				return (
+					<Embed.Error
+						iconUrl={theme.iconUrl}
+						accentColor={theme.color}
+						message="Issue not found"
+					/>
+				)
 			}
 		}
 
-		return <LinearIssueError />
+		return <Embed.Error iconUrl={theme.iconUrl} accentColor={theme.color} />
 	}
 
 	const issue = Result.getOrElse(resourceResult, () => null)
 
 	if (!issue) {
-		return <LinearIssueError />
+		return <Embed.Error iconUrl={theme.iconUrl} accentColor={theme.color} />
 	}
 
-	const priorityConfig =
-		PRIORITY_CONFIG[issue.priority as keyof typeof PRIORITY_CONFIG] ?? PRIORITY_CONFIG[0]
+	// Build fields array for the footer
+	const fields = []
+
+	if (issue.assignee) {
+		fields.push({
+			name: "Assignee",
+			value: (
+				<AssigneeAvatar
+					name={issue.assignee.name}
+					avatarUrl={issue.assignee.avatarUrl}
+					accentColor={theme.color}
+				/>
+			),
+			inline: true,
+		})
+	}
+
+	if (issue.priority > 0) {
+		fields.push({
+			name: "Priority",
+			value: <PriorityBadge priority={issue.priority} label={issue.priorityLabel} />,
+			inline: true,
+		})
+	}
+
+	// Add labels (max 2, with overflow indicator)
+	for (const label of issue.labels.slice(0, 2)) {
+		fields.push({
+			name: "Label",
+			value: <LabelBadge name={label.name} color={label.color} />,
+			inline: true,
+		})
+	}
+
+	if (issue.labels.length > 2) {
+		fields.push({
+			name: "More",
+			value: <span className="text-[10px] text-muted-fg">+{issue.labels.length - 2}</span>,
+			inline: true,
+		})
+	}
 
 	return (
-		<a
-			href={url}
-			target="_blank"
-			rel="noopener noreferrer"
-			className="group mt-2 block max-w-md overflow-hidden rounded-lg border border-border/60 bg-linear-to-br from-bg to-muted/20 shadow-sm transition-all duration-200 hover:border-[#5E6AD2]/40 hover:shadow-md"
-		>
-			{/* Header with Linear branding */}
-			<div className="flex items-center gap-2 border-border/40 border-b bg-linear-to-r from-[#5E6AD2]/5 to-transparent px-3 py-2">
-				<img src={LINEAR_LOGO_URL} alt="" className="size-5 rounded-sm" />
-				<span className="font-medium font-mono text-[#5E6AD2] text-xs">{issue.identifier}</span>
-				{issue.state && (
-					<span
-						className="ml-auto rounded-full px-2 py-0.5 font-medium text-[11px] transition-transform group-hover:scale-105"
-						style={{
-							backgroundColor: `${issue.state.color}18`,
-							color: issue.state.color,
-						}}
-					>
-						{issue.state.name}
-					</span>
-				)}
-			</div>
-
-			{/* Main content */}
-			<div className="p-3">
-				<h4 className="font-semibold text-fg text-sm leading-snug transition-colors group-hover:text-[#5E6AD2]">
-					{issue.title}
-				</h4>
-				{issue.description && (
-					<p className="mt-1.5 line-clamp-2 text-muted-fg text-xs leading-relaxed">
-						{issue.description.slice(0, 200)}
-						{issue.description.length > 200 ? "..." : ""}
-					</p>
-				)}
-			</div>
-
-			{/* Footer with metadata */}
-			<div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 border-border/40 border-t bg-muted/10 px-3 py-2">
-				{/* Assignee */}
-				{issue.assignee && (
-					<div className="flex items-center gap-1.5">
-						{issue.assignee.avatarUrl ? (
-							<img
-								src={issue.assignee.avatarUrl}
-								alt=""
-								className="size-5 rounded-full ring-1 ring-border/50"
-							/>
-						) : (
-							<div className="flex size-5 items-center justify-center rounded-full bg-linear-to-br from-[#5E6AD2] to-[#7C3AED] font-medium text-[10px] text-white">
-								{issue.assignee.name.charAt(0).toUpperCase()}
-							</div>
-						)}
-						<span className="text-muted-fg text-xs">{issue.assignee.name}</span>
-					</div>
-				)}
-
-				{/* Priority */}
-				{issue.priority > 0 && (
-					<div
-						className={cn(
-							"flex items-center gap-1 rounded px-1.5 py-0.5 font-medium text-[10px]",
-							priorityConfig.bg,
-							priorityConfig.color,
-						)}
-					>
-						<PriorityIcon priority={issue.priority} />
-						<span>{issue.priorityLabel}</span>
-					</div>
-				)}
-
-				{/* Labels */}
-				{issue.labels.slice(0, 2).map((label) => (
-					<span
-						key={label.id}
-						className="rounded px-1.5 py-0.5 font-medium text-[10px]"
-						style={{
-							backgroundColor: `${label.color}18`,
-							color: label.color,
-						}}
-					>
-						{label.name}
-					</span>
-				))}
-				{issue.labels.length > 2 && (
-					<span className="text-[10px] text-muted-fg">+{issue.labels.length - 2}</span>
-				)}
-			</div>
-		</a>
+		<Embed accentColor={theme.color} url={url} className="group">
+			<Embed.Author
+				iconUrl={theme.iconUrl}
+				name={issue.identifier}
+				trailing={issue.state && <StatusBadge name={issue.state.name} color={issue.state.color} />}
+			/>
+			<Embed.Body title={issue.title} description={issue.description} />
+			{fields.length > 0 && <Embed.Fields fields={fields} />}
+		</Embed>
 	)
 }
