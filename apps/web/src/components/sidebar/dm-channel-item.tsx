@@ -30,14 +30,14 @@ interface DmAvatarProps {
 }
 
 function DmAvatar({ member }: DmAvatarProps) {
-	const { isOnline } = useUserPresence(member.userId)
+	const { status } = useUserPresence(member.userId)
 
 	return (
 		<Avatar
 			size="xs"
 			src={member.user.avatarUrl}
 			alt={`${member.user.firstName} ${member.user.lastName}`}
-			status={isOnline ? "online" : "offline"}
+			status={status}
 		/>
 	)
 }

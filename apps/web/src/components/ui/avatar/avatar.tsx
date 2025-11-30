@@ -1,6 +1,7 @@
 import { type FC, type ReactNode, useState } from "react"
 import IconCircleDottedUser from "~/components/icons/icon-circle-dotted-user"
 import { cx } from "~/utils/cx"
+import type { PresenceStatus } from "~/utils/status"
 import { AvatarOnlineIndicator, VerifiedTick } from "./base-components"
 
 type AvatarSize =
@@ -35,7 +36,7 @@ export interface AvatarProps {
 	/**
 	 * Display a status indicator.
 	 */
-	status?: "online" | "offline"
+	status?: PresenceStatus
 	/**
 	 * Display a verified tick icon.
 	 *

@@ -1,7 +1,5 @@
 # Today
 - fix channel creation not actually appearing in the channel list
-- fix status doesn't seem to realy work someone is marked as away event though offline
-- fix status beign shown as online in sidebar even when offline/away
 - test and actually build stuff for githib integration
 
 
