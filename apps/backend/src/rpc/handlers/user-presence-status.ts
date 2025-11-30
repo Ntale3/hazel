@@ -23,6 +23,7 @@ export const UserPresenceStatusRpcLive = UserPresenceStatusRpcs.toLayer(
 
 							const existing = Option.getOrNull(existingOption)
 
+							const now = new Date()
 							const updatedStatus = yield* UserPresenceStatusRepo.upsertByUserId({
 								userId: user.id,
 								status: (payload.status ?? existing?.status ?? "online") as
@@ -39,7 +40,8 @@ export const UserPresenceStatusRpcLive = UserPresenceStatusRpcs.toLayer(
 									payload.activeChannelId !== undefined
 										? payload.activeChannelId
 										: (existing?.activeChannelId ?? null),
-								updatedAt: new Date(),
+								updatedAt: now,
+								lastSeenAt: now, // Update heartbeat on any status change
 							}).pipe(policyUse(UserPresenceStatusPolicy.canCreate()))
 
 							const txid = yield* generateTransactionId()
@@ -48,6 +50,36 @@ export const UserPresenceStatusRpcLive = UserPresenceStatusRpcs.toLayer(
 								data: updatedStatus!,
 								transactionId: txid,
 							}
+						}),
+					)
+					.pipe(withRemapDbErrors("UserPresenceStatus", "update")),
+
+			"userPresenceStatus.heartbeat": () =>
+				db
+					.transaction(
+						Effect.gen(function* () {
+							const user = yield* CurrentUser.Context
+
+							const result = yield* UserPresenceStatusRepo.updateHeartbeat(user.id).pipe(
+								policyUse(UserPresenceStatusPolicy.canUpdate()),
+							)
+
+							// If no record exists, create one with online status
+							if (Option.isNone(result)) {
+								const now = new Date()
+								yield* UserPresenceStatusRepo.upsertByUserId({
+									userId: user.id,
+									status: "online",
+									customMessage: null,
+									activeChannelId: null,
+									updatedAt: now,
+									lastSeenAt: now,
+								}).pipe(policyUse(UserPresenceStatusPolicy.canCreate()))
+
+								return { lastSeenAt: now }
+							}
+
+							return { lastSeenAt: result.value.lastSeenAt }
 						}),
 					)
 					.pipe(withRemapDbErrors("UserPresenceStatus", "update")),

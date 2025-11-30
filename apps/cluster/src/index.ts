@@ -14,6 +14,7 @@ import {
 import { Database } from "@hazel/db"
 import { Cluster } from "@hazel/domain"
 import { Config, Effect, Layer, Logger, Redacted } from "effect"
+import { PresenceCleanupCronLayer } from "./cron/presence-cleanup-cron.ts"
 import { WorkOSSyncCronLayer } from "./cron/workos-sync-cron.ts"
 import { MessageNotificationWorkflowLayer } from "./workflows/index.ts"
 
@@ -52,10 +53,10 @@ const WorkOSSyncLive = WorkOSSync.Default.pipe(
 )
 
 // Cron jobs layer - WorkflowEngineLayer provides Sharding which ClusterCron requires
-const AllCronJobs = WorkOSSyncCronLayer.pipe(
-	Layer.provide(WorkOSSyncLive),
-	Layer.provide(WorkflowEngineLayer),
-)
+const AllCronJobs = Layer.mergeAll(
+	WorkOSSyncCronLayer.pipe(Layer.provide(WorkOSSyncLive)),
+	PresenceCleanupCronLayer.pipe(Layer.provide(DatabaseLayer)),
+).pipe(Layer.provide(WorkflowEngineLayer))
 
 // Workflow API implementation
 const WorkflowApiLive = HttpApiBuilder.api(Cluster.WorkflowApi).pipe(

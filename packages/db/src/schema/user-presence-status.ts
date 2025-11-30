@@ -20,10 +20,12 @@ export const userPresenceStatusTable = pgTable(
 		customMessage: varchar({ length: 255 }), // Optional custom status message
 		activeChannelId: uuid().$type<ChannelId>(), // Currently active/viewing channel
 		updatedAt: timestamp({ mode: "date", withTimezone: true }).notNull().defaultNow(),
+		lastSeenAt: timestamp({ mode: "date", withTimezone: true }).notNull().defaultNow(), // Track heartbeat for timeout-based offline detection
 	},
 	(table) => [
 		index("user_presence_status_user_id_idx").on(table.userId),
 		index("user_presence_status_active_channel_idx").on(table.activeChannelId),
+		index("user_presence_status_last_seen_idx").on(table.lastSeenAt), // For efficient stale user queries
 	],
 )
 

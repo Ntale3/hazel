@@ -1,4 +1,4 @@
-import { Database, eq, ModelRepository, schema, type TransactionClient } from "@hazel/db"
+import { and, Database, eq, inArray, lt, ModelRepository, ne, schema, type TransactionClient } from "@hazel/db"
 import { type ChannelId, policyRequire, type UserId } from "@hazel/domain"
 import { UserPresenceStatus } from "@hazel/domain/models"
 import { Effect, Option, type Schema } from "effect"
@@ -53,6 +53,7 @@ export class UserPresenceStatusRepo extends Effect.Service<UserPresenceStatusRep
 											customMessage: input.customMessage,
 											activeChannelId: input.activeChannelId,
 											updatedAt: new Date(),
+											lastSeenAt: new Date(),
 										},
 									})
 									.returning(),
@@ -109,12 +110,64 @@ export class UserPresenceStatusRepo extends Effect.Service<UserPresenceStatusRep
 					policyRequire("UserPresenceStatus", "update"),
 				)(params, tx)
 
+			// Update heartbeat timestamp (lightweight operation for presence tracking)
+			const updateHeartbeat = (userId: UserId, tx?: TxFn) =>
+				db
+					.makeQuery(
+						(execute, _data) =>
+							execute((client) =>
+								client
+									.update(schema.userPresenceStatusTable)
+									.set({
+										lastSeenAt: new Date(),
+									})
+									.where(eq(schema.userPresenceStatusTable.userId, userId))
+									.returning(),
+							),
+						policyRequire("UserPresenceStatus", "update"),
+					)({ userId }, tx)
+					.pipe(Effect.map((results) => Option.fromNullable(results[0])))
+
+			// Find users with stale heartbeats (for cron job cleanup)
+			const findStaleUsers = (timeout: Date) =>
+				db.execute((client) =>
+					client
+						.select({
+							userId: schema.userPresenceStatusTable.userId,
+							status: schema.userPresenceStatusTable.status,
+							lastSeenAt: schema.userPresenceStatusTable.lastSeenAt,
+						})
+						.from(schema.userPresenceStatusTable)
+						.where(
+							and(
+								lt(schema.userPresenceStatusTable.lastSeenAt, timeout),
+								ne(schema.userPresenceStatusTable.status, "offline"),
+							),
+						),
+				)
+
+			// Batch update users to offline status
+			const markUsersOffline = (userIds: UserId[]) =>
+				db.execute((client) =>
+					client
+						.update(schema.userPresenceStatusTable)
+						.set({
+							status: "offline",
+							updatedAt: new Date(),
+						})
+						.where(inArray(schema.userPresenceStatusTable.userId, userIds))
+						.returning(),
+				)
+
 			return {
 				...baseRepo,
 				findByUserId,
 				upsertByUserId,
 				updateActiveChannel,
 				updateStatus,
+				updateHeartbeat,
+				findStaleUsers,
+				markUsersOffline,
 			}
 		}),
 		dependencies: [DatabaseLive],

@@ -5,6 +5,7 @@ import { UserPresenceStatusId } from "../ids"
 import { UserPresenceStatus } from "../models"
 import { TransactionId } from "../transaction-id"
 import { AuthMiddleware } from "./middleware"
+import { JsonDate } from "../models/utils"
 
 /**
  * Response schema for successful user presence status operations.
@@ -68,6 +69,25 @@ export class UserPresenceStatusRpcs extends RpcGroup.make(
 			),
 		}),
 		success: UserPresenceStatusResponse,
+		error: Schema.Union(UnauthorizedError, InternalServerError),
+	}).middleware(AuthMiddleware),
+
+	/**
+	 * UserPresenceStatusHeartbeat
+	 *
+	 * Lightweight heartbeat to update lastSeenAt timestamp.
+	 * Used for reliable offline detection - if no heartbeat received
+	 * within timeout period, user is marked offline by server-side cron job.
+	 *
+	 * @returns Updated lastSeenAt timestamp
+	 * @throws UnauthorizedError if not authenticated
+	 * @throws InternalServerError for unexpected errors
+	 */
+	Rpc.make("userPresenceStatus.heartbeat", {
+		payload: Schema.Struct({}),
+		success: Schema.Struct({
+			lastSeenAt: JsonDate,
+		}),
 		error: Schema.Union(UnauthorizedError, InternalServerError),
 	}).middleware(AuthMiddleware),
 ) {}

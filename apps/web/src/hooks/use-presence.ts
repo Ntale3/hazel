@@ -13,6 +13,7 @@ import { router } from "~/main"
 type PresenceStatus = "online" | "away" | "busy" | "dnd" | "offline"
 
 const AFK_TIMEOUT = Duration.minutes(5)
+const HEARTBEAT_INTERVAL = Duration.seconds(30)
 
 /**
  * Atom that tracks the last user activity timestamp
@@ -181,6 +182,39 @@ const beforeUnloadAtom = Atom.make((get) => {
 })
 
 /**
+ * Atom that sends periodic heartbeat pings to the server.
+ * This enables reliable offline detection - if no heartbeat is received
+ * within the timeout period (90s), the server-side cron job marks the user offline.
+ * This is more reliable than beforeunload which can fail on crashes, network loss, etc.
+ */
+const heartbeatAtom = Atom.make((get) => {
+	const user = Result.getOrElse(get(userAtom), () => null)
+
+	// Skip if no user
+	if (!user?.id) return null
+
+	// Actually run the stream as a side effect (not just return it)
+	runtime.runFork(
+		Stream.fromSchedule(Schedule.spaced(HEARTBEAT_INTERVAL)).pipe(
+			Stream.tap(() =>
+				Effect.gen(function* () {
+					const client = yield* HazelRpcClient
+					yield* client("userPresenceStatus.heartbeat", {})
+				}).pipe(
+					Effect.catchAll((error) => {
+						console.error("Heartbeat failed:", error)
+						return Effect.void
+					}),
+				),
+			),
+			Stream.runDrain,
+		),
+	)
+
+	return user.id
+}).pipe(Atom.keepAlive)
+
+/**
  * Atom family that queries the current user's presence status from TanStack DB
  * Returns Result<PresenceData[]> that automatically updates when data changes
  */
@@ -315,6 +349,7 @@ export function usePresence() {
 	}, [computedStatus, currentChannelId, user?.id])
 
 	useAtomMount(beforeUnloadAtom)
+	useAtomMount(heartbeatAtom)
 
 	const previousManualStatusRef = useRef<PresenceStatus>("online")
 

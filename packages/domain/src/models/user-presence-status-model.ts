@@ -13,6 +13,7 @@ export class Model extends M.Class<Model>("UserPresenceStatus")({
 	customMessage: Schema.NullOr(Schema.String),
 	activeChannelId: Schema.NullOr(ChannelId),
 	updatedAt: JsonDate,
+	lastSeenAt: JsonDate,
 }) {}
 
 export const Insert = Model.insert
