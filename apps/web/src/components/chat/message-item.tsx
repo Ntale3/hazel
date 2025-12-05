@@ -1,9 +1,8 @@
 import { useAtomValue } from "@effect-atom/atom-react"
 import type { PinnedMessageId } from "@hazel/schema"
 import { format } from "date-fns"
-import { useRef, useState } from "react"
+import { useRef } from "react"
 import { useHover } from "react-aria"
-import { Button } from "react-aria-components"
 import { toast } from "sonner"
 import type { MessageWithPinned } from "~/atoms/chat-query-atoms"
 import { processedReactionsAtomFamily } from "~/atoms/message-atoms"
@@ -54,7 +53,6 @@ export function MessageItem({
 	const { addReaction } = useChat()
 	const { trackEmojiUsage } = useEmojiStats()
 
-	const [isEditing, _setIsEditing] = useState(false)
 	const messageRef = useRef<HTMLDivElement>(null)
 
 	const { user: currentUser } = useAuth()
@@ -137,72 +135,60 @@ export function MessageItem({
 					{showAvatar && <MessageAuthorHeader message={message} isPinned={isPinned} />}
 
 					{/* Message Content */}
-					{isEditing ? (
-						<div className="mt-1">
-							{/* Edit mode - simplified for now */}
-							<div className="rounded-lg border border-border bg-bg p-2">
-								<textarea
-									className="w-full resize-none border-0 bg-transparent text-base text-fg outline-none"
-									defaultValue={message.content}
-								/>
-							</div>
-						</div>
-					) : (
-						(() => {
-							const urls = extractUrls(message.content)
-							const tweetUrls = urls.filter((url) => isTweetUrl(url))
-							const youtubeUrls = urls.filter((url) => isYoutubeUrl(url))
-							const linearUrls = urls.filter((url) => isLinearIssueUrl(url))
-							const otherUrls = urls.filter(
-								(url) => !isTweetUrl(url) && !isYoutubeUrl(url) && !isLinearIssueUrl(url),
-							)
+					{(() => {
+						const urls = extractUrls(message.content)
+						const tweetUrls = urls.filter((url) => isTweetUrl(url))
+						const youtubeUrls = urls.filter((url) => isYoutubeUrl(url))
+						const linearUrls = urls.filter((url) => isLinearIssueUrl(url))
+						const otherUrls = urls.filter(
+							(url) => !isTweetUrl(url) && !isYoutubeUrl(url) && !isLinearIssueUrl(url),
+						)
 
-							// Filter out embed URLs from displayed content
-							const embedUrls = [...tweetUrls, ...youtubeUrls, ...linearUrls]
-							let displayContent = message.content
-							for (const url of embedUrls) {
-								displayContent = displayContent.replace(url, "")
-							}
-							displayContent = displayContent.trim()
+						// Filter out embed URLs from displayed content
+						const embedUrls = [...tweetUrls, ...youtubeUrls, ...linearUrls]
+						let displayContent = message.content
+						for (const url of embedUrls) {
+							displayContent = displayContent.replace(url, "")
+						}
+						displayContent = displayContent.trim()
 
-							return (
-								<>
-									{/* Message text with embed URLs filtered out */}
-									{displayContent && <SlateMessageViewer content={displayContent} />}
-									{/* Render all tweet embeds */}
-									{tweetUrls.map((url) => {
-										const tweetId = extractTweetId(url)
-										return tweetId ? (
-											<TweetEmbed
-												key={url}
-												id={tweetId}
-												author={message.author ?? undefined}
-												messageCreatedAt={message.createdAt.getTime()}
-											/>
-										) : null
-									})}
-									{/* Render all YouTube embeds */}
-									{youtubeUrls.map((url) => {
-										const videoId = extractYoutubeVideoId(url)
-										return videoId ? (
-											<YoutubeEmbed key={url} videoId={videoId} url={url} />
-										) : null
-									})}
-									{/* Render all Linear issue embeds */}
-									{linearUrls.map((url) => {
-										const issueKey = extractLinearIssueKey(url)
-										return issueKey ? <LinearIssueEmbed key={url} url={url} /> : null
-									})}
-									{/* Render last other URL as link preview */}
-									{otherUrls.length > 0 && otherUrls[otherUrls.length - 1] && (
-										<LinkPreview url={otherUrls[otherUrls.length - 1]!} />
-									)}
-									{/* Webhook/rich embeds */}
-									<MessageEmbeds embeds={message.embeds} />
-								</>
-							)
-						})()
-					)}
+						return (
+							<>
+								{/* Message text with embed URLs filtered out */}
+								{displayContent && <SlateMessageViewer content={displayContent} />}
+								{/* Render all tweet embeds */}
+								{tweetUrls.map((url) => {
+									const tweetId = extractTweetId(url)
+									return tweetId ? (
+										<TweetEmbed
+											key={url}
+											id={tweetId}
+											author={message.author ?? undefined}
+											messageCreatedAt={message.createdAt.getTime()}
+										/>
+									) : null
+								})}
+								{/* Render all YouTube embeds */}
+								{youtubeUrls.map((url) => {
+									const videoId = extractYoutubeVideoId(url)
+									return videoId ? (
+										<YoutubeEmbed key={url} videoId={videoId} url={url} />
+									) : null
+								})}
+								{/* Render all Linear issue embeds */}
+								{linearUrls.map((url) => {
+									const issueKey = extractLinearIssueKey(url)
+									return issueKey ? <LinearIssueEmbed key={url} url={url} /> : null
+								})}
+								{/* Render last other URL as link preview */}
+								{otherUrls.length > 0 && otherUrls[otherUrls.length - 1] && (
+									<LinkPreview url={otherUrls[otherUrls.length - 1]!} />
+								)}
+								{/* Webhook/rich embeds */}
+								<MessageEmbeds embeds={message.embeds} />
+							</>
+						)
+					})()}
 
 					{/* Attachments */}
 					<MessageAttachments messageId={message.id} />

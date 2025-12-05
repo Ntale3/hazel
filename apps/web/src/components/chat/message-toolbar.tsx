@@ -2,16 +2,13 @@ import { useState } from "react"
 import type { MessageWithPinned } from "~/atoms/chat-query-atoms"
 import { EmojiPickerDialog } from "~/components/emoji-picker"
 import { Button } from "~/components/ui/button"
-import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from "~/components/ui/menu"
+import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from "~/components/ui/menu"
 import { useChat } from "~/hooks/use-chat"
 import { useEmojiStats } from "~/hooks/use-emoji-stats"
 import IconCopy from "../icons/icon-copy"
 import IconDotsVertical from "../icons/icon-dots-vertical"
-import IconEdit from "../icons/icon-edit"
 import IconEmojiAdd from "../icons/icon-emoji-add"
-import IconEnvelope from "../icons/icon-envelope"
 import IconReply from "../icons/icon-reply"
-import IconShare from "../icons/icon-share"
 import IconStar from "../icons/icon-star"
 import IconThread from "../icons/icon-thread"
 import IconTrash from "../icons/icon-trash"
@@ -39,22 +36,6 @@ export function MessageToolbar({ message, onMenuOpenChange }: MessageToolbarProp
 		const emojiString = typeof emoji === "string" ? emoji : emoji.emoji
 		trackEmojiUsage(emojiString)
 		addReaction(message.id, message.channelId, emojiString)
-	}
-
-	const handleEdit = () => {
-		console.log("Edit not implemented in shared toolbar yet")
-	}
-
-	const handleForward = () => {
-		console.log("Forward message")
-	}
-
-	const handleMarkUnread = () => {
-		console.log("Mark as unread")
-	}
-
-	const handleViewDetails = () => {
-		console.log("View details")
 	}
 
 	const handlePin = () => {
@@ -121,30 +102,17 @@ export function MessageToolbar({ message, onMenuOpenChange }: MessageToolbarProp
 				<IconReply data-slot="icon" className="size-3.5" />
 			</Button>
 
-			{/* Edit Button (Own Messages Only) */}
+			{/* Delete Button (Own Messages Only) */}
 			{isOwnMessage && (
-				<>
-					<Button
-						size="sq-sm"
-						intent="plain"
-						onPress={handleEdit}
-						aria-label="Edit message"
-						className="!p-1.5 hover:bg-secondary"
-					>
-						<IconEdit data-slot="icon" className="size-3.5" />
-					</Button>
-
-					{/* Delete Button (Own Messages Only) */}
-					<Button
-						size="sq-sm"
-						intent="plain"
-						onPress={() => handleDeleteModalChange(true)}
-						aria-label="Delete message"
-						className="!p-1.5 text-danger hover:bg-danger/10"
-					>
-						<IconTrash data-slot="icon" className="size-3.5" />
-					</Button>
-				</>
+				<Button
+					size="sq-sm"
+					intent="plain"
+					onPress={() => handleDeleteModalChange(true)}
+					aria-label="Delete message"
+					className="!p-1.5 text-danger hover:bg-danger/10"
+				>
+					<IconTrash data-slot="icon" className="size-3.5" />
+				</Button>
 			)}
 
 			{/* Divider before more options */}
@@ -160,23 +128,9 @@ export function MessageToolbar({ message, onMenuOpenChange }: MessageToolbarProp
 						<IconThread data-slot="icon" />
 						<MenuLabel>Reply in thread</MenuLabel>
 					</MenuItem>
-					<MenuItem onAction={handleForward}>
-						<IconShare data-slot="icon" />
-						<MenuLabel>Forward message</MenuLabel>
-					</MenuItem>
-					<MenuItem onAction={handleMarkUnread}>
-						<IconEnvelope data-slot="icon" />
-						<MenuLabel>Mark as unread</MenuLabel>
-					</MenuItem>
 					<MenuItem onAction={handlePin}>
 						<IconStar data-slot="icon" />
 						<MenuLabel>{isPinned ? "Unpin message" : "Pin message"}</MenuLabel>
-					</MenuItem>
-
-					<MenuSeparator />
-
-					<MenuItem onAction={handleViewDetails}>
-						<MenuLabel>View details</MenuLabel>
 					</MenuItem>
 				</MenuContent>
 			</Menu>
