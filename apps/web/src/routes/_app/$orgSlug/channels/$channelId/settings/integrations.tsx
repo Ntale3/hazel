@@ -11,6 +11,9 @@ import { OpenStatusSection } from "~/components/channel-settings/openstatus-sect
 import { RegenerateTokenDialog } from "~/components/channel-settings/regenerate-token-dialog"
 import { WebhookCard } from "~/components/channel-settings/webhook-card"
 import { getProviderIconUrl } from "~/components/embeds/use-embed-theme"
+import { IconChevronUp } from "~/components/icons/icon-chevron-up"
+import IconPlus from "~/components/icons/icon-plus"
+import { IconWebhook } from "~/components/icons/icon-webhook"
 import { SectionHeader } from "~/components/ui/section-header"
 
 export const Route = createFileRoute("/_app/$orgSlug/channels/$channelId/settings/integrations")({
@@ -53,15 +56,9 @@ function IntegrationSection({
 					</div>
 					<span className="text-muted-fg text-sm">{description}</span>
 				</div>
-				<svg
+				<IconChevronUp
 					className={`size-5 shrink-0 text-muted-fg transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke="currentColor"
-					strokeWidth={2}
-				>
-					<path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-				</svg>
+				/>
 			</button>
 			<div
 				className={`grid transition-all duration-200 ease-in-out ${isExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
@@ -178,21 +175,7 @@ function IntegrationsPage() {
 
 				{/* Webhooks Section */}
 				<IntegrationSection
-					icon={
-						<svg
-							className="size-5 text-muted-fg"
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke="currentColor"
-							strokeWidth={1.5}
-						>
-							<path
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244"
-							/>
-						</svg>
-					}
+					icon={<IconWebhook />}
 					title="Webhooks"
 					description="Allow external services to post messages via HTTP"
 					badge={
@@ -237,15 +220,7 @@ function IntegrationsPage() {
 				{/* Coming Soon Section */}
 				<div className="flex items-center gap-3 rounded-xl border border-border border-dashed bg-secondary/30 p-4">
 					<div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-secondary">
-						<svg
-							className="size-5 text-muted-fg"
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke="currentColor"
-							strokeWidth={1.5}
-						>
-							<path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-						</svg>
+						<IconPlus className="size-5 text-muted-fg" />
 					</div>
 					<div className="flex flex-col gap-0.5">
 						<span className="font-medium text-muted-fg">More integrations coming soon</span>
