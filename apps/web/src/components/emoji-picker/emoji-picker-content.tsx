@@ -12,7 +12,7 @@ import { IconLoader } from "../icons/icon-loader"
 
 function EmojiPickerRow({ children, ...props }: EmojiPickerListRowProps) {
 	return (
-		<div {...props} className="scroll-my-1 px-1" data-slot="emoji-picker-row">
+		<div {...props} className="scroll-my-1.5 px-2" data-slot="emoji-picker-row">
 			{children}
 		</div>
 	)
@@ -23,7 +23,7 @@ function EmojiPickerEmoji({ emoji, className, ...props }: EmojiPickerListEmojiPr
 		<button
 			{...props}
 			className={cn(
-				"flex size-7 items-center justify-center rounded-sm text-base data-[active]:bg-accent",
+				"flex size-10 items-center justify-center rounded-md text-2xl data-[active]:bg-accent",
 				className,
 			)}
 			data-slot="emoji-picker-emoji"
@@ -37,7 +37,7 @@ function EmojiPickerCategoryHeader({ category, ...props }: EmojiPickerListCatego
 	return (
 		<div
 			{...props}
-			className="bg-bg px-3 pt-3.5 pb-2 text-secondary-fg text-xs leading-none"
+			className="bg-bg px-3 pt-4 pb-2.5 font-medium text-secondary-fg text-sm leading-none"
 			data-slot="emoji-picker-category-header"
 		>
 			{category.label}

@@ -25,7 +25,7 @@ function EmojiPickerDialog({ children, onEmojiSelect }: EmojiPickerDialogProps) 
 			{children}
 			<Popover>
 				<Dialog className="rounded-lg">
-					<EmojiPicker className="h-[342px]" onEmojiSelect={handleEmojiSelect}>
+					<EmojiPicker className="h-[420px]" onEmojiSelect={handleEmojiSelect}>
 						<EmojiPickerSearch />
 						<EmojiPickerContent />
 						<EmojiPickerFooter />
