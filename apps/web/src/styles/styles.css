@@ -357,6 +357,13 @@ If you want to use the typography plugin, uncomment the line below.
     }
 }
 
+.scrollbar-hide {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
 
 .react-aria-DropIndicator[data-drop-target] {
     outline: 1px solid var(--primary);
