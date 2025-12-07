@@ -5,10 +5,15 @@ import { eq, or, useLiveQuery } from "@tanstack/react-db"
 import { formatDistanceToNow } from "date-fns"
 import { Exit } from "effect"
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { toast } from "sonner"
 import { listOrganizationWebhooksMutation, type WebhookData } from "~/atoms/channel-webhook-atoms"
+import { getProviderIconUrl } from "~/components/embeds/use-embed-theme"
+import IconCheck from "~/components/icons/icon-check"
+import IconCopy from "~/components/icons/icon-copy"
 import IconHashtag from "~/components/icons/icon-hashtag"
 import { Badge } from "~/components/ui/badge"
 import { Button } from "~/components/ui/button"
+import { Input } from "~/components/ui/input"
 import { channelCollection } from "~/db/collections"
 import { ConfigureOpenStatusModal } from "./configure-openstatus-modal"
 
@@ -24,6 +29,12 @@ export function OpenStatusIntegrationContent({ organizationId }: OpenStatusInteg
 	const [selectedWebhook, setSelectedWebhook] = useState<WebhookData | null>(null)
 	const [webhooks, setWebhooks] = useState<readonly WebhookData[]>([])
 	const [isLoading, setIsLoading] = useState(true)
+	const [newlyCreatedWebhook, setNewlyCreatedWebhook] = useState<{
+		webhookId: string
+		token: string
+		channelId: ChannelId
+	} | null>(null)
+	const [copied, setCopied] = useState(false)
 
 	const listWebhooks = useAtomSet(listOrganizationWebhooksMutation, { mode: "promiseExit" })
 
@@ -100,6 +111,28 @@ export function OpenStatusIntegrationContent({ organizationId }: OpenStatusInteg
 		fetchWebhooks()
 	}
 
+	const handleWebhookCreated = (data: { webhookId: string; token: string; channelId: ChannelId }) => {
+		setNewlyCreatedWebhook(data)
+	}
+
+	const handleCopyUrl = async () => {
+		if (!newlyCreatedWebhook) return
+		const url = `${import.meta.env.VITE_BACKEND_URL}/webhooks/incoming/${newlyCreatedWebhook.webhookId}/${newlyCreatedWebhook.token}/openstatus`
+		try {
+			await navigator.clipboard.writeText(url)
+			setCopied(true)
+			toast.success("URL copied")
+			setTimeout(() => setCopied(false), 2000)
+		} catch {
+			toast.error("Failed to copy")
+		}
+	}
+
+	const handleDismissNewWebhook = () => {
+		setNewlyCreatedWebhook(null)
+		setCopied(false)
+	}
+
 	// Show loading if webhooks are loading, or if we have webhooks but channels haven't loaded yet from Electric
 	const isChannelsLoading = openStatusWebhooks.length > 0 && channels.length === 0
 	if (isLoading || isChannelsLoading) {
@@ -151,13 +184,13 @@ export function OpenStatusIntegrationContent({ organizationId }: OpenStatusInteg
 					</Button>
 				</div>
 
-				{configuredChannels.length === 0 ? (
+				{configuredChannels.length === 0 && !newlyCreatedWebhook ? (
 					<div className="flex flex-col items-center justify-center px-5 py-12 text-center">
-						<div className="mb-4 flex size-16 items-center justify-center rounded-2xl bg-emerald-500/10">
+						<div className="mb-4 flex size-16 items-center justify-center rounded-lg bg-secondary/50">
 							<img
-								src="https://cdn.brandfetch.io/openstatus.dev/w/64/h/64/theme/dark/icon"
+								src={getProviderIconUrl("openstatus")}
 								alt="OpenStatus"
-								className="size-8"
+								className="size-8 rounded"
 							/>
 						</div>
 						<h4 className="mb-1 font-medium text-fg">No channels configured</h4>
@@ -180,6 +213,57 @@ export function OpenStatusIntegrationContent({ organizationId }: OpenStatusInteg
 					</div>
 				) : (
 					<div className="divide-y divide-border">
+						{newlyCreatedWebhook && (
+							<div className="border-amber-500/30 border-b bg-amber-500/5 px-5 py-4">
+								<div className="flex items-start gap-3">
+									<div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-amber-500/10">
+										<svg
+											className="size-4 text-amber-600 dark:text-amber-400"
+											fill="none"
+											viewBox="0 0 24 24"
+											stroke="currentColor"
+											strokeWidth={2}
+										>
+											<path
+												strokeLinecap="round"
+												strokeLinejoin="round"
+												d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+											/>
+										</svg>
+									</div>
+									<div className="flex-1 space-y-3">
+										<div>
+											<p className="font-medium text-amber-700 text-sm dark:text-amber-300">
+												Copy the webhook URL and add it to your OpenStatus notification
+												settings
+											</p>
+											<p className="mt-1 text-amber-600/80 text-xs dark:text-amber-400/80">
+												#{channels.find((c) => c.id === newlyCreatedWebhook.channelId)?.name ??
+													"channel"}{" "}
+												• The full URL includes your secret token. Keep it safe!
+											</p>
+										</div>
+										<div className="flex gap-2">
+											<Input
+												value={`${import.meta.env.VITE_BACKEND_URL}/webhooks/incoming/${newlyCreatedWebhook.webhookId}/${newlyCreatedWebhook.token}/openstatus`}
+												readOnly
+												className="flex-1 font-mono text-xs"
+											/>
+											<Button intent="outline" size="sq-sm" onPress={handleCopyUrl}>
+												{copied ? (
+													<IconCheck className="size-4 text-emerald-500" />
+												) : (
+													<IconCopy className="size-4" />
+												)}
+											</Button>
+										</div>
+										<Button intent="secondary" size="sm" onPress={handleDismissNewWebhook}>
+											Done
+										</Button>
+									</div>
+								</div>
+							</div>
+						)}
 						{configuredChannels.map(({ webhook, channel }) => (
 							<div
 								key={webhook.id}
@@ -223,6 +307,7 @@ export function OpenStatusIntegrationContent({ organizationId }: OpenStatusInteg
 				selectedChannelId={selectedChannelId}
 				existingWebhook={selectedWebhook}
 				onSuccess={handleSuccess}
+				onWebhookCreated={handleWebhookCreated}
 			/>
 		</>
 	)

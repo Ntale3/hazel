@@ -3,6 +3,7 @@ import type { ChannelId } from "@hazel/schema"
 import { useEffect, useState } from "react"
 import type { WebhookData } from "~/atoms/channel-webhook-atoms"
 import { OpenStatusSection } from "~/components/channel-settings/openstatus-section"
+import { getProviderIconUrl } from "~/components/embeds/use-embed-theme"
 import IconHashtag from "~/components/icons/icon-hashtag"
 import { Button } from "~/components/ui/button"
 import { Description } from "~/components/ui/field"
@@ -18,6 +19,7 @@ interface ConfigureOpenStatusModalProps {
 	selectedChannelId: ChannelId | null
 	existingWebhook: WebhookData | null
 	onSuccess: () => void
+	onWebhookCreated?: (data: { webhookId: string; token: string; channelId: ChannelId }) => void
 }
 
 export function ConfigureOpenStatusModal({
@@ -27,6 +29,7 @@ export function ConfigureOpenStatusModal({
 	selectedChannelId: initialChannelId,
 	existingWebhook,
 	onSuccess,
+	onWebhookCreated,
 }: ConfigureOpenStatusModalProps) {
 	const [selectedChannelId, setSelectedChannelId] = useState<ChannelId | null>(initialChannelId)
 	const [webhook, setWebhook] = useState<WebhookData | null>(existingWebhook)
@@ -62,17 +65,21 @@ export function ConfigureOpenStatusModal({
 		setWebhook(existingWebhook)
 	}
 
+	const handleWebhookCreated = (data: { webhookId: string; token: string }) => {
+		if (selectedChannelId && onWebhookCreated) {
+			onWebhookCreated({ ...data, channelId: selectedChannelId })
+		}
+		onSuccess()
+		onOpenChange(false)
+	}
+
 	return (
 		<Modal isOpen={isOpen} onOpenChange={onOpenChange}>
 			<ModalContent size="lg">
 				<ModalHeader>
 					<div className="flex items-center gap-3">
-						<div className="flex size-10 items-center justify-center rounded-xl bg-emerald-500/10">
-							<img
-								src="https://cdn.brandfetch.io/openstatus.dev/w/64/h/64/theme/dark/icon"
-								alt="OpenStatus"
-								className="size-6"
-							/>
+						<div className="flex size-10 items-center justify-center rounded-lg bg-secondary/50">
+							<img src={getProviderIconUrl("openstatus")} alt="OpenStatus" className="size-6 rounded" />
 						</div>
 						<div>
 							<ModalTitle>
@@ -110,14 +117,14 @@ export function ConfigureOpenStatusModal({
 					)}
 
 					{selectedChannelId && (
-						<div className="rounded-xl border border-border bg-bg-muted/30 p-4">
-							<OpenStatusSection
-								channelId={selectedChannelId}
-								webhook={webhook}
-								onWebhookChange={handleWebhookChange}
-								onDone={handleDone}
-							/>
-						</div>
+						<OpenStatusSection
+							channelId={selectedChannelId}
+							webhook={webhook}
+							onWebhookChange={handleWebhookChange}
+							onDone={handleDone}
+							variant="modal"
+							onWebhookCreated={handleWebhookCreated}
+						/>
 					)}
 
 					{!selectedChannelId && !existingWebhook && (

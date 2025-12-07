@@ -14,7 +14,6 @@
 
 # FE stuff
 - allow using Icons/Emojis for channel icon
-- replace webhook icon with actual webhook icons
 - polish openstatus integration page
 
 # Important but big

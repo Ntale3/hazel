@@ -1,6 +1,7 @@
 import { writeFileSync } from "node:fs"
 import { resolve } from "node:path"
 import tailwindcss from "@tailwindcss/vite"
+import { devtools } from "@tanstack/devtools-vite"
 import tanstackRouter from "@tanstack/router-plugin/vite"
 import viteReact from "@vitejs/plugin-react"
 import { defineConfig, type Plugin } from "vite"
@@ -31,6 +32,7 @@ function versionPlugin(): Plugin {
 
 export default defineConfig({
 	plugins: [
+		devtools(),
 		tanstackRouter({ target: "react", autoCodeSplitting: false, routeToken: "layout" }),
 
 		viteReact({

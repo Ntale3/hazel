@@ -19,7 +19,6 @@ import { Label } from "~/components/ui/field"
 import { Input } from "~/components/ui/input"
 import { getProviderIconUrl } from "../embeds/use-embed-theme"
 
-const OPENSTATUS_AVATAR = "https://cdn.brandfetch.io/openstatus.dev/w/64/h/64/theme/dark/icon"
 const OPENSTATUS_NAME = "OpenStatus"
 
 interface OpenStatusSectionProps {
@@ -27,9 +26,21 @@ interface OpenStatusSectionProps {
 	webhook: WebhookData | null
 	onWebhookChange: (operation: "create" | "delete") => void
 	onDone?: () => void
+	/** Controls border styling - "modal" removes outer borders, "page" keeps them */
+	variant?: "modal" | "page"
+	/** Called when webhook is created with full token - use this to show copy URL elsewhere */
+	onWebhookCreated?: (data: { webhookId: string; token: string }) => void
 }
 
-export function OpenStatusSection({ channelId, webhook, onWebhookChange, onDone }: OpenStatusSectionProps) {
+export function OpenStatusSection({
+	channelId,
+	webhook,
+	onWebhookChange,
+	onDone,
+	variant = "page",
+	onWebhookCreated,
+}: OpenStatusSectionProps) {
+	const openStatusLogoUrl = getProviderIconUrl("openstatus")
 	const [isCreating, setIsCreating] = useState(false)
 	const [showToken, setShowToken] = useState(false)
 	const [createdWebhook, setCreatedWebhook] = useState<{ id: string; token: string } | null>(null)
@@ -55,17 +66,22 @@ export function OpenStatusSection({ channelId, webhook, onWebhookChange, onDone 
 				channelId,
 				name: OPENSTATUS_NAME,
 				description: "OpenStatus monitor alerts",
-				avatarUrl: OPENSTATUS_AVATAR,
+				avatarUrl: openStatusLogoUrl,
 				integrationProvider: "openstatus",
 			},
 		})
 
 		Exit.match(exit, {
 			onSuccess: (result) => {
-				setCreatedWebhook({ id: result.data.id, token: result.token })
-				setShowToken(true)
 				toast.success("OpenStatus webhook created")
-				// Don't call onWebhookChange here - wait for user to click Done
+				// If callback provided (modal variant), call it and let parent handle token display
+				if (onWebhookCreated) {
+					onWebhookCreated({ webhookId: result.data.id, token: result.token })
+				} else {
+					// Otherwise show token UI inline (page variant)
+					setCreatedWebhook({ id: result.data.id, token: result.token })
+					setShowToken(true)
+				}
 			},
 			onFailure: (cause) => {
 				console.error("Failed to create webhook:", cause)
@@ -205,7 +221,7 @@ export function OpenStatusSection({ channelId, webhook, onWebhookChange, onDone 
 		return (
 			<div className="flex flex-col gap-4">
 				<div className="flex items-center gap-3 rounded-lg bg-secondary/50 p-3">
-					<img src={getProviderIconUrl("openstatus")} alt="OpenStatus" className="size-8 rounded" />
+					<img src={openStatusLogoUrl} alt="OpenStatus" className="size-8 rounded" />
 					<div className="flex-1">
 						<p className="font-medium text-fg text-sm">Connect OpenStatus</p>
 						<p className="text-muted-fg text-xs">
@@ -237,9 +253,13 @@ export function OpenStatusSection({ channelId, webhook, onWebhookChange, onDone 
 	// Connected state
 	return (
 		<div className="flex flex-col gap-4">
-			<div className="flex items-start justify-between rounded-lg border border-border bg-bg p-4">
+			<div
+				className={`flex items-start justify-between rounded-lg p-4 ${
+					variant === "page" ? "border border-border bg-bg" : "bg-secondary/30"
+				}`}
+			>
 				<div className="flex items-start gap-3">
-					<img src={OPENSTATUS_AVATAR} alt="OpenStatus" className="size-10 rounded-full" />
+					<img src={openStatusLogoUrl} alt="OpenStatus" className="size-8 rounded-lg" />
 					<div className="flex flex-col gap-1">
 						<div className="flex items-center gap-2">
 							<span className="font-medium text-fg">OpenStatus</span>
