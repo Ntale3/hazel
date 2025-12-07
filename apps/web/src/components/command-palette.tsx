@@ -304,6 +304,7 @@ function MembersView({ onClose }: { onClose: () => void }) {
 							eq(user.id, presence.userId),
 						)
 						.where((q) => eq(q.member.organizationId, organizationId))
+						.where(({ user }) => eq(user.userType, "user"))
 						.orderBy(({ user }) => user.firstName, "asc")
 						.select(({ member, user, presence }) => ({ member, user, presence }))
 				: null,

@@ -60,6 +60,7 @@ function TeamSettings() {
 				.leftJoin({ presence: userPresenceStatusCollection }, ({ user, presence }) =>
 					eq(user.id, presence.userId),
 				)
+				.where(({ user }) => eq(user.userType, "user"))
 				.select(({ members, user, presence }) => ({ ...members, user, presence })),
 		[organizationId],
 	)

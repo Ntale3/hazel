@@ -53,6 +53,7 @@ export function CreateDmModal({ isOpen, onOpenChange }: CreateDmModalProps) {
 					eq(user.id, presence.userId),
 				)
 				.where(({ member }) => eq(member.organizationId, organizationId || ""))
+				.where(({ user }) => eq(user.userType, "user"))
 				.select(({ user, presence }) => ({
 					...user,
 					presence,
