@@ -1,100 +1,50 @@
 import { useAtomSet } from "@effect-atom/atom-react"
 import type { ChannelId, ChannelWebhookId } from "@hazel/schema"
 import { createFileRoute } from "@tanstack/react-router"
+import { formatDistanceToNow } from "date-fns"
 import { Exit } from "effect"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { listChannelWebhooksMutation, type WebhookData } from "~/atoms/channel-webhook-atoms"
+import { toast } from "sonner"
+import {
+	deleteChannelWebhookMutation,
+	listChannelWebhooksMutation,
+	updateChannelWebhookMutation,
+	type WebhookData,
+} from "~/atoms/channel-webhook-atoms"
 import { CreateWebhookForm } from "~/components/channel-settings/create-webhook-form"
-import { DeleteWebhookDialog } from "~/components/channel-settings/delete-webhook-dialog"
-import { EditWebhookForm } from "~/components/channel-settings/edit-webhook-form"
-import { OpenStatusSection } from "~/components/channel-settings/openstatus-section"
-import { RegenerateTokenDialog } from "~/components/channel-settings/regenerate-token-dialog"
-import { WebhookCard } from "~/components/channel-settings/webhook-card"
-import { getProviderIconUrl } from "~/components/embeds/use-embed-theme"
-import { IconChevronUp } from "~/components/icons/icon-chevron-up"
+import { IntegrationCard } from "~/components/channel-settings/integration-card"
+import IconCheck from "~/components/icons/icon-check"
+import IconCopy from "~/components/icons/icon-copy"
+import IconDotsVertical from "~/components/icons/icon-dots-vertical"
 import IconPlus from "~/components/icons/icon-plus"
+import IconTrash from "~/components/icons/icon-trash"
 import { IconWebhook } from "~/components/icons/icon-webhook"
+import { Badge } from "~/components/ui/badge"
+import { Button } from "~/components/ui/button"
+import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator } from "~/components/ui/menu"
 import { SectionHeader } from "~/components/ui/section-header"
 
 export const Route = createFileRoute("/_app/$orgSlug/channels/$channelId/settings/integrations")({
 	component: IntegrationsPage,
 })
 
-interface IntegrationSectionProps {
-	icon: React.ReactNode
-	title: string
-	description: string
-	badge?: React.ReactNode
-	isExpanded: boolean
-	onToggle: () => void
-	children: React.ReactNode
-}
-
-function IntegrationSection({
-	icon,
-	title,
-	description,
-	badge,
-	isExpanded,
-	onToggle,
-	children,
-}: IntegrationSectionProps) {
-	return (
-		<div className="overflow-hidden rounded-xl border border-border bg-bg">
-			<button
-				type="button"
-				onClick={onToggle}
-				className="flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-secondary/50"
-			>
-				<div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-secondary">
-					{icon}
-				</div>
-				<div className="flex min-w-0 flex-1 flex-col gap-0.5">
-					<div className="flex items-center gap-2">
-						<span className="font-medium text-fg">{title}</span>
-						{badge}
-					</div>
-					<span className="text-muted-fg text-sm">{description}</span>
-				</div>
-				<IconChevronUp
-					className={`size-5 shrink-0 text-muted-fg transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}
-				/>
-			</button>
-			<div
-				className={`grid transition-all duration-200 ease-in-out ${isExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
-			>
-				<div className="overflow-hidden">
-					<div className="border-border border-t p-4">{children}</div>
-				</div>
-			</div>
-		</div>
-	)
-}
-
 function IntegrationsPage() {
 	const { channelId } = Route.useParams()
 
-	const [webhooksExpanded, setWebhooksExpanded] = useState(true)
-	const [openStatusExpanded, setOpenStatusExpanded] = useState(true)
 	const [webhooks, setWebhooks] = useState<WebhookData[]>([])
 	const [isLoading, setIsLoading] = useState(true)
-	const [selectedWebhook, setSelectedWebhook] = useState<WebhookData | null>(null)
-	const [editModalOpen, setEditModalOpen] = useState(false)
-	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-	const [regenerateDialogOpen, setRegenerateDialogOpen] = useState(false)
 
-	// Separate OpenStatus webhook from regular webhooks
-	const { openStatusWebhook, regularWebhooks } = useMemo(() => {
+	const { openStatusWebhook, railwayWebhook, regularWebhooks } = useMemo(() => {
 		const openStatus = webhooks.find((w) => w.name === "OpenStatus")
-		const regular = webhooks.filter((w) => w.name !== "OpenStatus")
-		return { openStatusWebhook: openStatus ?? null, regularWebhooks: regular }
+		const railway = webhooks.find((w) => w.name === "Railway")
+		const regular = webhooks.filter((w) => w.name !== "OpenStatus" && w.name !== "Railway")
+		return { openStatusWebhook: openStatus ?? null, railwayWebhook: railway ?? null, regularWebhooks: regular }
 	}, [webhooks])
 
 	const listWebhooks = useAtomSet(listChannelWebhooksMutation, {
 		mode: "promiseExit",
 	})
 
-	// Use ref to avoid stale closures and unnecessary effect re-runs
 	const listWebhooksRef = useRef(listWebhooks)
 	listWebhooksRef.current = listWebhooks
 
@@ -115,25 +65,9 @@ function IntegrationsPage() {
 		setIsLoading(false)
 	}, [channelId])
 
-	// Fetch webhooks on mount and when channelId changes
 	useEffect(() => {
 		fetchWebhooks()
 	}, [fetchWebhooks])
-
-	const handleEdit = (webhook: WebhookData) => {
-		setSelectedWebhook(webhook)
-		setEditModalOpen(true)
-	}
-
-	const handleRegenerateToken = (webhook: WebhookData) => {
-		setSelectedWebhook(webhook)
-		setRegenerateDialogOpen(true)
-	}
-
-	const handleDelete = (webhook: WebhookData) => {
-		setSelectedWebhook(webhook)
-		setDeleteDialogOpen(true)
-	}
 
 	return (
 		<div className="flex flex-col gap-6 px-4 lg:px-8">
@@ -149,80 +83,65 @@ function IntegrationsPage() {
 			</SectionHeader.Root>
 
 			<div className="flex flex-col gap-4">
-				{/* OpenStatus Section */}
-				<IntegrationSection
-					icon={
-						<img
-							src={getProviderIconUrl("openstatus")}
-							alt="OpenStatus"
-							className="size-5 rounded"
-						/>
-					}
-					title="OpenStatus"
-					description="Receive monitor alerts in this channel"
-					badge={
-						openStatusWebhook ? (
-							<span className="rounded-full bg-emerald-500/10 px-2 py-0.5 font-medium text-emerald-600 text-xs dark:text-emerald-400">
-								Connected
-							</span>
-						) : undefined
-					}
-					isExpanded={openStatusExpanded}
-					onToggle={() => setOpenStatusExpanded(!openStatusExpanded)}
-				>
-					<OpenStatusSection
-						channelId={channelId as ChannelId}
-						webhook={openStatusWebhook}
-						onWebhookChange={fetchWebhooks}
-						onDone={fetchWebhooks}
-					/>
-				</IntegrationSection>
+				<IntegrationCard
+					provider="openstatus"
+					channelId={channelId as ChannelId}
+					webhook={openStatusWebhook}
+					onWebhookChange={fetchWebhooks}
+				/>
 
-				{/* Webhooks Section */}
-				<IntegrationSection
-					icon={<IconWebhook />}
-					title="Webhooks"
-					description="Allow external services to post messages via HTTP"
-					badge={
-						regularWebhooks.length > 0 ? (
-							<span className="rounded-full bg-primary/10 px-2 py-0.5 font-medium text-primary text-xs">
-								{regularWebhooks.length}
-							</span>
-						) : undefined
-					}
-					isExpanded={webhooksExpanded}
-					onToggle={() => setWebhooksExpanded(!webhooksExpanded)}
-				>
-					<div className="flex flex-col gap-4">
-						<CreateWebhookForm channelId={channelId as ChannelId} onSuccess={fetchWebhooks} />
+				<IntegrationCard
+					provider="railway"
+					channelId={channelId as ChannelId}
+					webhook={railwayWebhook}
+					onWebhookChange={fetchWebhooks}
+				/>
 
+				{/* Custom Webhooks Section */}
+				<div className="rounded-xl border border-border bg-bg">
+					<div className="flex items-center justify-between border-border border-b p-4">
+						<div className="flex items-center gap-3">
+							<div className="flex size-10 items-center justify-center rounded-lg bg-secondary">
+								<IconWebhook className="size-5 text-muted-fg" />
+							</div>
+							<div>
+								<div className="flex items-center gap-2">
+									<span className="font-medium text-fg">Custom Webhooks</span>
+									{regularWebhooks.length > 0 && (
+										<Badge intent="secondary">{regularWebhooks.length}</Badge>
+									)}
+								</div>
+								<p className="text-muted-fg text-sm">Allow external services to post messages</p>
+							</div>
+						</div>
+					</div>
+
+					<div className="p-4">
 						{isLoading ? (
-							<div className="flex items-center justify-center py-8">
-								<div className="size-6 animate-spin rounded-full border-2 border-muted-fg/30 border-t-primary" />
+							<div className="flex items-center justify-center py-6">
+								<div className="size-5 animate-spin rounded-full border-2 border-muted-fg/30 border-t-primary" />
 							</div>
 						) : regularWebhooks.length === 0 ? (
-							<div className="flex flex-col items-center justify-center rounded-lg border border-border border-dashed py-8 text-center">
-								<p className="text-muted-fg text-sm">
-									No webhooks yet. Create one to get started.
-								</p>
+							<div className="mb-4 rounded-lg border border-border border-dashed py-6 text-center">
+								<p className="text-muted-fg text-sm">No webhooks yet</p>
 							</div>
 						) : (
-							<div className="flex flex-col gap-3">
+							<div className="mb-4 flex flex-col gap-2">
 								{regularWebhooks.map((webhook) => (
-									<WebhookCard
+									<CompactWebhookItem
 										key={webhook.id}
 										webhook={webhook}
-										onEdit={() => handleEdit(webhook)}
-										onRegenerateToken={() => handleRegenerateToken(webhook)}
-										onDelete={() => handleDelete(webhook)}
+										onDelete={fetchWebhooks}
 									/>
 								))}
 							</div>
 						)}
-					</div>
-				</IntegrationSection>
 
-				{/* Coming Soon Section */}
+						<CreateWebhookForm channelId={channelId as ChannelId} onSuccess={fetchWebhooks} />
+					</div>
+				</div>
+
+				{/* Coming Soon */}
 				<div className="flex items-center gap-3 rounded-xl border border-border border-dashed bg-secondary/30 p-4">
 					<div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-secondary">
 						<IconPlus className="size-5 text-muted-fg" />
@@ -233,33 +152,128 @@ function IntegrationsPage() {
 					</div>
 				</div>
 			</div>
+		</div>
+	)
+}
 
-			{selectedWebhook && (
-				<>
-					<EditWebhookForm
-						webhook={selectedWebhook}
-						isOpen={editModalOpen}
-						onOpenChange={setEditModalOpen}
-						onSuccess={fetchWebhooks}
-					/>
+function CompactWebhookItem({ webhook, onDelete }: { webhook: WebhookData; onDelete: () => void }) {
+	const [copied, setCopied] = useState(false)
+	const [confirmDelete, setConfirmDelete] = useState(false)
+	const [isDeleting, setIsDeleting] = useState(false)
+	const [isToggling, setIsToggling] = useState(false)
 
-					<DeleteWebhookDialog
-						webhookId={selectedWebhook.id as ChannelWebhookId}
-						webhookName={selectedWebhook.name}
-						isOpen={deleteDialogOpen}
-						onOpenChange={setDeleteDialogOpen}
-						onSuccess={fetchWebhooks}
-					/>
+	const deleteWebhook = useAtomSet(deleteChannelWebhookMutation, { mode: "promiseExit" })
+	const updateWebhook = useAtomSet(updateChannelWebhookMutation, { mode: "promiseExit" })
 
-					<RegenerateTokenDialog
-						webhookId={selectedWebhook.id as ChannelWebhookId}
-						webhookName={selectedWebhook.name}
-						isOpen={regenerateDialogOpen}
-						onOpenChange={setRegenerateDialogOpen}
-						onSuccess={fetchWebhooks}
-					/>
-				</>
+	const webhookUrl = `${import.meta.env.VITE_BACKEND_URL}/webhooks/incoming/${webhook.id}/`
+
+	const handleCopy = async () => {
+		try {
+			await navigator.clipboard.writeText(webhookUrl)
+			setCopied(true)
+			toast.success("URL copied")
+			setTimeout(() => setCopied(false), 2000)
+		} catch {
+			toast.error("Failed to copy")
+		}
+	}
+
+	const handleToggle = async () => {
+		setIsToggling(true)
+		const exit = await updateWebhook({
+			payload: {
+				id: webhook.id as ChannelWebhookId,
+				isEnabled: !webhook.isEnabled,
+			},
+		})
+
+		Exit.match(exit, {
+			onSuccess: () => {
+				toast.success(webhook.isEnabled ? "Webhook disabled" : "Webhook enabled")
+				onDelete()
+			},
+			onFailure: () => {
+				toast.error("Failed to update webhook")
+			},
+		})
+		setIsToggling(false)
+	}
+
+	const handleDelete = async () => {
+		if (!confirmDelete) {
+			setConfirmDelete(true)
+			setTimeout(() => setConfirmDelete(false), 3000)
+			return
+		}
+
+		setIsDeleting(true)
+		const exit = await deleteWebhook({
+			payload: { id: webhook.id as ChannelWebhookId },
+		})
+
+		Exit.match(exit, {
+			onSuccess: () => {
+				toast.success("Webhook deleted")
+				onDelete()
+			},
+			onFailure: () => {
+				toast.error("Failed to delete webhook")
+			},
+		})
+		setIsDeleting(false)
+	}
+
+	return (
+		<div className="flex items-center gap-3 rounded-lg border border-border bg-bg p-3 transition-colors hover:border-border-hover">
+			{webhook.avatarUrl ? (
+				<img src={webhook.avatarUrl} alt={webhook.name} className="size-8 rounded-full object-cover" />
+			) : (
+				<div className="flex size-8 items-center justify-center rounded-full bg-secondary">
+					<IconWebhook className="size-4 text-muted-fg" />
+				</div>
 			)}
+
+			<div className="min-w-0 flex-1">
+				<div className="flex items-center gap-2">
+					<span className="truncate font-medium text-fg text-sm">{webhook.name}</span>
+					<Badge intent={webhook.isEnabled ? "success" : "secondary"} className="shrink-0">
+						{webhook.isEnabled ? "Active" : "Disabled"}
+					</Badge>
+				</div>
+				<div className="flex items-center gap-2 text-muted-fg text-xs">
+					<span className="font-mono">****{webhook.tokenSuffix}</span>
+					{webhook.lastUsedAt && (
+						<>
+							<span className="text-muted-fg/50">·</span>
+							<span>
+								{formatDistanceToNow(new Date(webhook.lastUsedAt), { addSuffix: true })}
+							</span>
+						</>
+					)}
+				</div>
+			</div>
+
+			<div className="flex shrink-0 items-center gap-1">
+				<Button intent="plain" size="sq-xs" onPress={handleCopy} className="text-muted-fg">
+					{copied ? <IconCheck className="size-4 text-success" /> : <IconCopy className="size-4" />}
+				</Button>
+
+				<Menu>
+					<Button intent="plain" size="sq-xs" className="text-muted-fg">
+						<IconDotsVertical className="size-4" />
+					</Button>
+					<MenuContent placement="bottom end">
+						<MenuItem onAction={handleToggle} isDisabled={isToggling}>
+							<MenuLabel>{webhook.isEnabled ? "Disable" : "Enable"}</MenuLabel>
+						</MenuItem>
+						<MenuSeparator />
+						<MenuItem intent="danger" onAction={handleDelete} isDisabled={isDeleting}>
+							<IconTrash className="size-4" />
+							<MenuLabel>{confirmDelete ? "Confirm delete?" : "Delete"}</MenuLabel>
+						</MenuItem>
+					</MenuContent>
+				</Menu>
+			</div>
 		</div>
 	)
 }
