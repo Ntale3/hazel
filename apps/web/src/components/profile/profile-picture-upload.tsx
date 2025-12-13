@@ -4,6 +4,7 @@ import { toast } from "sonner"
 import IconEdit from "~/components/icons/icon-edit"
 import { Avatar } from "~/components/ui/avatar/avatar"
 import { Loader } from "~/components/ui/loader"
+import { useDragDetection } from "~/hooks/use-drag-detection"
 import { useProfilePictureUpload } from "~/hooks/use-profile-picture-upload"
 import { cx } from "~/utils/cx"
 import { AvatarCropModal } from "./avatar-crop-modal"
@@ -25,6 +26,7 @@ export function ProfilePictureUpload({
 	className,
 }: ProfilePictureUploadProps) {
 	const { uploadProfilePicture, isUploading, uploadProgress } = useProfilePictureUpload()
+	const { isDraggingOnPage } = useDragDetection()
 	const [selectedFile, setSelectedFile] = useState<File | null>(null)
 	const [isCropModalOpen, setIsCropModalOpen] = useState(false)
 
@@ -119,23 +121,36 @@ export function ProfilePictureUpload({
 								className="transition-all duration-200"
 							/>
 
-							{/* Drop target overlay */}
+							{/* Drop target overlay - strong indicator when hovering */}
 							{isDropTarget && (
 								<div
-									className="absolute inset-0 flex items-center justify-center rounded-xl border-2 border-primary border-dashed bg-primary/20"
+									className="absolute inset-0 flex items-center justify-center rounded-xl border-2 border-primary border-dashed bg-primary/20 backdrop-blur-sm"
 									style={{
 										// @ts-expect-error CSS property
 										cornerShape: "squircle",
 									}}
 								>
-									<span className="font-medium text-primary text-xs drop-shadow-md">
+									<span className="font-medium text-white text-xs drop-shadow-md">
 										Drop here
 									</span>
 								</div>
 							)}
 
+							{/* Indicator when dragging anywhere on page */}
+							{isDraggingOnPage && !isDropTarget && (
+								<div
+									className="absolute inset-0 flex items-center justify-center rounded-xl border-2 border-primary border-dashed bg-primary/20 backdrop-blur-sm"
+									style={{
+										// @ts-expect-error CSS property
+										cornerShape: "squircle",
+									}}
+								>
+									<span className="font-medium text-fg text-xs">Drop image</span>
+								</div>
+							)}
+
 							{/* Hover overlay with edit icon / uploading state */}
-							{!isDropTarget && (
+							{!isDropTarget && !isDraggingOnPage && (
 								<div
 									className={cx(
 										"absolute inset-0 flex items-center justify-center rounded-xl bg-black/50 transition-opacity duration-200",
