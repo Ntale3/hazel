@@ -17,7 +17,10 @@ export const Route = createRootRouteWithContext<{}>()({
 		return (
 			<RouterProvider
 				navigate={(href, opts) => router.navigate({ ...href, ...opts })}
-				useHref={(href) => router.buildLocation(href).href}
+				useHref={(href) => {
+					const location = router.buildLocation(typeof href === "string" ? { to: href } : href)
+					return location.href ?? "#"
+				}}
 			>
 				{import.meta.env.DEV && (
 					<TanStackDevtools
