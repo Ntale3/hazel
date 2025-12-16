@@ -28,7 +28,12 @@ export function NavSidebar() {
 			className="hidden w-[calc(var(--sidebar-width-dock)+1px)] md:flex md:border-r"
 		>
 			<SidebarHeader className="h-14 px-3 py-4">
-				<Link href="/" className="flex items-center justify-center">
+				<Link
+					href={{
+						to: "/",
+					}}
+					className="flex items-center justify-center"
+				>
 					<Logo className="size-7" />
 				</Link>
 			</SidebarHeader>

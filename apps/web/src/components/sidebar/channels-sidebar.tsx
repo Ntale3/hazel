@@ -201,7 +201,9 @@ export function ChannelsSidebar(props: { openChannelsBrowser: () => void }) {
 											<IconUsersPlus />
 											<MenuLabel>Invite people</MenuLabel>
 										</MenuItem>
-										<MenuItem href="/">
+										<MenuItem
+											href={{ to: "/$orgSlug/settings/team", params: { orgSlug: slug } }}
+										>
 											<IconUsers />
 											<MenuLabel>Manage members</MenuLabel>
 										</MenuItem>
@@ -228,7 +230,7 @@ export function ChannelsSidebar(props: { openChannelsBrowser: () => void }) {
 											<IconCirclePlus />
 											<MenuLabel>Create channel</MenuLabel>
 										</MenuItem>
-										<MenuItem href="/">
+										<MenuItem href={{ to: "/" }}>
 											<IconFolderPlus />
 											<MenuLabel>Create category</MenuLabel>
 										</MenuItem>
