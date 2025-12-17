@@ -1,60 +1,36 @@
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router"
-import { Option } from "effect"
+import { createFileRoute, Outlet, useSearch } from "@tanstack/react-router"
+import { type } from "arktype"
+import { Match, Option } from "effect"
+import { Loader } from "~/components/loader"
 import { Button } from "~/components/ui/button"
 import { Text } from "~/components/ui/text"
 import { organizationCollection, organizationMemberCollection } from "~/db/collections"
-import { type AuthError, waitForAuth } from "~/lib/wait-for-auth"
+import { useAuth } from "~/lib/auth"
 
 export const Route = createFileRoute("/_app")({
 	component: RouteComponent,
-	loader: async ({ location }) => {
-		// Wait for auth to settle
-		const { user, error } = await waitForAuth()
-
-		// Get loginRetry from search params
-		const searchParams = new URLSearchParams(location.search)
-		const loginRetry = Number(searchParams.get("loginRetry")) || 0
-
-		// Handle no user cases in loader
-		if (!user) {
-			// Check for 503-type errors that should show error screen (not redirect)
-			if (Option.isSome(error)) {
-				const errorTag = (error.value as AuthError)._tag
-				if (
-					errorTag === "SessionLoadError" ||
-					errorTag === "SessionRefreshError" ||
-					errorTag === "WorkOSUserFetchError"
-				) {
-					// Return error to component for error screen display
-					return { user: null, error, loginRetry }
-				}
-			}
-
-			// Check retry limit
-			if (loginRetry >= 3) {
-				return { user: null, error, loginRetry }
-			}
-
-			// Redirect to login for 401-type errors or no error
-			const currentUrl = new URL(location.href, window.location.origin)
-			currentUrl.searchParams.set("loginRetry", String(loginRetry + 1))
-			const returnTo = encodeURIComponent(currentUrl.pathname + currentUrl.search + currentUrl.hash)
-			const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:3001"
-			throw redirect({ href: `${backendUrl}/auth/login?returnTo=${returnTo}` })
-		}
-
-		// Preload collections after auth is confirmed
+	loader: async () => {
 		await organizationCollection.preload()
 		await organizationMemberCollection.preload()
 
-		return { user, error, loginRetry }
+		return null
 	},
 })
 
 function RouteComponent() {
-	const { user, error, loginRetry } = Route.useLoaderData()
+	const { user, error, isLoading } = useAuth()
+	const search = useSearch({ from: "/_app" }) as {
+		loginRetry?: string
+	}
 
-	// Check if we've exceeded retry limit (loader passes this through)
+	const loginRetry = Number(search.loginRetry) || 0
+
+	// Show loader while loading
+	if (isLoading && !user) {
+		return <Loader />
+	}
+
+	// Check if we've exceeded retry limit
 	if (loginRetry >= 3 && !user) {
 		return (
 			<div className="flex h-screen flex-col items-center justify-center gap-6">
@@ -89,11 +65,12 @@ function RouteComponent() {
 		)
 	}
 
-	// Handle 503-type authentication errors (loader passes these through)
+	// Handle authentication errors
 	if (!user && Option.isSome(error)) {
-		const errorValue = error.value as AuthError
+		const errorValue = error.value
+		const errorTag = errorValue._tag
 
-		return (
+		const serviceErrorScreen = (
 			<div className="flex h-screen flex-col items-center justify-center gap-6">
 				<div className="flex w-full max-w-md flex-col items-center gap-4 text-center">
 					<h1 className="font-bold font-mono text-2xl text-danger">
@@ -110,6 +87,33 @@ function RouteComponent() {
 				</div>
 			</div>
 		)
+
+		return Match.value(errorTag).pipe(
+			// 503 errors - infrastructure/service issues - show error screen with retry
+			Match.when("SessionLoadError", () => serviceErrorScreen),
+			Match.when("SessionRefreshError", () => serviceErrorScreen),
+			Match.when("WorkOSUserFetchError", () => serviceErrorScreen),
+			// 401 errors - user needs to re-authenticate - redirect to login
+			Match.orElse(() => {
+				const currentUrl = new URL(window.location.href)
+				currentUrl.searchParams.set("loginRetry", String(loginRetry + 1))
+				const returnTo = encodeURIComponent(currentUrl.pathname + currentUrl.search + currentUrl.hash)
+				const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:3001"
+				window.location.href = `${backendUrl}/auth/login?returnTo=${returnTo}`
+
+				return <Loader />
+			}),
+		)
+	}
+
+	// No user and no error - redirect to login
+	if (!user) {
+		const currentUrl = new URL(window.location.href)
+		currentUrl.searchParams.set("loginRetry", String(loginRetry + 1))
+		const returnTo = encodeURIComponent(currentUrl.pathname + currentUrl.search + currentUrl.hash)
+		const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:3001"
+		window.location.href = `${backendUrl}/auth/login?returnTo=${returnTo}`
+		return <Loader />
 	}
 
 	return <Outlet />
