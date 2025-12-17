@@ -5,4 +5,4 @@ import { createTracingLayer } from "@hazel/effect-bun/Telemetry"
  *
  * Uses Effect DevTools in local environment, OTLP in production.
  */
-export const TracerLive = createTracingLayer("electric-proxy-bun")
+export const TracerLive = createTracingLayer("electric-proxy")
