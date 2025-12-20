@@ -45,7 +45,7 @@ export const router = createRouter({
 	defaultPendingComponent: Loader,
 	Wrap: ({ children }) => {
 		return (
-			<PostHogProvider apiKey={import.meta.env.VITE_POSTHOG_KEY} options={_posthogOptions}>
+			<PostHogProvider apiKey={import.meta.env.VITE_PUBLIC_POSTHOG_KEY} options={_posthogOptions}>
 				<ThemeProvider>
 					<Toast />
 					{children}
