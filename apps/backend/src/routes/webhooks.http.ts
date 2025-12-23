@@ -137,7 +137,7 @@ export const HttpWebhookLive = HttpApiBuilder.group(HazelApi, "webhooks", (handl
 							const channelResult = yield* db
 								.execute((client) =>
 									client
-										.select({ type: schema.channelsTable.type })
+										.select({ type: schema.channelsTable.type, name: schema.channelsTable.name })
 										.from(schema.channelsTable)
 										.where(eq(schema.channelsTable.id, event.record.channelId))
 										.limit(1),
@@ -233,9 +233,7 @@ export const HttpWebhookLive = HttpApiBuilder.group(HazelApi, "webhooks", (handl
 
 								const count = messageCountResult[0]?.count ?? 0
 
-								// Trigger naming workflow on exactly the 3rd message
-								if (count === 3) {
-									// Find the original message that started this thread
+								if (count > 3 && channelResult[0]?.name === "Thread") {
 									const originalMessageResult = yield* db
 										.execute((client) =>
 											client

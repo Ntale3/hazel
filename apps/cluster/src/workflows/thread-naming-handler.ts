@@ -23,7 +23,6 @@ export const ThreadNamingWorkflowLayer = Cluster.ThreadNamingWorkflow.toLayer(
 	Effect.fn(function* (payload: Cluster.ThreadNamingWorkflowPayload) {
 		yield* Effect.log(`Starting ThreadNamingWorkflow for thread ${payload.threadChannelId}`)
 
-		// Activity 1: Get thread context (original message + thread messages)
 		const contextResult = yield* Activity.make({
 			name: "GetThreadContext",
 			success: Cluster.GetThreadContextResult,
@@ -31,7 +30,6 @@ export const ThreadNamingWorkflowLayer = Cluster.ThreadNamingWorkflow.toLayer(
 			execute: Effect.gen(function* () {
 				const db = yield* Database.Database
 
-				// Get thread channel info
 				const threadChannel = yield* db
 					.execute((client) =>
 						client
@@ -153,7 +151,7 @@ export const ThreadNamingWorkflowLayer = Cluster.ThreadNamingWorkflow.toLayer(
 								),
 							)
 							.orderBy(schema.messagesTable.createdAt)
-							.limit(10), // Limit to first 10 messages for context
+							.limit(10), 
 					)
 					.pipe(
 						Effect.catchTags({
@@ -195,7 +193,6 @@ export const ThreadNamingWorkflowLayer = Cluster.ThreadNamingWorkflow.toLayer(
 			return
 		}
 
-		// Activity 2: Generate thread name using AI
 		const nameResult = yield* Activity.make({
 			name: "GenerateThreadName",
 			success: Cluster.GenerateThreadNameResult,
