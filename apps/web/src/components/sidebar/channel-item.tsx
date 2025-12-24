@@ -2,7 +2,6 @@ import { useAtomSet } from "@effect-atom/atom-react"
 import type { Channel, ChannelMember } from "@hazel/db/schema"
 import { useNavigate } from "@tanstack/react-router"
 import { useState } from "react"
-import { deleteChannelMemberMutation } from "~/atoms/channel-member-atoms"
 import { ChannelIcon } from "~/components/channel-icon"
 import IconDots from "~/components/icons/icon-dots"
 import IconGear from "~/components/icons/icon-gear"
@@ -15,7 +14,8 @@ import { DeleteChannelModal } from "~/components/modals/delete-channel-modal"
 import { Button } from "~/components/ui/button"
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator } from "~/components/ui/menu"
 import { SidebarItem, SidebarLabel, SidebarLink } from "~/components/ui/sidebar"
-import { deleteChannelAction, updateChannelMemberAction } from "~/db/actions"
+import { deleteChannelAction } from "~/db/actions"
+import { useChannelMemberActions } from "~/hooks/use-channel-member-actions"
 import { useOrganization } from "~/hooks/use-organization"
 import { matchExitWithToast } from "~/lib/toast-exit"
 
@@ -30,48 +30,10 @@ export function ChannelItem({ channel, member }: ChannelItemProps) {
 	const { slug } = useOrganization()
 	const navigate = useNavigate()
 
-	// Use optimistic actions for channel member operations
-	const updateMember = useAtomSet(updateChannelMemberAction, { mode: "promiseExit" })
-	const deleteChannel = useAtomSet(deleteChannelAction, { mode: "promiseExit" })
-	const deleteMember = useAtomSet(deleteChannelMemberMutation, { mode: "promiseExit" })
-
-	const handleToggleMute = async () => {
-		const exit = await updateMember({
-			memberId: member.id,
-			isMuted: !member.isMuted,
-		})
-
-		matchExitWithToast(exit, {
-			onSuccess: () => {},
-			successMessage: member.isMuted ? "Channel unmuted" : "Channel muted",
-			customErrors: {
-				ChannelMemberNotFoundError: () => ({
-					title: "Membership not found",
-					description: "You may no longer be a member of this channel.",
-					isRetryable: false,
-				}),
-			},
-		})
-	}
-
-	const handleToggleFavorite = async () => {
-		const exit = await updateMember({
-			memberId: member.id,
-			isFavorite: !member.isFavorite,
-		})
-
-		matchExitWithToast(exit, {
-			onSuccess: () => {},
-			successMessage: member.isFavorite ? "Removed from favorites" : "Added to favorites",
-			customErrors: {
-				ChannelMemberNotFoundError: () => ({
-					title: "Membership not found",
-					description: "You may no longer be a member of this channel.",
-					isRetryable: false,
-				}),
-			},
-		})
-	}
+	const { handleToggleMute, handleToggleFavorite, handleLeave } = useChannelMemberActions(member, "channel")
+	const deleteChannel = useAtomSet(deleteChannelAction, {
+		mode: "promiseExit",
+	})
 
 	const handleDeleteChannel = async () => {
 		const exit = await deleteChannel({ channelId: channel.id })
@@ -83,24 +45,6 @@ export function ChannelItem({ channel, member }: ChannelItemProps) {
 				ChannelNotFoundError: () => ({
 					title: "Channel not found",
 					description: "This channel may have already been deleted.",
-					isRetryable: false,
-				}),
-			},
-		})
-	}
-
-	const handleLeaveChannel = async () => {
-		const exit = await deleteMember({
-			payload: { id: member.id },
-		})
-
-		matchExitWithToast(exit, {
-			onSuccess: () => {},
-			successMessage: "Left channel successfully",
-			customErrors: {
-				ChannelMemberNotFoundError: () => ({
-					title: "Membership not found",
-					description: "You may have already left this channel.",
 					isRetryable: false,
 				}),
 			},
@@ -162,7 +106,7 @@ export function ChannelItem({ channel, member }: ChannelItemProps) {
 							<MenuLabel>Delete</MenuLabel>
 						</MenuItem>
 						<MenuSeparator />
-						<MenuItem intent="danger" onAction={handleLeaveChannel}>
+						<MenuItem intent="danger" onAction={handleLeave}>
 							<IconLeave />
 							<MenuLabel className="text-destructive">Leave</MenuLabel>
 						</MenuItem>
