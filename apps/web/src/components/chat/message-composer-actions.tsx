@@ -97,15 +97,7 @@ export const MessageComposerActions = forwardRef<MessageComposerActionsRef, Mess
 				{/* Bottom action bar */}
 				<div className="flex w-full items-center justify-between gap-3 px-3 py-2">
 					<div className="flex items-center gap-3">
-						{/* Shortcuts button */}
-						<button
-							type="button"
-							className="inline-flex items-center gap-1.5 rounded-xs p-0 font-semibold text-muted-fg text-xs transition-colors hover:text-fg"
-						>
-							<IconSquareCommand className="size-4 text-muted-fg" />
-							Shortcuts
-						</button>
-
+						{" "}
 						{/* Attach button */}
 						<button
 							type="button"
@@ -116,7 +108,6 @@ export const MessageComposerActions = forwardRef<MessageComposerActionsRef, Mess
 							<IconPaperclip className="size-4 text-muted-fg" />
 							Attach
 						</button>
-
 						{/* Emoji picker */}
 						<EmojiPickerDialog onEmojiSelect={handleEmojiSelect}>
 							<AriaButton
