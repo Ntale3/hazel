@@ -28,7 +28,8 @@ export interface UseKeyboardShortcutOptions {
  * Hook for handling keyboard shortcuts with modifier keys
  *
  * @example
- * // Ctrl/Cmd + K shortcut
+ * // Ctrl/Cmd + K shortcut (cross-platform: Ctrl on Windows/Linux, Cmd on macOS)
+ * // When both ctrl and meta are true, either modifier will trigger the shortcut
  * useKeyboardShortcut('k', handleSearch, { ctrl: true, meta: true })
  *
  * @example
@@ -50,19 +51,20 @@ export function useKeyboardShortcut(
 		if (!when) return
 
 		const handleKeyDown = (event: KeyboardEvent) => {
-			// Check if key matches
-			if (event.key !== key) return
+			// Check if key matches (case-insensitive for letters)
+			if (event.key.toLowerCase() !== key.toLowerCase()) return
 
-			// Check modifier requirements
-			const ctrlMatch = !ctrl || event.ctrlKey
-			const metaMatch = !meta || event.metaKey
+			// When both ctrl and meta are specified, treat as "either" (cross-platform support)
+			// This allows Ctrl+K on Windows/Linux OR Cmd+K on macOS
+			const ctrlMetaMatch =
+				ctrl && meta
+					? event.ctrlKey || event.metaKey
+					: (!ctrl || event.ctrlKey) && (!meta || event.metaKey)
+
 			const shiftMatch = !shift || event.shiftKey
 			const altMatch = !alt || event.altKey
 
-			// If any modifier is specified, ensure at least one platform modifier is pressed
-			const platformModifier = ctrl || meta ? event.ctrlKey || event.metaKey : true
-
-			if (ctrlMatch && metaMatch && shiftMatch && altMatch && platformModifier) {
+			if (ctrlMetaMatch && shiftMatch && altMatch) {
 				event.preventDefault()
 				callback()
 			}
