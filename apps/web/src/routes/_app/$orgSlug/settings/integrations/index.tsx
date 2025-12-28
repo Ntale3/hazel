@@ -1,6 +1,8 @@
+import { useAtomSet } from "@effect-atom/atom-react"
 import type { IntegrationConnection } from "@hazel/domain/models"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
+import { listOrganizationWebhooksMutation, type WebhookData } from "~/atoms/channel-webhook-atoms"
 import IconPlus from "~/components/icons/icon-plus"
 import { Button } from "~/components/ui/button"
 import { EmptyState } from "~/components/ui/empty-state"
@@ -20,8 +22,40 @@ function IntegrationsSettings() {
 	const navigate = useNavigate()
 	const { user } = useAuth()
 
-	// Query all integration connections for the organization
+	// Query all integration connections for the organization (OAuth-based)
 	const { isConnected } = useIntegrationConnections(user?.organizationId ?? null)
+
+	// Fetch webhooks for webhook-based integrations (OpenStatus, Railway)
+	const [webhooks, setWebhooks] = useState<readonly WebhookData[]>([])
+	const listWebhooks = useAtomSet(listOrganizationWebhooksMutation, { mode: "promiseExit" })
+
+	useEffect(() => {
+		if (!user?.organizationId) return
+		listWebhooks({ payload: {} }).then((exit) => {
+			if (exit._tag === "Success") {
+				setWebhooks(exit.value.data)
+			}
+		})
+	}, [user?.organizationId, listWebhooks])
+
+	// Map webhook names to integration IDs (normalize to lowercase)
+	const webhookProviders = useMemo(() => {
+		const providers = new Set<string>()
+		for (const webhook of webhooks) {
+			providers.add(webhook.name.toLowerCase())
+		}
+		return providers
+	}, [webhooks])
+
+	// Combined check for both OAuth and webhook integrations
+	const isIntegrationConnected = (integrationId: string) => {
+		// Check OAuth connections first
+		if (isConnected(integrationId as IntegrationConnection.IntegrationProvider)) {
+			return true
+		}
+		// Check webhook-based integrations (openstatus, railway)
+		return webhookProviders.has(integrationId)
+	}
 
 	const filteredIntegrations =
 		selectedCategory === "all"
@@ -73,7 +107,7 @@ function IntegrationsSettings() {
 					<IntegrationCard
 						key={integration.id}
 						integration={integration}
-						connected={isConnected(integration.id as IntegrationConnection.IntegrationProvider)}
+						connected={isIntegrationConnected(integration.id)}
 						onClick={() => handleIntegrationClick(integration.id)}
 					/>
 				))}
