@@ -9,6 +9,14 @@ export class SessionCacheError extends Schema.TaggedError<SessionCacheError>()("
 }) {}
 
 /**
+ * Error thrown when user lookup cache operations fail
+ */
+export class UserLookupCacheError extends Schema.TaggedError<UserLookupCacheError>()("UserLookupCacheError", {
+	message: Schema.String,
+	cause: Schema.optional(Schema.Unknown),
+}) {}
+
+/**
  * Error thrown when fetching organization from WorkOS fails
  */
 export class OrganizationFetchError extends Schema.TaggedError<OrganizationFetchError>()(

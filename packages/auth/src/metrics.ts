@@ -16,6 +16,12 @@ export const sessionCacheHits = Metric.counter("session.cache.hits")
 /** Count of session cache misses */
 export const sessionCacheMisses = Metric.counter("session.cache.misses")
 
+/** Count of user lookup cache hits */
+export const userLookupCacheHits = Metric.counter("user_lookup.cache.hits")
+
+/** Count of user lookup cache misses */
+export const userLookupCacheMisses = Metric.counter("user_lookup.cache.misses")
+
 /** Count of successful session authentications */
 export const sessionAuthSuccess = Metric.counter("session.auth.success")
 
@@ -56,6 +62,12 @@ export const workosRefreshLatency = Metric.histogram(
 /** Session cache operation latency (get/set) */
 export const cacheOperationLatency = Metric.histogram(
 	"session.cache.operation.latency_ms",
+	MetricBoundaries.fromIterable([1, 2, 5, 10, 25, 50]),
+)
+
+/** User lookup cache operation latency (get/set) */
+export const userLookupCacheOperationLatency = Metric.histogram(
+	"user_lookup.cache.operation.latency_ms",
 	MetricBoundaries.fromIterable([1, 2, 5, 10, 25, 50]),
 )
 
