@@ -16,13 +16,13 @@ export const startTypingIndicatorCleanup = Effect.gen(function* () {
 		)
 
 		if (deleted.length > 0) {
-			yield* Effect.logInfo(`Cleaned up ${deleted.length} stale typing indicators`)
+			yield* Effect.logDebug(`Cleaned up ${deleted.length} stale typing indicators`)
 		}
 
 		return deleted.length
 	})
 
-	yield* Effect.logInfo("Starting typing indicator cleanup job")
+	yield* Effect.logDebug("Starting typing indicator cleanup job")
 
 	// Run cleanup every 5 seconds
 	yield* cleanupStaleIndicators.pipe(Effect.repeat(Schedule.fixed(5000)), Effect.fork)

@@ -10,9 +10,9 @@ export const WorkOSSyncCronLayer = ClusterCron.make({
 	name: "WorkOSSync",
 	cron: everyMinute,
 	execute: Effect.gen(function* () {
-		yield* Effect.logInfo("Starting scheduled WorkOS sync...")
+		yield* Effect.logDebug("Starting scheduled WorkOS sync...")
 		const result = yield* WorkOSSync.syncAll
-		yield* Effect.logInfo("WorkOS sync completed", {
+		yield* Effect.logDebug("WorkOS sync completed", {
 			users: result.users,
 			organizations: result.organizations,
 			memberships: result.memberships,

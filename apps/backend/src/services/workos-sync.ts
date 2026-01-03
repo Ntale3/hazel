@@ -508,19 +508,19 @@ export class WorkOSSync extends Effect.Service<WorkOSSync>()("WorkOSSync", {
 				endTime: 0,
 			}
 
-			yield* Effect.logInfo("Starting WorkOS sync...")
+			yield* Effect.logDebug("Starting WorkOS sync...")
 
 			// Step 1: Sync all users
-			yield* Effect.logInfo("Syncing users...")
+			yield* Effect.logDebug("Syncing users...")
 			result.users = yield* syncUsers
-			yield* Effect.logInfo(
+			yield* Effect.logDebug(
 				`Users sync complete: created=${result.users.created}, updated=${result.users.updated}, deleted=${result.users.deleted}`,
 			)
 
 			// Step 2: Sync all organizations
-			yield* Effect.logInfo("Syncing organizations...")
+			yield* Effect.logDebug("Syncing organizations...")
 			result.organizations = yield* syncOrganizations
-			yield* Effect.logInfo(
+			yield* Effect.logDebug(
 				`Organizations sync complete: created=${result.organizations.created}, updated=${result.organizations.updated}, deleted=${result.organizations.deleted}`,
 			)
 
@@ -530,14 +530,14 @@ export class WorkOSSync extends Effect.Service<WorkOSSync>()("WorkOSSync", {
 			yield* Effect.all(
 				organizations.map((org) =>
 					Effect.gen(function* () {
-						yield* Effect.logInfo(`Syncing memberships for org ${org.id}...`)
+						yield* Effect.logDebug(`Syncing memberships for org ${org.id}...`)
 						const membershipResult = yield* syncOrganizationMemberships(org.id)
 						result.memberships.created += membershipResult.created
 						result.memberships.updated += membershipResult.updated
 						result.memberships.deleted += membershipResult.deleted
 						result.memberships.errors.push(...membershipResult.errors)
 
-						yield* Effect.logInfo(`Syncing invitations for org ${org.id}...`)
+						yield* Effect.logDebug(`Syncing invitations for org ${org.id}...`)
 						const invitationResult = yield* syncInvitations(org.id as OrganizationId)
 						result.invitations.created += invitationResult.created
 						result.invitations.updated += invitationResult.updated
@@ -558,7 +558,7 @@ export class WorkOSSync extends Effect.Service<WorkOSSync>()("WorkOSSync", {
 			result.endTime = Date.now()
 			const duration = (result.endTime - result.startTime) / 1000
 
-			yield* Effect.logInfo(`WorkOS sync completed in ${duration}s with ${result.totalErrors} errors`)
+			yield* Effect.logDebug(`WorkOS sync completed in ${duration}s with ${result.totalErrors} errors`)
 
 			if (result.totalErrors > 0) {
 				yield* Effect.logError("Sync errors:", {
@@ -595,7 +595,7 @@ export class WorkOSSync extends Effect.Service<WorkOSSync>()("WorkOSSync", {
 					deletedAt: null,
 				})
 				.pipe(
-					Effect.tap(() => Effect.logInfo("User upserted", { email: data.email })),
+					Effect.tap(() => Effect.logDebug("User upserted", { email: data.email })),
 					Effect.asVoid,
 				)
 
@@ -631,7 +631,7 @@ export class WorkOSSync extends Effect.Service<WorkOSSync>()("WorkOSSync", {
 							.pipe(withSystemActor),
 				})
 
-				yield* Effect.logInfo(`Organization ${action}`, { orgId, name: data.name })
+				yield* Effect.logDebug(`Organization ${action}`, { orgId, name: data.name })
 			})
 
 		const handleOrgDeleted = (data: { id: string; externalId: string | null }) =>
@@ -682,7 +682,7 @@ export class WorkOSSync extends Effect.Service<WorkOSSync>()("WorkOSSync", {
 						invitedBy: null,
 						deletedAt: null,
 					})
-					yield* Effect.logInfo("Membership upserted", {
+					yield* Effect.logDebug("Membership upserted", {
 						orgId: org.value.id,
 						userId: user.value.id,
 						role: data.role.slug,
@@ -722,7 +722,7 @@ export class WorkOSSync extends Effect.Service<WorkOSSync>()("WorkOSSync", {
 
 				if (Option.isSome(org) && Option.isSome(user)) {
 					yield* orgMemberRepo.softDeleteByOrgAndUser(org.value.id, user.value.id)
-					yield* Effect.logInfo("Membership removed", {
+					yield* Effect.logDebug("Membership removed", {
 						orgId: org.value.id,
 						userId: user.value.id,
 					})
@@ -759,7 +759,7 @@ export class WorkOSSync extends Effect.Service<WorkOSSync>()("WorkOSSync", {
 							),
 						),
 						Match.orElse((eventType) =>
-							Effect.logInfo(`Unhandled WorkOS event type: ${eventType}`),
+							Effect.logDebug(`Unhandled WorkOS event type: ${eventType}`),
 						),
 					),
 				),

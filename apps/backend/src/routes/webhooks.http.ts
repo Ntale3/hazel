@@ -76,7 +76,7 @@ export const HttpWebhookLive = HttpApiBuilder.group(HazelApi, "webhooks", (handl
 						error: errorMessage,
 					})
 				} else {
-					yield* Effect.logInfo(`Successfully processed webhook event`, {
+					yield* Effect.logDebug(`Successfully processed webhook event`, {
 						eventId: payload.id,
 						eventType: payload.event,
 					})
@@ -117,7 +117,7 @@ export const HttpWebhookLive = HttpApiBuilder.group(HazelApi, "webhooks", (handl
 					(event) =>
 						Effect.gen(function* () {
 							// Log each event
-							yield* Effect.logInfo("Processing Sequin event", {
+							yield* Effect.logDebug("Processing Sequin event", {
 								action: event.action,
 								tableName: event.metadata.table_name,
 								messageId: event.record.id,
@@ -126,7 +126,7 @@ export const HttpWebhookLive = HttpApiBuilder.group(HazelApi, "webhooks", (handl
 
 							// Only process 'insert' actions (new messages)
 							if (event.action !== "insert") {
-								yield* Effect.logInfo("Ignoring non-insert action", {
+								yield* Effect.logDebug("Ignoring non-insert action", {
 									action: event.action,
 									messageId: event.record.id,
 								})
@@ -280,7 +280,7 @@ export const HttpWebhookLive = HttpApiBuilder.group(HazelApi, "webhooks", (handl
 												Effect.catchAll(() => Effect.void), // Don't fail the main flow
 											)
 
-										yield* Effect.logInfo("Triggered thread naming workflow", {
+										yield* Effect.logDebug("Triggered thread naming workflow", {
 											threadChannelId: event.record.channelId,
 											originalMessageId: originalMessageResult[0]!.id,
 										})
@@ -288,14 +288,14 @@ export const HttpWebhookLive = HttpApiBuilder.group(HazelApi, "webhooks", (handl
 								}
 							}
 
-							yield* Effect.logInfo("Event processed successfully", {
+							yield* Effect.logDebug("Event processed successfully", {
 								messageId: event.record.id,
 							})
 						}),
 					{ concurrency: "unbounded" },
 				)
 
-				yield* Effect.logInfo("Sequin webhook batch processed successfully", {
+				yield* Effect.logDebug("Sequin webhook batch processed successfully", {
 					eventCount: payload.data.length,
 				})
 			}),
@@ -422,7 +422,7 @@ export const HttpWebhookLive = HttpApiBuilder.group(HazelApi, "webhooks", (handl
 						return new GitHubWebhookResponse({ processed: false })
 					}
 
-					yield* Effect.logInfo("Processing GitHub installation event", {
+					yield* Effect.logDebug("Processing GitHub installation event", {
 						deliveryId,
 						action,
 						installationId: installation.id,
@@ -483,7 +483,7 @@ export const HttpWebhookLive = HttpApiBuilder.group(HazelApi, "webhooks", (handl
 							}),
 						)
 
-					yield* Effect.logInfo("GitHub installation event processed successfully", {
+					yield* Effect.logDebug("GitHub installation event processed successfully", {
 						deliveryId,
 						action,
 						installationId: installation.id,
@@ -559,7 +559,7 @@ export const HttpWebhookLive = HttpApiBuilder.group(HazelApi, "webhooks", (handl
 						}),
 					)
 
-				yield* Effect.logInfo("GitHub webhook processed successfully", {
+				yield* Effect.logDebug("GitHub webhook processed successfully", {
 					deliveryId,
 					eventType,
 					repository: repositoryFullName,

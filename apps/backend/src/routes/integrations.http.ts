@@ -253,7 +253,7 @@ const handleOAuthCallback = Effect.fn("integrations.oauthCallback")(function* (
 		),
 	)
 
-	yield* Effect.logInfo("OAuth callback state parsed", {
+	yield* Effect.logDebug("OAuth callback state parsed", {
 		event: "integration_callback_state_parsed",
 		provider,
 		organizationId: parsedState.organizationId,
@@ -270,7 +270,7 @@ const handleOAuthCallback = Effect.fn("integrations.oauthCallback")(function* (
 	const isProduction = nodeEnv !== "development"
 
 	if (isProduction && parsedState.environment === "local") {
-		yield* Effect.logInfo("OAuth callback redirecting to local environment", {
+		yield* Effect.logDebug("OAuth callback redirecting to local environment", {
 			event: "integration_callback_local_redirect",
 			provider,
 		})
@@ -324,7 +324,7 @@ const handleOAuthCallback = Effect.fn("integrations.oauthCallback")(function* (
 	}
 
 	// Exchange code for tokens using the provider (with retry for transient failures)
-	yield* Effect.logInfo("OAuth token exchange starting", {
+	yield* Effect.logDebug("OAuth token exchange starting", {
 		event: "integration_token_exchange_attempt",
 		provider,
 		isGitHubApp: isGitHubAppCallback,
@@ -358,7 +358,7 @@ const handleOAuthCallback = Effect.fn("integrations.oauthCallback")(function* (
 	})
 
 	// Get account info from provider (with retry for transient failures)
-	yield* Effect.logInfo("OAuth account info fetch starting", {
+	yield* Effect.logDebug("OAuth account info fetch starting", {
 		event: "integration_account_info_attempt",
 		provider,
 	})
@@ -382,7 +382,7 @@ const handleOAuthCallback = Effect.fn("integrations.oauthCallback")(function* (
 	}
 
 	const accountInfo = accountInfoResult.right
-	yield* Effect.logInfo("OAuth account info fetch succeeded", {
+	yield* Effect.logDebug("OAuth account info fetch succeeded", {
 		event: "integration_account_info_success",
 		provider,
 		externalAccountId: accountInfo.externalAccountId,
@@ -394,7 +394,7 @@ const handleOAuthCallback = Effect.fn("integrations.oauthCallback")(function* (
 	const metadata = isGitHubAppCallback ? { installationId: installation_id } : null
 
 	// Create or update connection
-	yield* Effect.logInfo("OAuth database upsert starting", {
+	yield* Effect.logDebug("OAuth database upsert starting", {
 		event: "integration_db_upsert_attempt",
 		provider,
 		organizationId: parsedState.organizationId,
@@ -428,14 +428,14 @@ const handleOAuthCallback = Effect.fn("integrations.oauthCallback")(function* (
 	}
 
 	const connection = connectionResult.right
-	yield* Effect.logInfo("OAuth database upsert succeeded", {
+	yield* Effect.logDebug("OAuth database upsert succeeded", {
 		event: "integration_db_upsert_success",
 		provider,
 		connectionId: connection.id,
 	})
 
 	// Store encrypted tokens
-	yield* Effect.logInfo("OAuth token storage starting", {
+	yield* Effect.logDebug("OAuth token storage starting", {
 		event: "integration_token_storage_attempt",
 		provider,
 		connectionId: connection.id,
@@ -460,7 +460,7 @@ const handleOAuthCallback = Effect.fn("integrations.oauthCallback")(function* (
 		return redirectWithError("encryption_error")
 	}
 
-	yield* Effect.logInfo("OAuth token storage succeeded", {
+	yield* Effect.logDebug("OAuth token storage succeeded", {
 		event: "integration_token_storage_success",
 		provider,
 		connectionId: connection.id,
@@ -508,7 +508,7 @@ const handleOAuthCallback = Effect.fn("integrations.oauthCallback")(function* (
 
 	// Redirect back to the settings page with success status
 	const successUrl = buildRedirectUrl(parsedState.returnTo, provider, "success")
-	yield* Effect.logInfo("OAuth callback redirecting with success", {
+	yield* Effect.logDebug("OAuth callback redirecting with success", {
 		event: "integration_callback_redirect",
 		provider,
 		status: "success",

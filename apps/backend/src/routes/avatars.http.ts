@@ -21,7 +21,7 @@ export const HttpAvatarLive = HttpApiBuilder.group(HazelApi, "avatars", (handler
 
 				const key = `avatars/${user.id}/${randomUUIDv7()}`
 
-				yield* Effect.log(
+				yield* Effect.logDebug(
 					`Generating presigned URL for avatar upload: ${key} (size: ${payload.fileSize} bytes, type: ${payload.contentType})`,
 				)
 
@@ -41,7 +41,7 @@ export const HttpAvatarLive = HttpApiBuilder.group(HazelApi, "avatars", (handler
 						),
 					)
 
-				yield* Effect.log(`Generated presigned URL for avatar: ${key}`)
+				yield* Effect.logDebug(`Generated presigned URL for avatar: ${key}`)
 
 				return {
 					uploadUrl,

@@ -236,7 +236,7 @@ export class IntegrationTokenService extends Effect.Service<IntegrationTokenServ
 					),
 				)
 
-				yield* Effect.logInfo("Refreshing OAuth token", { provider: connection.provider })
+				yield* Effect.logDebug("Refreshing OAuth token", { provider: connection.provider })
 
 				// Call provider's token refresh endpoint
 				const newTokens = yield* refreshOAuthToken(
@@ -308,7 +308,7 @@ export class IntegrationTokenService extends Effect.Service<IntegrationTokenServ
 						)
 					}
 
-					yield* Effect.logInfo("Regenerating GitHub App token", { installationId, connectionId })
+					yield* Effect.logDebug("Regenerating GitHub App token", { installationId, connectionId })
 
 					// Use GitHub App JWT service to generate a new installation token
 					const jwtService = yield* GitHub.GitHubAppJWTService

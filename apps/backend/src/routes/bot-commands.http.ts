@@ -213,7 +213,7 @@ export const HttpBotCommandsLive = HttpApiBuilder.group(HazelApi, "bot-commands"
 				const channel = `bot:${botId}:commands`
 				yield* redis.publish(channel, JSON.stringify(commandEvent))
 
-				yield* Effect.log(`Published command ${commandName} to ${channel}`)
+				yield* Effect.logDebug(`Published command ${commandName} to ${channel}`)
 
 				return new BotCommandExecutionAccepted({
 					message: "Command sent to bot",

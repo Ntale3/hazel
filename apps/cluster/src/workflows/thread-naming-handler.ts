@@ -21,7 +21,7 @@ Generate a concise thread name:`
 
 export const ThreadNamingWorkflowLayer = Cluster.ThreadNamingWorkflow.toLayer(
 	Effect.fn(function* (payload: Cluster.ThreadNamingWorkflowPayload) {
-		yield* Effect.log(`Starting ThreadNamingWorkflow for thread ${payload.threadChannelId}`)
+		yield* Effect.logDebug(`Starting ThreadNamingWorkflow for thread ${payload.threadChannelId}`)
 
 		const contextResult = yield* Activity.make({
 			name: "GetThreadContext",
@@ -215,7 +215,7 @@ export const ThreadNamingWorkflowLayer = Cluster.ThreadNamingWorkflow.toLayer(
 					threadName = "Discussion"
 				}
 
-				yield* Effect.log(`Generated thread name: ${threadName}`)
+				yield* Effect.logDebug(`Generated thread name: ${threadName}`)
 
 				return { threadName }
 			}),
@@ -252,7 +252,7 @@ export const ThreadNamingWorkflowLayer = Cluster.ThreadNamingWorkflow.toLayer(
 						}),
 					)
 
-				yield* Effect.log(
+				yield* Effect.logDebug(
 					`Updated thread ${payload.threadChannelId} name from "${contextResult.currentName}" to "${nameResult.threadName}"`,
 				)
 
@@ -264,6 +264,6 @@ export const ThreadNamingWorkflowLayer = Cluster.ThreadNamingWorkflow.toLayer(
 			}),
 		}).pipe(Effect.orDie)
 
-		yield* Effect.log(`ThreadNamingWorkflow completed for thread ${payload.threadChannelId}`)
+		yield* Effect.logDebug(`ThreadNamingWorkflow completed for thread ${payload.threadChannelId}`)
 	}),
 )

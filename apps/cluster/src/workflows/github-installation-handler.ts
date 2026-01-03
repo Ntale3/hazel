@@ -5,13 +5,13 @@ import { Effect } from "effect"
 
 export const GitHubInstallationWorkflowLayer = Cluster.GitHubInstallationWorkflow.toLayer(
 	Effect.fn(function* (payload: Cluster.GitHubInstallationWorkflowPayload) {
-		yield* Effect.log(
+		yield* Effect.logDebug(
 			`Starting GitHubInstallationWorkflow for '${payload.action}' event on account ${payload.accountLogin}`,
 		)
 
 		// For "created" events, just log - OAuth callback handles the actual connection setup
 		if (payload.action === "created") {
-			yield* Effect.log(
+			yield* Effect.logDebug(
 				`GitHub App installed on ${payload.accountLogin} by ${payload.senderLogin} - no action needed (OAuth handles setup)`,
 			)
 			return
@@ -25,7 +25,7 @@ export const GitHubInstallationWorkflowLayer = Cluster.GitHubInstallationWorkflo
 			execute: Effect.gen(function* () {
 				const db = yield* Database.Database
 
-				yield* Effect.log(`Querying connection for installation ID ${payload.installationId}`)
+				yield* Effect.logDebug(`Querying connection for installation ID ${payload.installationId}`)
 
 				// Query for a connection with matching installationId in metadata
 				const connections = yield* db
@@ -61,12 +61,12 @@ export const GitHubInstallationWorkflowLayer = Cluster.GitHubInstallationWorkflo
 					)
 
 				if (connections.length === 0) {
-					yield* Effect.log(`No connection found for installation ID ${payload.installationId}`)
+					yield* Effect.logDebug(`No connection found for installation ID ${payload.installationId}`)
 					return { found: false, connection: null }
 				}
 
 				const connection = connections[0]!
-				yield* Effect.log(
+				yield* Effect.logDebug(
 					`Found connection ${connection.id} for installation ${payload.installationId}`,
 				)
 
@@ -89,7 +89,7 @@ export const GitHubInstallationWorkflowLayer = Cluster.GitHubInstallationWorkflo
 
 		// If no connection found, nothing more to do
 		if (!connectionResult.found || !connectionResult.connection) {
-			yield* Effect.log(
+			yield* Effect.logDebug(
 				`No connection found for installation ID ${payload.installationId}, workflow complete`,
 			)
 			return
@@ -109,7 +109,7 @@ export const GitHubInstallationWorkflowLayer = Cluster.GitHubInstallationWorkflo
 			execute: Effect.gen(function* () {
 				const db = yield* Database.Database
 
-				yield* Effect.log(
+				yield* Effect.logDebug(
 					`Updating connection ${connection.id} status from '${connection.status}' to '${newStatus}'`,
 				)
 
@@ -146,7 +146,7 @@ export const GitHubInstallationWorkflowLayer = Cluster.GitHubInstallationWorkflo
 						}),
 					)
 
-				yield* Effect.log(`Successfully updated connection ${connection.id} to '${newStatus}'`)
+				yield* Effect.logDebug(`Successfully updated connection ${connection.id} to '${newStatus}'`)
 
 				return {
 					updated: true,
@@ -161,7 +161,7 @@ export const GitHubInstallationWorkflowLayer = Cluster.GitHubInstallationWorkflo
 			Effect.orDie,
 		)
 
-		yield* Effect.log(
+		yield* Effect.logDebug(
 			`GitHubInstallationWorkflow completed: connection ${connection.id} status changed from '${updateResult.previousStatus}' to '${updateResult.newStatus}' (action: ${payload.action})`,
 		)
 	}),

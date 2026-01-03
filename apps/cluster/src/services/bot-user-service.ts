@@ -84,10 +84,10 @@ export class BotUserService extends Effect.Service<BotUserService>()("BotUserSer
 		 * Call this at service initialization if needed.
 		 */
 		const warmCache = Effect.gen(function* () {
-			yield* Effect.logInfo("Warming bot user cache...")
+			yield* Effect.logDebug("Warming bot user cache...")
 			const providers = ["github", "linear", "figma", "notion"] as const
 			yield* Effect.forEach(providers, (p) => getBotUserId(p), { concurrency: "unbounded" })
-			yield* Effect.logInfo(`Bot user cache warmed with ${cache.size} entries`)
+			yield* Effect.logDebug(`Bot user cache warmed with ${cache.size} entries`)
 		})
 
 		return {

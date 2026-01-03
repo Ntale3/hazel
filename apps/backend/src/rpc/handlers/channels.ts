@@ -378,7 +378,7 @@ export const ChannelRpcLive = ChannelRpcs.toLayer(
 							),
 						)
 
-					yield* Effect.logInfo("Triggered thread naming workflow", {
+					yield* Effect.logDebug("Triggered thread naming workflow", {
 						threadChannelId: channelId,
 						originalMessageId,
 					})

@@ -162,7 +162,7 @@ export class SessionManager extends Effect.Service<SessionManager>()("SessionMan
 					timezone: user.timezone,
 				})
 
-				yield* Effect.log("🔍 [Cookie Auth] Final CurrentUser:", {
+				yield* Effect.logDebug("[Cookie Auth] Final CurrentUser", {
 					id: currentUser.id,
 					organizationId: currentUser.organizationId,
 					role: currentUser.role,
@@ -237,7 +237,7 @@ export class SessionManager extends Effect.Service<SessionManager>()("SessionMan
 				timezone: user.timezone,
 			})
 
-			yield* Effect.log("🔍 [Refresh] Final CurrentUser:", {
+			yield* Effect.logDebug("[Refresh] Final CurrentUser", {
 				id: currentUser.id,
 				organizationId: currentUser.organizationId,
 				role: currentUser.role,

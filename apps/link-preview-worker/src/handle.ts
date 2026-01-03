@@ -6,7 +6,7 @@ import { HttpTweetLive } from "./handlers/tweet"
 
 export const HttpAppLive = HttpApiBuilder.group(LinkPreviewApi, "app", (handles) =>
 	Effect.gen(function* () {
-		yield* Effect.log("Link Preview Worker started")
+		yield* Effect.logInfo("Link Preview Worker started")
 
 		return handles.handle("health", () => Effect.succeed("ok"))
 	}),

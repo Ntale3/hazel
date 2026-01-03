@@ -42,7 +42,7 @@ export const AuthMiddlewareLive = Layer.scoped(
 			Effect.gen(function* () {
 				const userOption = yield* FiberRef.get(currentUserRef)
 				if (Option.isSome(userOption)) {
-					yield* Effect.logInfo("Closing WebSocket connection")
+					yield* Effect.logDebug("Closing WebSocket connection")
 					const user = userOption.value
 					yield* presenceRepo
 						.updateStatus({
@@ -184,7 +184,7 @@ export const AuthMiddlewareLive = Layer.scoped(
 
 				// Log if a session was refreshed (client should reconnect with new cookie on next HTTP request)
 				if (result.refreshedSession) {
-					yield* Effect.log(
+					yield* Effect.logDebug(
 						"Session was refreshed for WebSocket connection. Client should update cookie on next HTTP request.",
 					)
 				}

@@ -5,7 +5,7 @@ import { Effect, Schema } from "effect"
 
 export const MessageNotificationWorkflowLayer = Cluster.MessageNotificationWorkflow.toLayer(
 	Effect.fn(function* (payload: Cluster.MessageNotificationWorkflowPayload) {
-		yield* Effect.log(
+		yield* Effect.logDebug(
 			`Starting MessageNotificationWorkflow for message ${payload.messageId} in channel ${payload.channelId} (type: ${payload.channelType})`,
 		)
 
@@ -16,7 +16,7 @@ export const MessageNotificationWorkflowLayer = Cluster.MessageNotificationWorkf
 		const isDmOrGroup = payload.channelType === "direct" || payload.channelType === "single"
 		const shouldNotifyAll = isDmOrGroup || mentions.hasChannelMention || mentions.hasHereMention
 
-		yield* Effect.log(
+		yield* Effect.logDebug(
 			`Notification mode: ${isDmOrGroup ? "DM/Group" : "Regular channel"}, notify all: ${shouldNotifyAll}`,
 		)
 
@@ -30,7 +30,7 @@ export const MessageNotificationWorkflowLayer = Cluster.MessageNotificationWorkf
 
 				if (shouldNotifyAll) {
 					// DM/group or broadcast mention - notify all members (existing logic)
-					yield* Effect.log(`Querying all channel members for channel ${payload.channelId}`)
+					yield* Effect.logDebug(`Querying all channel members for channel ${payload.channelId}`)
 
 					const channelMembers = yield* db
 						.execute((client) =>
@@ -81,7 +81,7 @@ export const MessageNotificationWorkflowLayer = Cluster.MessageNotificationWorkf
 							}),
 						)
 
-					yield* Effect.log(`Found ${channelMembers.length} members to notify (all members mode)`)
+					yield* Effect.logDebug(`Found ${channelMembers.length} members to notify (all members mode)`)
 
 					return {
 						members: channelMembers,
@@ -90,7 +90,7 @@ export const MessageNotificationWorkflowLayer = Cluster.MessageNotificationWorkf
 				}
 
 				// Regular channel - only notify mentioned users and reply-to author
-				yield* Effect.log(
+				yield* Effect.logDebug(
 					`Smart notification mode: ${mentions.userMentions.length} user mentions, reply to: ${payload.replyToMessageId ?? "none"}`,
 				)
 
@@ -120,7 +120,7 @@ export const MessageNotificationWorkflowLayer = Cluster.MessageNotificationWorkf
 						)
 
 					if (replyToMessage.length > 0 && replyToMessage[0]!.authorId !== payload.authorId) {
-						yield* Effect.log(
+						yield* Effect.logDebug(
 							`Adding reply-to author ${replyToMessage[0]!.authorId} to notification list`,
 						)
 						usersToNotify.push(replyToMessage[0]!.authorId)
@@ -132,10 +132,10 @@ export const MessageNotificationWorkflowLayer = Cluster.MessageNotificationWorkf
 					(userId) => userId !== payload.authorId,
 				) as UserId[]
 
-				yield* Effect.log(`Unique users to notify: ${uniqueUsersToNotify.length}`)
+				yield* Effect.logDebug(`Unique users to notify: ${uniqueUsersToNotify.length}`)
 
 				if (uniqueUsersToNotify.length === 0) {
-					yield* Effect.log("No users to notify in smart mode")
+					yield* Effect.logDebug("No users to notify in smart mode")
 					return { members: [], totalCount: 0 }
 				}
 
@@ -183,7 +183,7 @@ export const MessageNotificationWorkflowLayer = Cluster.MessageNotificationWorkf
 						}),
 					)
 
-				yield* Effect.log(`Found ${channelMembers.length} members to notify (smart mode)`)
+				yield* Effect.logDebug(`Found ${channelMembers.length} members to notify (smart mode)`)
 
 				return {
 					members: channelMembers,
@@ -194,7 +194,7 @@ export const MessageNotificationWorkflowLayer = Cluster.MessageNotificationWorkf
 
 		// If no members to notify, we're done
 		if (membersResult.totalCount === 0) {
-			yield* Effect.log("No members to notify, workflow complete")
+			yield* Effect.logDebug("No members to notify, workflow complete")
 			return
 		}
 
@@ -207,7 +207,7 @@ export const MessageNotificationWorkflowLayer = Cluster.MessageNotificationWorkf
 				const db = yield* Database.Database
 				const notificationIds: NotificationId[] = []
 
-				yield* Effect.log(`Creating notifications for ${membersResult.members.length} members`)
+				yield* Effect.logDebug(`Creating notifications for ${membersResult.members.length} members`)
 
 				// Process each member
 				for (const member of membersResult.members) {
@@ -252,7 +252,7 @@ export const MessageNotificationWorkflowLayer = Cluster.MessageNotificationWorkf
 						)
 
 					if (orgMemberResult.length === 0) {
-						yield* Effect.log(`Skipping user ${member.userId} - not found in organization`)
+						yield* Effect.logDebug(`Skipping user ${member.userId} - not found in organization`)
 						continue
 					}
 
@@ -314,7 +314,7 @@ export const MessageNotificationWorkflowLayer = Cluster.MessageNotificationWorkf
 							}),
 						)
 
-					yield* Effect.log(`Created notification ${notificationId} for member ${member.userId}`)
+					yield* Effect.logDebug(`Created notification ${notificationId} for member ${member.userId}`)
 				}
 
 				return {
@@ -324,7 +324,7 @@ export const MessageNotificationWorkflowLayer = Cluster.MessageNotificationWorkf
 			}),
 		}).pipe(Effect.orDie)
 
-		yield* Effect.log(
+		yield* Effect.logDebug(
 			`MessageNotificationWorkflow completed: ${notificationsResult.notifiedCount} notifications created`,
 		)
 	}),

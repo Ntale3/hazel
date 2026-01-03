@@ -44,7 +44,7 @@ export const AttachmentRpcLive = AttachmentRpcs.toLayer(
 				db
 					.transaction(
 						Effect.gen(function* () {
-							yield* Effect.log(
+							yield* Effect.logWarning(
 								`Marking attachment ${id} as failed${reason ? `: ${reason}` : ""}`,
 							)
 

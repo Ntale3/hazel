@@ -20,11 +20,11 @@ export const HttpTweetLive = HttpApiBuilder.group(LinkPreviewApi, "tweet", (hand
 				.pipe(Effect.catchAll(() => Effect.succeed(null)))
 
 			if (cachedData) {
-				yield* Effect.log(`Cache hit for tweet: ${tweetId}`)
+				yield* Effect.logDebug(`Cache hit for tweet: ${tweetId}`)
 				return cachedData
 			}
 
-			yield* Effect.log(`Cache miss - fetching tweet data for ID: ${tweetId}`)
+			yield* Effect.logDebug(`Cache miss - fetching tweet data for ID: ${tweetId}`)
 
 			// Fetch tweet data using Twitter service
 			const tweet = yield* twitterApi.fetchTweet(tweetId).pipe(
@@ -41,13 +41,13 @@ export const HttpTweetLive = HttpApiBuilder.group(LinkPreviewApi, "tweet", (hand
 				}),
 			)
 
-			yield* Effect.log(`Successfully fetched tweet: ${tweetId}`)
+			yield* Effect.logDebug(`Successfully fetched tweet: ${tweetId}`)
 
 			// Store in cache (don't fail request if caching fails)
 			yield* cache.set(cacheKey, tweet).pipe(
 				Effect.catchAll((error) => {
 					const errorMessage = error instanceof Error ? error.message : String(error)
-					return Effect.log(`Failed to cache tweet: ${errorMessage}`).pipe(
+					return Effect.logDebug(`Failed to cache tweet: ${errorMessage}`).pipe(
 						Effect.andThen(Effect.succeed(undefined)),
 					)
 				}),

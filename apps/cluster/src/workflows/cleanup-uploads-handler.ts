@@ -9,7 +9,7 @@ export const CleanupUploadsWorkflowLayer = Cluster.CleanupUploadsWorkflow.toLaye
 	Effect.fn(function* (payload: Cluster.CleanupUploadsWorkflowPayload) {
 		const maxAgeMinutes = payload.maxAgeMinutes ?? DEFAULT_MAX_AGE_MINUTES
 
-		yield* Effect.log(`Starting CleanupUploadsWorkflow (maxAgeMinutes: ${maxAgeMinutes})`)
+		yield* Effect.logDebug(`Starting CleanupUploadsWorkflow (maxAgeMinutes: ${maxAgeMinutes})`)
 
 		const staleUploadsResult = yield* Activity.make({
 			name: "FindStaleUploads",
@@ -18,7 +18,7 @@ export const CleanupUploadsWorkflowLayer = Cluster.CleanupUploadsWorkflow.toLaye
 			execute: Effect.gen(function* () {
 				const db = yield* Database.Database
 
-				yield* Effect.log(
+				yield* Effect.logDebug(
 					`Finding attachments in 'uploading' status older than ${maxAgeMinutes} minutes`,
 				)
 
@@ -60,7 +60,7 @@ export const CleanupUploadsWorkflowLayer = Cluster.CleanupUploadsWorkflow.toLaye
 					ageMinutes: Math.floor((Date.now() - upload.uploadedAt.getTime()) / (60 * 1000)),
 				}))
 
-				yield* Effect.log(`Found ${uploads.length} stale uploads`)
+				yield* Effect.logDebug(`Found ${uploads.length} stale uploads`)
 
 				return {
 					uploads,
@@ -71,7 +71,7 @@ export const CleanupUploadsWorkflowLayer = Cluster.CleanupUploadsWorkflow.toLaye
 
 		// If no stale uploads found, we're done
 		if (staleUploadsResult.totalCount === 0) {
-			yield* Effect.log("No stale uploads found, workflow complete")
+			yield* Effect.logDebug("No stale uploads found, workflow complete")
 			return
 		}
 
@@ -83,7 +83,7 @@ export const CleanupUploadsWorkflowLayer = Cluster.CleanupUploadsWorkflow.toLaye
 				const db = yield* Database.Database
 				const failedIds: AttachmentId[] = []
 
-				yield* Effect.log(`Marking ${staleUploadsResult.uploads.length} uploads as failed`)
+				yield* Effect.logDebug(`Marking ${staleUploadsResult.uploads.length} uploads as failed`)
 
 				for (const upload of staleUploadsResult.uploads) {
 					yield* db
@@ -111,7 +111,7 @@ export const CleanupUploadsWorkflowLayer = Cluster.CleanupUploadsWorkflow.toLaye
 						)
 
 					failedIds.push(upload.id)
-					yield* Effect.log(
+					yield* Effect.logDebug(
 						`Marked attachment ${upload.id} (${upload.fileName}) as failed (age: ${upload.ageMinutes}min)`,
 					)
 				}
@@ -123,7 +123,7 @@ export const CleanupUploadsWorkflowLayer = Cluster.CleanupUploadsWorkflow.toLaye
 			}),
 		}).pipe(Effect.orDie)
 
-		yield* Effect.log(
+		yield* Effect.logDebug(
 			`CleanupUploadsWorkflow completed: ${markFailedResult.markedCount} uploads marked as failed`,
 		)
 	}),

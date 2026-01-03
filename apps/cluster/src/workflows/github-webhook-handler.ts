@@ -7,14 +7,14 @@ import { BotUserService } from "../services/bot-user-service.ts"
 
 export const GitHubWebhookWorkflowLayer = Cluster.GitHubWebhookWorkflow.toLayer(
 	Effect.fn(function* (payload: Cluster.GitHubWebhookWorkflowPayload) {
-		yield* Effect.log(
+		yield* Effect.logDebug(
 			`Starting GitHubWebhookWorkflow for ${payload.eventType} event on ${payload.repositoryFullName}`,
 		)
 
 		// Map GitHub event type to our internal event type
 		const internalEventType = GitHub.mapEventType(payload.eventType)
 		if (!internalEventType) {
-			yield* Effect.log(`Ignoring unsupported event type: ${payload.eventType}`)
+			yield* Effect.logDebug(`Ignoring unsupported event type: ${payload.eventType}`)
 			return
 		}
 
@@ -26,7 +26,7 @@ export const GitHubWebhookWorkflowLayer = Cluster.GitHubWebhookWorkflow.toLayer(
 			execute: Effect.gen(function* () {
 				const db = yield* Database.Database
 
-				yield* Effect.log(`Querying subscriptions for repository ${payload.repositoryId}`)
+				yield* Effect.logDebug(`Querying subscriptions for repository ${payload.repositoryId}`)
 
 				const subscriptions = yield* db
 					.execute((client) =>
@@ -59,7 +59,7 @@ export const GitHubWebhookWorkflowLayer = Cluster.GitHubWebhookWorkflow.toLayer(
 						}),
 					)
 
-				yield* Effect.log(
+				yield* Effect.logDebug(
 					`Found ${subscriptions.length} subscriptions for repository ${payload.repositoryId}`,
 				)
 
@@ -100,16 +100,16 @@ export const GitHubWebhookWorkflowLayer = Cluster.GitHubWebhookWorkflow.toLayer(
 		})
 
 		if (eligibleSubscriptions.length === 0) {
-			yield* Effect.log("No eligible subscriptions after filtering, workflow complete")
+			yield* Effect.logDebug("No eligible subscriptions after filtering, workflow complete")
 			return
 		}
 
-		yield* Effect.log(`${eligibleSubscriptions.length} subscriptions are eligible for this event`)
+		yield* Effect.logDebug(`${eligibleSubscriptions.length} subscriptions are eligible for this event`)
 
 		// Build the embed for this event
 		const embed = GitHub.buildGitHubEmbed(payload.eventType, payload.eventPayload)
 		if (!embed) {
-			yield* Effect.log(`Could not build embed for event type: ${payload.eventType}`)
+			yield* Effect.logDebug(`Could not build embed for event type: ${payload.eventType}`)
 			return
 		}
 
@@ -123,7 +123,7 @@ export const GitHubWebhookWorkflowLayer = Cluster.GitHubWebhookWorkflow.toLayer(
 				const botUserService = yield* BotUserService
 				const messageIds: MessageId[] = []
 
-				yield* Effect.log(`Creating messages in ${eligibleSubscriptions.length} channels`)
+				yield* Effect.logDebug(`Creating messages in ${eligibleSubscriptions.length} channels`)
 
 				// Get the GitHub bot user ID from cache
 				const botUserOption = yield* botUserService.getGitHubBotUserId()
@@ -167,7 +167,7 @@ export const GitHubWebhookWorkflowLayer = Cluster.GitHubWebhookWorkflow.toLayer(
 
 					if (messageResult.length > 0) {
 						messageIds.push(messageResult[0]!.id)
-						yield* Effect.log(
+						yield* Effect.logDebug(
 							`Created message ${messageResult[0]!.id} in channel ${subscription.channelId}`,
 						)
 					}
@@ -183,7 +183,7 @@ export const GitHubWebhookWorkflowLayer = Cluster.GitHubWebhookWorkflow.toLayer(
 			Effect.orDie,
 		)
 
-		yield* Effect.log(
+		yield* Effect.logDebug(
 			`GitHubWebhookWorkflow completed: ${messagesResult.messagesCreated} messages created for ${payload.eventType} event`,
 		)
 	}),

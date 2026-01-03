@@ -22,7 +22,7 @@ export const HttpAttachmentLive = HttpApiBuilder.group(HazelApi, "attachments", 
 
 				const attachmentId = AttachmentId.make(randomUUIDv7())
 
-				yield* Effect.log(
+				yield* Effect.logDebug(
 					`Generating presigned URL for attachment upload: ${attachmentId} (size: ${payload.fileSize} bytes, type: ${payload.contentType})`,
 				)
 
@@ -65,7 +65,7 @@ export const HttpAttachmentLive = HttpApiBuilder.group(HazelApi, "attachments", 
 						),
 					)
 
-				yield* Effect.log(`Generated presigned URL for attachment: ${attachmentId}`)
+				yield* Effect.logDebug(`Generated presigned URL for attachment: ${attachmentId}`)
 
 				return {
 					uploadUrl,

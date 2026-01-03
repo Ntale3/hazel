@@ -6,7 +6,7 @@ import { SessionManager } from "./session-manager"
 export const AuthorizationLive = Layer.effect(
 	CurrentUser.Authorization,
 	Effect.gen(function* () {
-		yield* Effect.log("Initializing Authorization middleware...")
+		yield* Effect.logDebug("Initializing Authorization middleware...")
 
 		const sessionManager = yield* SessionManager
 
@@ -16,7 +16,7 @@ export const AuthorizationLive = Layer.effect(
 		return {
 			cookie: (cookie) =>
 				Effect.gen(function* () {
-					yield* Effect.log("checking cookie")
+					yield* Effect.logDebug("checking cookie")
 
 					// Use SessionManager to handle authentication and refresh logic
 					const result = yield* sessionManager.authenticateWithCookie(
@@ -42,7 +42,7 @@ export const AuthorizationLive = Layer.effect(
 				}),
 			bearer: (bearerToken) =>
 				Effect.gen(function* () {
-					yield* Effect.log("checking bearer token")
+					yield* Effect.logDebug("checking bearer token")
 
 					// Use SessionManager to handle bearer token authentication
 					return yield* sessionManager.authenticateWithBearer(Redacted.value(bearerToken))

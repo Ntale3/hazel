@@ -89,11 +89,11 @@ export const HttpLinkPreviewLive = HttpApiBuilder.group(LinkPreviewApi, "linkPre
 				.pipe(Effect.catchAll(() => Effect.succeed(null)))
 
 			if (cachedData) {
-				yield* Effect.log(`Cache hit for: ${targetUrl}`)
+				yield* Effect.logDebug(`Cache hit for: ${targetUrl}`)
 				return cachedData
 			}
 
-			yield* Effect.log(`Cache miss - fetching link preview for: ${targetUrl}`)
+			yield* Effect.logDebug(`Cache miss - fetching link preview for: ${targetUrl}`)
 
 			// Fetch the HTML content using native fetch
 			const html = yield* Effect.tryPromise({
@@ -126,7 +126,7 @@ export const HttpLinkPreviewLive = HttpApiBuilder.group(LinkPreviewApi, "linkPre
 					}),
 			})
 
-			yield* Effect.log(`Successfully extracted metadata for: ${targetUrl}`)
+			yield* Effect.logDebug(`Successfully extracted metadata for: ${targetUrl}`)
 
 			// Collect image candidates in priority order
 			// Priority: twitter:image (Discord), og:image:secure_url, og:image:url, og:image, twitter:image:src
@@ -142,17 +142,17 @@ export const HttpLinkPreviewLive = HttpApiBuilder.group(LinkPreviewApi, "linkPre
 			// Find the first working image
 			let validImageUrl: string | undefined
 			for (const imageUrl of imageCandidates) {
-				yield* Effect.log(`Validating image: ${imageUrl}`)
+				yield* Effect.logDebug(`Validating image: ${imageUrl}`)
 				const isValid = yield* validateImageUrl(imageUrl)
 				if (isValid) {
 					validImageUrl = imageUrl
-					yield* Effect.log(`Valid image found: ${imageUrl}`)
+					yield* Effect.logDebug(`Valid image found: ${imageUrl}`)
 					break
 				}
 			}
 
 			if (!validImageUrl && imageCandidates.length > 0) {
-				yield* Effect.log(`No valid images found out of ${imageCandidates.length} candidates`)
+				yield* Effect.logDebug(`No valid images found out of ${imageCandidates.length} candidates`)
 			}
 
 			// Transform to match the frontend schema, converting null to undefined
@@ -170,7 +170,7 @@ export const HttpLinkPreviewLive = HttpApiBuilder.group(LinkPreviewApi, "linkPre
 				.set(cacheKey, result)
 				.pipe(
 					Effect.catchAll((error) =>
-						Effect.log(`Failed to cache result: ${error.message}`).pipe(
+						Effect.logDebug(`Failed to cache result: ${error.message}`).pipe(
 							Effect.andThen(Effect.succeed(undefined)),
 						),
 					),
