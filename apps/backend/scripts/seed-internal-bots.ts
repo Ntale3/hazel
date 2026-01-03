@@ -82,8 +82,7 @@ async function hashToken(token: string): Promise<string> {
 /**
  * Seed a single internal bot
  */
-const seedBot = (provider: InternalBotProvider) =>
-	Effect.gen(function* () {
+const seedBot = Effect.fn("seedInternalBots.seedBot")(function* (provider: InternalBotProvider) {
 		const config = INTERNAL_BOTS[provider]
 		const db = yield* Database.Database
 

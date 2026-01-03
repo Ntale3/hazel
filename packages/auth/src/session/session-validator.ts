@@ -88,8 +88,7 @@ export class SessionValidator extends Effect.Service<SessionValidator>()("@hazel
 		/**
 		 * Enrich a ValidatedSession with the internal organization ID.
 		 */
-		const enrichWithInternalOrgId = (session: ValidatedSession) =>
-			Effect.gen(function* () {
+		const enrichWithInternalOrgId = Effect.fn("SessionValidator.enrichWithInternalOrgId")(function* (session: ValidatedSession) {
 				const internalOrgId = yield* resolveInternalOrgId(session.organizationId)
 				return new ValidatedSession({
 					...session,
@@ -101,8 +100,7 @@ export class SessionValidator extends Effect.Service<SessionValidator>()("@hazel
 		 * Authenticate with WorkOS and build a ValidatedSession.
 		 * Does NOT attempt refresh - use validateAndRefresh for that.
 		 */
-		const authenticateWithWorkOS = (sealedSession: SealedSession) =>
-			Effect.gen(function* () {
+		const authenticateWithWorkOS = Effect.fn("SessionValidator.authenticateWithWorkOS")(function* (sealedSession: SealedSession) {
 				const result = yield* Effect.tryPromise({
 					try: () => sealedSession.authenticate(),
 					catch: (error) =>
@@ -153,8 +151,7 @@ export class SessionValidator extends Effect.Service<SessionValidator>()("@hazel
 		 * Returns cached result if available, otherwise authenticates with WorkOS.
 		 * Does NOT attempt refresh - will fail if session is expired.
 		 */
-		const validateSession = (sessionCookie: string) =>
-			Effect.gen(function* () {
+		const validateSession = Effect.fn("SessionValidator.validateSession")(function* (sessionCookie: string) {
 				// Try cache first
 				const cached = yield* cache
 					.get(sessionCookie)
@@ -194,8 +191,7 @@ export class SessionValidator extends Effect.Service<SessionValidator>()("@hazel
 		 *
 		 * Returns both the validated session and optionally a new sealed session cookie.
 		 */
-		const validateAndRefresh = (sessionCookie: string) =>
-			Effect.gen(function* () {
+		const validateAndRefresh = Effect.fn("SessionValidator.validateAndRefresh")(function* (sessionCookie: string) {
 				// Try cache first
 				const cached = yield* cache
 					.get(sessionCookie)

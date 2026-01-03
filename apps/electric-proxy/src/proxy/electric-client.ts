@@ -17,8 +17,7 @@ export class ElectricProxyError extends Schema.TaggedError<ElectricProxyError>()
  * @param requestUrl - The incoming request URL
  * @returns Effect that succeeds with the prepared Electric SQL origin URL
  */
-export const prepareElectricUrl = (requestUrl: string) =>
-	Effect.gen(function* () {
+export const prepareElectricUrl = Effect.fn("ElectricClient.prepareElectricUrl")(function* (requestUrl: string) {
 		const config = yield* ProxyConfigService
 		const url = new URL(requestUrl)
 		const originUrl = new URL(`${config.electricUrl}/v1/shape`)
@@ -54,8 +53,7 @@ export const prepareElectricUrl = (requestUrl: string) =>
  * @param originUrl - The prepared Electric SQL URL
  * @returns Effect that succeeds with the proxied response
  */
-export const proxyElectricRequest = (originUrl: URL) =>
-	Effect.gen(function* () {
+export const proxyElectricRequest = Effect.fn("ElectricClient.proxyElectricRequest")(function* (originUrl: URL) {
 		const response = yield* Effect.tryPromise({
 			try: () => fetch(originUrl),
 			catch: (error) =>

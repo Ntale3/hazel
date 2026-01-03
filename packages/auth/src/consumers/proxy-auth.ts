@@ -45,8 +45,7 @@ export class ProxyAuth extends Effect.Service<ProxyAuth>()("@hazel/auth/ProxyAut
 		 * Uses cached session validation - does NOT attempt refresh.
 		 * Rejects if user is not found in database.
 		 */
-		const validateSession = (sessionCookie: string) =>
-			Effect.gen(function* () {
+		const validateSession = Effect.fn("ProxyAuth.validateSession")(function* (sessionCookie: string) {
 				// Validate session (uses Redis cache)
 				const session = yield* validator.validateSession(sessionCookie)
 

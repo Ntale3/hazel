@@ -136,8 +136,7 @@ export class IntegrationEncryption extends Effect.Service<IntegrationEncryption>
  * Get the Linear access token for an organization.
  * Returns the decrypted access token if the org has Linear connected.
  */
-export const getLinearAccessToken = (orgId: OrganizationId) =>
-	Effect.gen(function* () {
+export const getLinearAccessToken = Effect.fn("LinearBotDb.getLinearAccessToken")(function* (orgId: OrganizationId) {
 		const db = yield* Database.Database
 		const encryption = yield* IntegrationEncryption
 

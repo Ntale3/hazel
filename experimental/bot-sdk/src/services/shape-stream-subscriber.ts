@@ -180,8 +180,7 @@ export class ShapeStreamSubscriber extends Effect.Service<ShapeStreamSubscriber>
 		/**
 		 * Handle validation errors with proper logging and metrics
 		 */
-		const handleValidationError = (error: ValidationError) =>
-			Effect.gen(function* () {
+		const handleValidationError = Effect.fn("ShapeStreamSubscriber.handleValidationError")(function* (error: ValidationError) {
 				yield* Effect.logWarning("Schema validation failed, skipping message", {
 					table: error.table,
 					error: error.message,

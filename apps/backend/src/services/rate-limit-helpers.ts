@@ -34,8 +34,7 @@ export const AVATAR_RATE_LIMIT = {
  *
  * @param userId - The user ID to rate limit
  */
-export const checkMessageRateLimit = (userId: string) =>
-	Effect.gen(function* () {
+export const checkMessageRateLimit = Effect.fn("RateLimitHelpers.checkMessageRateLimit")(function* (userId: string) {
 		const rateLimiter = yield* RateLimiter
 
 		const result = yield* rateLimiter
@@ -77,8 +76,7 @@ export const checkMessageRateLimit = (userId: string) =>
  *
  * @param userId - The user ID to rate limit
  */
-export const checkAvatarRateLimit = (userId: string) =>
-	Effect.gen(function* () {
+export const checkAvatarRateLimit = Effect.fn("RateLimitHelpers.checkAvatarRateLimit")(function* (userId: string) {
 		const rateLimiter = yield* RateLimiter
 
 		const result = yield* rateLimiter

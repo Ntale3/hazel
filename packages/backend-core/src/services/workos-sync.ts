@@ -240,8 +240,7 @@ export class WorkOSSync extends Effect.Service<WorkOSSync>()("WorkOSSync", {
 		})
 
 		// Sync organization memberships
-		const syncOrganizationMemberships = (organizationId: OrganizationId) =>
-			Effect.gen(function* () {
+		const syncOrganizationMemberships = Effect.fn("WorkOSSync.syncOrganizationMemberships")(function* (organizationId: OrganizationId) {
 				const result: SyncResult = { created: 0, updated: 0, deleted: 0, errors: [] }
 
 				// Fetch WorkOS organization by our internal organization ID (stored as externalId in WorkOS)
@@ -364,8 +363,7 @@ export class WorkOSSync extends Effect.Service<WorkOSSync>()("WorkOSSync", {
 			})
 
 		// Sync invitations
-		const syncInvitations = (organizationId: OrganizationId) =>
-			Effect.gen(function* () {
+		const syncInvitations = Effect.fn("WorkOSSync.syncInvitations")(function* (organizationId: OrganizationId) {
 				const result: SyncResult & { expired: number } = {
 					created: 0,
 					updated: 0,

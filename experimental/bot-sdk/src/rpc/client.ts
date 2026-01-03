@@ -68,8 +68,7 @@ export const BotRpcClientLive = Layer.scoped(
  * @param config - Client configuration (backendUrl, botToken)
  * @returns Effect that creates the RPC client
  */
-export const makeBotRpcClient = (config: BotRpcClientConfig) =>
-	Effect.gen(function* () {
+export const makeBotRpcClient = Effect.fn("BotRpcClient.makeBotRpcClient")(function* (config: BotRpcClientConfig) {
 		// Use HTTP endpoint for bots (simpler, more reliable than WebSocket)
 		const rpcUrl = `${config.backendUrl}/rpc-http`
 
