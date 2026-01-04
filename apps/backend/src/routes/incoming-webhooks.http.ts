@@ -1,16 +1,16 @@
 import { createHash, timingSafeEqual } from "node:crypto"
 import { HttpApiBuilder } from "@effect/platform"
 import type { MessageEmbed as DbMessageEmbed } from "@hazel/db"
-import { Integrations, InternalServerError, withSystemActor } from "@hazel/domain"
+import { InternalServerError, withSystemActor } from "@hazel/domain"
 import {
 	InvalidWebhookTokenError,
-	type OpenStatusPayload,
 	WebhookDisabledError,
 	WebhookMessageResponse,
 	WebhookNotFoundError,
 } from "@hazel/domain/http"
 import type { MessageEmbed } from "@hazel/domain/models"
-import { buildRailwayEmbed, type RailwayPayload } from "@hazel/integrations/railway"
+import { buildOpenStatusEmbed } from "@hazel/integrations/openstatus"
+import { buildRailwayEmbed } from "@hazel/integrations/railway"
 import { Effect, Option } from "effect"
 import { HazelApi } from "../api"
 import { ChannelWebhookRepo } from "../repositories/channel-webhook-repo"
@@ -45,80 +45,6 @@ const convertEmbedToDb = (embed: MessageEmbed.MessageEmbed): DbMessageEmbed => (
 	})),
 	timestamp: embed.timestamp,
 })
-
-// Status colors using app theme semantic colors
-const STATUS_COLORS = {
-	recovered: 0x10b981, // Green - success
-	error: 0xef4444, // Red - error
-	degraded: 0xf59e0b, // Yellow/Orange - warning
-} as const
-
-// Status titles
-const STATUS_TITLES = {
-	recovered: "Monitor Recovered",
-	error: "Monitor Down",
-	degraded: "Monitor Degraded",
-} as const
-
-// Build the OpenStatus embed from the payload
-function buildOpenStatusEmbed(payload: OpenStatusPayload): DbMessageEmbed {
-	const { monitor, cronTimestamp, status, statusCode, latency, errorMessage } = payload
-	const openStatusConfig = Integrations.WEBHOOK_BOT_CONFIGS.openstatus
-
-	// Build fields based on status
-	const fields: Array<{ name: string; value: string; inline?: boolean }> = []
-
-	// Add monitor URL as a field
-	fields.push({
-		name: "URL",
-		value: monitor.url,
-		inline: false,
-	})
-
-	if (status === "recovered") {
-		// Show status code and latency for recovered status
-		if (statusCode !== undefined) {
-			fields.push({
-				name: "Status Code",
-				value: String(statusCode),
-				inline: true,
-			})
-		}
-		if (latency !== undefined) {
-			fields.push({
-				name: "Latency",
-				value: `${latency}ms`,
-				inline: true,
-			})
-		}
-	} else if (status === "error" || status === "degraded") {
-		// Show error message for error/degraded status
-		if (errorMessage) {
-			fields.push({
-				name: "Error",
-				value: errorMessage,
-				inline: false,
-			})
-		}
-	}
-
-	return {
-		title: STATUS_TITLES[status],
-		description: undefined,
-		url: undefined,
-		color: STATUS_COLORS[status],
-		author: {
-			name: monitor.name,
-			url: undefined,
-			iconUrl: openStatusConfig.avatarUrl,
-		},
-		footer: undefined,
-		image: undefined,
-		thumbnail: undefined,
-		fields: fields.length > 0 ? fields : undefined,
-		timestamp: new Date(cronTimestamp).toISOString(),
-	}
-}
 
 export const HttpIncomingWebhookLive = HttpApiBuilder.group(HazelApi, "incoming-webhooks", (handlers) =>
 	handlers

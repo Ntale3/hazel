@@ -11,6 +11,8 @@
 		"./github/browser": "./src/github/browser.ts",
 		"./github/schema": "./src/github/schema.ts",
 		"./linear": "./src/linear/index.ts",
+		"./openstatus": "./src/openstatus/index.ts",
+		"./openstatus/browser": "./src/openstatus/browser.ts",
 		"./railway": "./src/railway/index.ts",
 		"./railway/browser": "./src/railway/browser.ts"
 	},

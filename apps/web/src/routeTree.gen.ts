@@ -18,6 +18,7 @@ import { Route as AppSelectOrganizationIndexRouteImport } from './routes/_app/se
 import { Route as AppOnboardingIndexRouteImport } from './routes/_app/onboarding/index'
 import { Route as AppOrgSlugIndexRouteImport } from './routes/_app/$orgSlug/index'
 import { Route as DevEmbedsRailwayRouteImport } from './routes/dev/embeds/railway'
+import { Route as DevEmbedsOpenstatusRouteImport } from './routes/dev/embeds/openstatus'
 import { Route as DevEmbedsGithubRouteImport } from './routes/dev/embeds/github'
 import { Route as DevEmbedsDemoRouteImport } from './routes/dev/embeds/demo'
 import { Route as AppOrgSlugNotificationsRouteImport } from './routes/_app/$orgSlug/notifications'
@@ -86,6 +87,11 @@ const AppOrgSlugIndexRoute = AppOrgSlugIndexRouteImport.update({
 const DevEmbedsRailwayRoute = DevEmbedsRailwayRouteImport.update({
   id: '/dev/embeds/railway',
   path: '/dev/embeds/railway',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DevEmbedsOpenstatusRoute = DevEmbedsOpenstatusRouteImport.update({
+  id: '/dev/embeds/openstatus',
+  path: '/dev/embeds/openstatus',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DevEmbedsGithubRoute = DevEmbedsGithubRouteImport.update({
@@ -232,6 +238,7 @@ export interface FileRoutesByFullPath {
   '/$orgSlug/notifications': typeof AppOrgSlugNotificationsRoute
   '/dev/embeds/demo': typeof DevEmbedsDemoRoute
   '/dev/embeds/github': typeof DevEmbedsGithubRoute
+  '/dev/embeds/openstatus': typeof DevEmbedsOpenstatusRoute
   '/dev/embeds/railway': typeof DevEmbedsRailwayRoute
   '/$orgSlug/': typeof AppOrgSlugIndexRoute
   '/onboarding': typeof AppOnboardingIndexRoute
@@ -263,6 +270,7 @@ export interface FileRoutesByTo {
   '/$orgSlug/notifications': typeof AppOrgSlugNotificationsRoute
   '/dev/embeds/demo': typeof DevEmbedsDemoRoute
   '/dev/embeds/github': typeof DevEmbedsGithubRoute
+  '/dev/embeds/openstatus': typeof DevEmbedsOpenstatusRoute
   '/dev/embeds/railway': typeof DevEmbedsRailwayRoute
   '/$orgSlug': typeof AppOrgSlugIndexRoute
   '/onboarding': typeof AppOnboardingIndexRoute
@@ -297,6 +305,7 @@ export interface FileRoutesById {
   '/_app/$orgSlug/notifications': typeof AppOrgSlugNotificationsRoute
   '/dev/embeds/demo': typeof DevEmbedsDemoRoute
   '/dev/embeds/github': typeof DevEmbedsGithubRoute
+  '/dev/embeds/openstatus': typeof DevEmbedsOpenstatusRoute
   '/dev/embeds/railway': typeof DevEmbedsRailwayRoute
   '/_app/$orgSlug/': typeof AppOrgSlugIndexRoute
   '/_app/onboarding/': typeof AppOnboardingIndexRoute
@@ -333,6 +342,7 @@ export interface FileRouteTypes {
     | '/$orgSlug/notifications'
     | '/dev/embeds/demo'
     | '/dev/embeds/github'
+    | '/dev/embeds/openstatus'
     | '/dev/embeds/railway'
     | '/$orgSlug/'
     | '/onboarding'
@@ -364,6 +374,7 @@ export interface FileRouteTypes {
     | '/$orgSlug/notifications'
     | '/dev/embeds/demo'
     | '/dev/embeds/github'
+    | '/dev/embeds/openstatus'
     | '/dev/embeds/railway'
     | '/$orgSlug'
     | '/onboarding'
@@ -397,6 +408,7 @@ export interface FileRouteTypes {
     | '/_app/$orgSlug/notifications'
     | '/dev/embeds/demo'
     | '/dev/embeds/github'
+    | '/dev/embeds/openstatus'
     | '/dev/embeds/railway'
     | '/_app/$orgSlug/'
     | '/_app/onboarding/'
@@ -428,6 +440,7 @@ export interface RootRouteChildren {
   AuthLoginRoute: typeof AuthLoginRoute
   DevEmbedsDemoRoute: typeof DevEmbedsDemoRoute
   DevEmbedsGithubRoute: typeof DevEmbedsGithubRoute
+  DevEmbedsOpenstatusRoute: typeof DevEmbedsOpenstatusRoute
   DevEmbedsRailwayRoute: typeof DevEmbedsRailwayRoute
   DevEmbedsIndexRoute: typeof DevEmbedsIndexRoute
 }
@@ -495,6 +508,13 @@ declare module '@tanstack/react-router' {
       path: '/dev/embeds/railway'
       fullPath: '/dev/embeds/railway'
       preLoaderRoute: typeof DevEmbedsRailwayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dev/embeds/openstatus': {
+      id: '/dev/embeds/openstatus'
+      path: '/dev/embeds/openstatus'
+      fullPath: '/dev/embeds/openstatus'
+      preLoaderRoute: typeof DevEmbedsOpenstatusRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dev/embeds/github': {
@@ -798,6 +818,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthLoginRoute: AuthLoginRoute,
   DevEmbedsDemoRoute: DevEmbedsDemoRoute,
   DevEmbedsGithubRoute: DevEmbedsGithubRoute,
+  DevEmbedsOpenstatusRoute: DevEmbedsOpenstatusRoute,
   DevEmbedsRailwayRoute: DevEmbedsRailwayRoute,
   DevEmbedsIndexRoute: DevEmbedsIndexRoute,
 }

@@ -11,6 +11,11 @@ const sections = [
 		description: "GitHub webhook embed previews (PRs, issues, releases, etc.)",
 	},
 	{
+		name: "OpenStatus",
+		path: "/dev/embeds/openstatus",
+		description: "OpenStatus monitor status and alert webhook embeds",
+	},
+	{
 		name: "Railway",
 		path: "/dev/embeds/railway",
 		description: "Railway deployment and alert webhook embed previews",
