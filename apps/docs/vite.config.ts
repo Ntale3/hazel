@@ -5,6 +5,8 @@ import tsConfigPaths from "vite-tsconfig-paths"
 import tailwindcss from "@tailwindcss/vite"
 import mdx from "fumadocs-mdx/vite"
 
+import { nitro } from "nitro/vite"
+
 export default defineConfig({
 	server: {
 		port: 3000,
@@ -26,6 +28,7 @@ export default defineConfig({
 				enabled: true,
 			},
 		}),
+		// nitro({ preset: "bun" }),
 		react(),
 	],
 })
