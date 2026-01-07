@@ -158,18 +158,13 @@ export const ChannelSectionRpcLive = ChannelSectionRpcs.toLayer(
 
 							// Validate target section exists and belongs to same org
 							if (sectionId !== null) {
-								const section = yield* ChannelSectionRepo.findById(sectionId).pipe(
-									withSystemActor,
-								)
+								const section =
+									yield* ChannelSectionRepo.findById(sectionId).pipe(withSystemActor)
 								if (Option.isNone(section)) {
-									return yield* Effect.fail(
-										new ChannelSectionNotFoundError({ sectionId }),
-									)
+									return yield* Effect.fail(new ChannelSectionNotFoundError({ sectionId }))
 								}
 								if (section.value.organizationId !== channel.value.organizationId) {
-									return yield* Effect.fail(
-										new ChannelSectionNotFoundError({ sectionId }),
-									)
+									return yield* Effect.fail(new ChannelSectionNotFoundError({ sectionId }))
 								}
 							}
 

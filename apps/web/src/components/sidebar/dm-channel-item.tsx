@@ -207,7 +207,9 @@ export const DmChannelItem = ({ channelId }: DmChannelItemProps) => {
 												channel.currentUser.isMuted && "opacity-60",
 											)}
 										>
-											{filteredMembers.map((member) => member.user.firstName).join(", ")}
+											{filteredMembers
+												.map((member) => member.user.firstName)
+												.join(", ")}
 										</SidebarLabel>
 									</>
 								)}

@@ -1,6 +1,7 @@
 # Today
 
-- fix icons to all be outline or fill
+- replace tanstack form with effect based form
+- replace xsatet with effsate
 - setup sequin locally with config as code
 
 # Bugs

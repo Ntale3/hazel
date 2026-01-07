@@ -234,7 +234,6 @@ export function ChannelsSidebar(props: { openChannelsBrowser: () => void }) {
 		[organizationId],
 	)
 
-
 	return (
 		<Sidebar collapsible="none" className="flex flex-1">
 			<SidebarHeader className="border-b py-4">
