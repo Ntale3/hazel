@@ -66,19 +66,6 @@ export function useOnboarding(options: UseOnboardingOptions) {
 		setState(initialState)
 	}, [options.orgId, options.organization, setState])
 
-	// Update user type if options change after initial load
-	useEffect(() => {
-		if (!hasInitialized.current) return
-
-		const userType = options.orgId && options.organization?.slug ? "invited" : "creator"
-		setState((prev) => ({
-			...prev,
-			userType,
-			initialOrgId: options.orgId,
-			initialOrganization: options.organization,
-		}))
-	}, [options.orgId, options.organization?.slug, options.organization, setState])
-
 	// Navigation helpers
 	const goBack = useCallback(() => {
 		setState((prev) => {
