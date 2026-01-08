@@ -577,23 +577,35 @@ export class WorkOSSync extends Effect.Service<WorkOSSync>()("WorkOSSync", {
 			lastName: string | null
 			profilePictureUrl: string | null
 		}) =>
-			userRepo
-				.upsertByExternalId({
-					externalId: data.id,
-					email: data.email,
-					firstName: data.firstName || "",
-					lastName: data.lastName || "",
-					avatarUrl: data.profilePictureUrl || `https://avatar.vercel.sh/${data.id}.svg`,
-					userType: "user",
-					settings: null,
-					isOnboarded: false,
-					timezone: null,
-					deletedAt: null,
-				})
-				.pipe(
-					Effect.tap(() => Effect.logDebug("User upserted", { email: data.email })),
-					Effect.asVoid,
-				)
+			Effect.gen(function* () {
+				// Find existing user to check if they have data we should preserve
+				const existingUser = yield* userRepo.findByExternalId(data.id).pipe(withSystemActor)
+
+				yield* userRepo
+					.upsertByExternalId({
+						externalId: data.id,
+						email: data.email,
+						// Preserve existing non-empty names, otherwise use webhook data
+						firstName:
+							Option.isSome(existingUser) && existingUser.value.firstName
+								? existingUser.value.firstName
+								: (data.firstName || ""),
+						lastName:
+							Option.isSome(existingUser) && existingUser.value.lastName
+								? existingUser.value.lastName
+								: (data.lastName || ""),
+						avatarUrl: data.profilePictureUrl || `https://avatar.vercel.sh/${data.id}.svg`,
+						userType: "user",
+						settings: null,
+						// Preserve onboarded status and timezone
+						isOnboarded: Option.isSome(existingUser) ? existingUser.value.isOnboarded : false,
+						timezone: Option.isSome(existingUser) ? existingUser.value.timezone : null,
+						deletedAt: null,
+					})
+					.pipe(withSystemActor)
+
+				yield* Effect.logDebug("User upserted", { email: data.email })
+			})
 
 		const handleUserDeleted = (data: { id: string }) =>
 			userRepo.softDeleteByExternalId(data.id).pipe(Effect.asVoid)

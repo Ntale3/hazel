@@ -59,6 +59,23 @@ export interface UserRepoLike {
 		{ _tag: "DatabaseError" },
 		any
 	>
+	update: (data: {
+		id: UserId
+		firstName?: string
+		lastName?: string
+	}) => Effect.Effect<
+		{
+			id: UserId
+			email: string
+			firstName: string
+			lastName: string
+			avatarUrl: string
+			isOnboarded: boolean
+			timezone: string | null
+		},
+		{ _tag: "DatabaseError" } | { _tag: "ParseError" },
+		any
+	>
 }
 
 /**
@@ -127,7 +144,43 @@ export class BackendAuth extends Effect.Service<BackendAuth>()("@hazel/auth/Back
 								}),
 								withSystemActor,
 							),
-					onSome: (user) => Effect.succeed(user),
+					onSome: (existingUser) =>
+						Effect.gen(function* () {
+							// If existing user has empty name fields, update from OAuth
+							const needsNameUpdate =
+								(!existingUser.firstName && firstName) ||
+								(!existingUser.lastName && lastName)
+
+							if (needsNameUpdate) {
+								const updated = yield* userRepo
+									.update({
+										id: existingUser.id,
+										firstName: existingUser.firstName || firstName || "",
+										lastName: existingUser.lastName || lastName || "",
+									})
+									.pipe(
+										Effect.catchTags({
+											DatabaseError: (err) =>
+												Effect.fail(
+													new SessionLoadError({
+														message: "Failed to update user with OAuth name",
+														detail: String(err),
+													}),
+												),
+											ParseError: (err) =>
+												Effect.fail(
+													new SessionLoadError({
+														message: "Failed to parse user update response",
+														detail: String(err),
+													}),
+												),
+										}),
+										withSystemActor,
+									)
+								return updated
+							}
+							return existingUser
+						}),
 				})
 
 				return user
