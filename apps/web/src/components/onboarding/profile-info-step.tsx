@@ -8,7 +8,7 @@ import { Input } from "~/components/ui/input"
 import { TextField } from "~/components/ui/text-field"
 import { useAppForm } from "~/hooks/use-app-form"
 import { useAuth } from "~/lib/auth"
-import { toastExit } from "~/lib/toast-exit"
+import { toastExitOnError } from "~/lib/toast-exit"
 import { OnboardingNavigation } from "./onboarding-navigation"
 
 const profileSchema = type({
@@ -45,25 +45,22 @@ export function ProfileInfoStep({
 		onSubmit: async ({ value }) => {
 			if (!user?.id) return
 
-			const exit = await toastExit(
-				updateUser({
-					payload: {
-						id: user.id,
-						firstName: value.firstName.trim(),
-						lastName: value.lastName.trim(),
-					},
-				}),
-				{
-					loading: "Updating profile...",
-					customErrors: {
-						UserNotFoundError: () => ({
-							title: "User not found",
-							description: "Your account could not be found. Please try signing in again.",
-							isRetryable: false,
-						}),
-					},
+			const exit = await updateUser({
+				payload: {
+					id: user.id,
+					firstName: value.firstName.trim(),
+					lastName: value.lastName.trim(),
 				},
-			)
+			})
+			toastExitOnError(exit, {
+				customErrors: {
+					UserNotFoundError: () => ({
+						title: "User not found",
+						description: "Your account could not be found. Please try signing in again.",
+						isRetryable: false,
+					}),
+				},
+			})
 
 			if (Exit.isSuccess(exit)) {
 				onContinue({

@@ -10,7 +10,7 @@ import { CardDescription, CardHeader, CardTitle } from "~/components/ui/card"
 import { Description, FieldError, Label } from "~/components/ui/field"
 import { Input } from "~/components/ui/input"
 import { TextField } from "~/components/ui/text-field"
-import { toastExit } from "~/lib/toast-exit"
+import { toastExitOnError } from "~/lib/toast-exit"
 import { OnboardingNavigation } from "./onboarding-navigation"
 
 interface InviteTeamStepProps {
@@ -85,20 +85,16 @@ export function InviteTeamStep({ onBack, onContinue, onSkip, organizationId }: I
 
 		setIsLoading(true)
 		try {
-			const exit = await toastExit(
-				createInvitation({
-					payload: {
-						organizationId: organizationId,
-						invites: filledEmails.map((email) => ({
-							email,
-							role: "member",
-						})),
-					},
-				}),
-				{
-					loading: `Sending ${filledEmails.length} invitation${filledEmails.length > 1 ? "s" : ""}...`,
+			const exit = await createInvitation({
+				payload: {
+					organizationId: organizationId,
+					invites: filledEmails.map((email) => ({
+						email,
+						role: "member",
+					})),
 				},
-			)
+			})
+			toastExitOnError(exit, {})
 
 			if (Exit.isSuccess(exit)) {
 				onContinue(filledEmails)

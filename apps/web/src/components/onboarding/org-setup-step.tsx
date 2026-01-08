@@ -8,7 +8,7 @@ import { Input } from "~/components/ui/input"
 import { TextField } from "~/components/ui/text-field"
 import { useAppForm } from "~/hooks/use-app-form"
 import { useAuth } from "~/lib/auth"
-import { toastExit } from "~/lib/toast-exit"
+import { toastExitOnError } from "~/lib/toast-exit"
 import { OnboardingNavigation } from "./onboarding-navigation"
 
 // Sanitize slug value to URL-safe format
@@ -58,26 +58,23 @@ export function OrgSetupStep({ onBack, onContinue, defaultName = "", defaultSlug
 		onSubmit: async ({ value }) => {
 			if (!user?.id) return
 
-			const exit = await toastExit(
-				createOrganization({
-					payload: {
-						name: value.name,
-						slug: value.slug,
-						logoUrl: null,
-						settings: null,
-					},
-				}),
-				{
-					loading: "Creating workspace...",
-					customErrors: {
-						OrganizationSlugAlreadyExistsError: (error) => ({
-							title: "Slug already taken",
-							description: `The slug "${error.slug}" is already in use. Please choose a different one.`,
-							isRetryable: false,
-						}),
-					},
+			const exit = await createOrganization({
+				payload: {
+					name: value.name,
+					slug: value.slug,
+					logoUrl: null,
+					settings: null,
 				},
-			)
+			})
+			toastExitOnError(exit, {
+				customErrors: {
+					OrganizationSlugAlreadyExistsError: (error) => ({
+						title: "Slug already taken",
+						description: `The slug "${error.slug}" is already in use. Please choose a different one.`,
+						isRetryable: false,
+					}),
+				},
+			})
 
 			if (Exit.isSuccess(exit)) {
 				const organizationId = exit.value.data.id

@@ -10,7 +10,7 @@ import { Button } from "~/components/ui/button"
 import { CardDescription, CardHeader, CardTitle } from "~/components/ui/card"
 import { Input, InputGroup } from "~/components/ui/input"
 import { useAuth } from "~/lib/auth"
-import { toastExit } from "~/lib/toast-exit"
+import { toastExitOnError } from "~/lib/toast-exit"
 import { CityCard } from "../city-card"
 import { GlobeVisual } from "../globe-visual"
 import { TimeRibbon } from "../time-ribbon"
@@ -136,24 +136,21 @@ export function TimezoneSelectionStep({ onBack, onContinue, defaultTimezone }: T
 
 		setIsSubmitting(true)
 
-		const exit = await toastExit(
-			updateUser({
-				payload: {
-					id: user.id,
-					timezone: selectedTimezone,
-				},
-			}),
-			{
-				loading: "Saving timezone...",
-				customErrors: {
-					UserNotFoundError: () => ({
-						title: "User not found",
-						description: "Your account could not be found. Please try signing in again.",
-						isRetryable: false,
-					}),
-				},
+		const exit = await updateUser({
+			payload: {
+				id: user.id,
+				timezone: selectedTimezone,
 			},
-		)
+		})
+		toastExitOnError(exit, {
+			customErrors: {
+				UserNotFoundError: () => ({
+					title: "User not found",
+					description: "Your account could not be found. Please try signing in again.",
+					isRetryable: false,
+				}),
+			},
+		})
 
 		setIsSubmitting(false)
 
