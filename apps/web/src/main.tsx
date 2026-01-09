@@ -28,7 +28,7 @@ if (reactScanEnabled === "true") {
 	document.head.appendChild(script)
 }
 
-const _posthogOptions = {
+const posthogOptions = {
 	api_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST,
 	defaults: "2025-11-30",
 } as const
@@ -45,7 +45,7 @@ export const router = createRouter({
 	defaultPendingComponent: Loader,
 	Wrap: ({ children }) => {
 		return (
-			<PostHogProvider apiKey={import.meta.env.VITE_PUBLIC_POSTHOG_KEY} options={_posthogOptions}>
+			<PostHogProvider apiKey={import.meta.env.VITE_PUBLIC_POSTHOG_KEY} options={posthogOptions}>
 				<ThemeProvider>
 					<Toast />
 					{children}
