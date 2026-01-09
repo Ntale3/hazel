@@ -44,7 +44,13 @@ interface OrgSetupStepProps {
 	error?: string
 }
 
-export function OrgSetupStep({ onBack, onContinue, defaultName = "", defaultSlug = "", error }: OrgSetupStepProps) {
+export function OrgSetupStep({
+	onBack,
+	onContinue,
+	defaultName = "",
+	defaultSlug = "",
+	error,
+}: OrgSetupStepProps) {
 	const { user } = useAuth()
 	const createOrganization = useAtomSet(createOrganizationMutation, { mode: "promiseExit" })
 

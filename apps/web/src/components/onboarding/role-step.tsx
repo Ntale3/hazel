@@ -110,7 +110,12 @@ export function RoleStep({ onBack, onContinue, defaultSelection }: RoleStepProps
 					{(item) => {
 						const Icon = item.icon
 						return (
-							<ChoiceBoxItem key={item.id} id={item.id} textValue={item.label} data-testid={`role-${item.id}`}>
+							<ChoiceBoxItem
+								key={item.id}
+								id={item.id}
+								textValue={item.label}
+								data-testid={`role-${item.id}`}
+							>
 								<Icon />
 								<ChoiceBoxLabel>{item.label}</ChoiceBoxLabel>
 								<ChoiceBoxDescription>{item.description}</ChoiceBoxDescription>

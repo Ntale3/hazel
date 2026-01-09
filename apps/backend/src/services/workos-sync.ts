@@ -589,11 +589,11 @@ export class WorkOSSync extends Effect.Service<WorkOSSync>()("WorkOSSync", {
 						firstName:
 							Option.isSome(existingUser) && existingUser.value.firstName
 								? existingUser.value.firstName
-								: (data.firstName || ""),
+								: data.firstName || "",
 						lastName:
 							Option.isSome(existingUser) && existingUser.value.lastName
 								? existingUser.value.lastName
-								: (data.lastName || ""),
+								: data.lastName || "",
 						avatarUrl: data.profilePictureUrl || `https://avatar.vercel.sh/${data.id}.svg`,
 						userType: "user",
 						settings: null,

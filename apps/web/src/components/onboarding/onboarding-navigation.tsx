@@ -20,7 +20,12 @@ export function OnboardingNavigation({
 	return (
 		<div className="flex flex-wrap justify-between gap-2 pt-4">
 			{showBack ? (
-				<Button data-testid="onboarding-back-btn" intent="secondary" onPress={onBack} isDisabled={isLoading}>
+				<Button
+					data-testid="onboarding-back-btn"
+					intent="secondary"
+					onPress={onBack}
+					isDisabled={isLoading}
+				>
 					&larr; Back
 				</Button>
 			) : (

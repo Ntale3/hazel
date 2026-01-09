@@ -151,7 +151,8 @@ export async function toastExit<A, E extends { _tag: string }>(
 	return Exit.match(exit, {
 		onSuccess: async (value) => {
 			if (options.success) {
-				const message = typeof options.success === "function" ? options.success(value) : options.success
+				const message =
+					typeof options.success === "function" ? options.success(value) : options.success
 				toast.success(message, { id: loadingToast })
 			} else {
 				toast.dismiss(loadingToast)

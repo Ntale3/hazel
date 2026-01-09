@@ -85,7 +85,12 @@ export function UseCaseStep({ onBack, onContinue, defaultSelection = [] }: UseCa
 					{(item) => {
 						const Icon = item.icon
 						return (
-							<ChoiceBoxItem key={item.id} id={item.id} textValue={item.label} data-testid={`team-size-${item.id}`}>
+							<ChoiceBoxItem
+								key={item.id}
+								id={item.id}
+								textValue={item.label}
+								data-testid={`team-size-${item.id}`}
+							>
 								<Icon />
 								<ChoiceBoxLabel>{item.label}</ChoiceBoxLabel>
 								<ChoiceBoxDescription>{item.description}</ChoiceBoxDescription>

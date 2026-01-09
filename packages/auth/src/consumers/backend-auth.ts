@@ -59,11 +59,7 @@ export interface UserRepoLike {
 		{ _tag: "DatabaseError" },
 		any
 	>
-	update: (data: {
-		id: UserId
-		firstName?: string
-		lastName?: string
-	}) => Effect.Effect<
+	update: (data: { id: UserId; firstName?: string; lastName?: string }) => Effect.Effect<
 		{
 			id: UserId
 			email: string
@@ -148,8 +144,7 @@ export class BackendAuth extends Effect.Service<BackendAuth>()("@hazel/auth/Back
 						Effect.gen(function* () {
 							// If existing user has empty name fields, update from OAuth
 							const needsNameUpdate =
-								(!existingUser.firstName && firstName) ||
-								(!existingUser.lastName && lastName)
+								(!existingUser.firstName && firstName) || (!existingUser.lastName && lastName)
 
 							if (needsNameUpdate) {
 								const updated = yield* userRepo
