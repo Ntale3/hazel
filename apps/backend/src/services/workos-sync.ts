@@ -1,7 +1,7 @@
 import { Database, schema } from "@hazel/db"
 import { type OrganizationId, type UserId, withSystemActor } from "@hazel/domain"
 import type { Event } from "@workos-inc/node"
-import { Effect, Match, Option, pipe, Schema } from "effect"
+import { Effect, Match, Option, pipe, Schema, Stream } from "effect"
 import { InvitationRepo } from "../repositories/invitation-repo"
 import { OrganizationMemberRepo } from "../repositories/organization-member-repo"
 import { OrganizationRepo } from "../repositories/organization-repo"
@@ -65,15 +65,86 @@ export class WorkOSSync extends Effect.Service<WorkOSSync>()("WorkOSSync", {
 				}),
 			)
 
+		// Pagination helpers using Effect Stream to fetch all pages from WorkOS
+		// Stream.paginateEffect takes initial cursor and returns Effect<[pageData, Option<nextCursor>]>
+		// Stream.runCollect gathers all pages, then we flatten them into a single array
+
+		const fetchAllUsers = pipe(
+			Stream.paginateEffect(undefined as string | undefined, (after) =>
+				workos.call((client) => client.userManagement.listUsers({ limit: 100, after })).pipe(
+					Effect.map(
+						(response) =>
+							[response.data, Option.fromNullable(response.listMetadata?.after)] as const,
+					),
+				),
+			),
+			Stream.runCollect,
+			Effect.map((chunks) => [...chunks].flat()),
+		)
+
+		const fetchAllOrganizations = pipe(
+			Stream.paginateEffect(undefined as string | undefined, (after) =>
+				workos.call((client) => client.organizations.listOrganizations({ limit: 100, after })).pipe(
+					Effect.map(
+						(response) =>
+							[response.data, Option.fromNullable(response.listMetadata?.after)] as const,
+					),
+				),
+			),
+			Stream.runCollect,
+			Effect.map((chunks) => [...chunks].flat()),
+		)
+
+		const fetchAllMemberships = (workosOrgId: string) =>
+			pipe(
+				Stream.paginateEffect(undefined as string | undefined, (after) =>
+					workos
+						.call((client) =>
+							client.userManagement.listOrganizationMemberships({
+								organizationId: workosOrgId,
+								limit: 100,
+								after,
+							}),
+						)
+						.pipe(
+							Effect.map(
+								(response) =>
+									[response.data, Option.fromNullable(response.listMetadata?.after)] as const,
+							),
+						),
+				),
+				Stream.runCollect,
+				Effect.map((chunks) => [...chunks].flat()),
+			)
+
+		const fetchAllInvitations = (workosOrgId: string) =>
+			pipe(
+				Stream.paginateEffect(undefined as string | undefined, (after) =>
+					workos
+						.call((client) =>
+							client.userManagement.listInvitations({
+								organizationId: workosOrgId,
+								limit: 100,
+								after,
+							}),
+						)
+						.pipe(
+							Effect.map(
+								(response) =>
+									[response.data, Option.fromNullable(response.listMetadata?.after)] as const,
+							),
+						),
+				),
+				Stream.runCollect,
+				Effect.map((chunks) => [...chunks].flat()),
+			)
+
 		// Sync all users from WorkOS
 		const syncUsers = Effect.gen(function* () {
 			const result: SyncResult = { created: 0, updated: 0, deleted: 0, errors: [] }
 
-			// Fetch all users from WorkOS
-			const workosUsersResult = yield* pipe(
-				workos.call((client) => client.userManagement.listUsers({ limit: 100 })),
-				Effect.either,
-			)
+			// Fetch all users from WorkOS (with pagination)
+			const workosUsersResult = yield* pipe(fetchAllUsers, Effect.either)
 
 			if (workosUsersResult._tag === "Left") {
 				result.errors.push(`Failed to fetch users from WorkOS: ${workosUsersResult.left}`)
@@ -85,11 +156,11 @@ export class WorkOSSync extends Effect.Service<WorkOSSync>()("WorkOSSync", {
 			// Get all existing users
 			const existingUsers = yield* userRepo.findAllActive()
 			const existingUserMap = new Map(existingUsers.map((u) => [u.externalId, u]))
-			const workosUserIds = new Set(workosUsers.data.map((u) => u.id))
+			const workosUserIds = new Set(workosUsers.map((u) => u.id))
 
 			// Upsert users from WorkOS
 			yield* Effect.all(
-				workosUsers.data.map((workosUser) =>
+				workosUsers.map((workosUser) =>
 					collectResult(
 						userRepo
 							.upsertByExternalId({
@@ -151,11 +222,8 @@ export class WorkOSSync extends Effect.Service<WorkOSSync>()("WorkOSSync", {
 		const syncOrganizations = Effect.gen(function* () {
 			const result: SyncResult = { created: 0, updated: 0, deleted: 0, errors: [] }
 
-			// Fetch all organizations from WorkOS
-			const workosOrgsResult = yield* pipe(
-				workos.call((client) => client.organizations.listOrganizations({ limit: 100 })),
-				Effect.either,
-			)
+			// Fetch all organizations from WorkOS (with pagination)
+			const workosOrgsResult = yield* pipe(fetchAllOrganizations, Effect.either)
 
 			if (workosOrgsResult._tag === "Left") {
 				result.errors.push(`Failed to fetch organizations from WorkOS: ${workosOrgsResult.left}`)
@@ -168,12 +236,12 @@ export class WorkOSSync extends Effect.Service<WorkOSSync>()("WorkOSSync", {
 			const existingOrgs = yield* orgRepo.findAllActive()
 			const existingOrgMap = new Map(existingOrgs.map((o) => [o.id, o]))
 			const workosOrgExternalIds = new Set(
-				workosOrgs.data.map((o) => o.externalId).filter((id): id is string => !!id),
+				workosOrgs.map((o) => o.externalId).filter((id): id is string => !!id),
 			)
 
 			// Upsert organizations from WorkOS
 			yield* Effect.all(
-				workosOrgs.data.map((workosOrg) =>
+				workosOrgs.map((workosOrg) =>
 					collectResult(
 						Effect.gen(function* () {
 							// Only sync organizations that have an externalId (created through our API)
@@ -261,14 +329,9 @@ export class WorkOSSync extends Effect.Service<WorkOSSync>()("WorkOSSync", {
 
 			const workosOrg = workosOrgResult.right
 
-			// Fetch memberships from WorkOS using WorkOS organization ID
+			// Fetch memberships from WorkOS using WorkOS organization ID (with pagination)
 			const workosMembershipsResult = yield* pipe(
-				workos.call((client) =>
-					client.userManagement.listOrganizationMemberships({
-						organizationId: workosOrg.id,
-						limit: 100,
-					}),
-				),
+				fetchAllMemberships(workosOrg.id),
 				Effect.either,
 			)
 
@@ -296,7 +359,7 @@ export class WorkOSSync extends Effect.Service<WorkOSSync>()("WorkOSSync", {
 
 			// Upsert memberships from WorkOS
 			yield* Effect.all(
-				workosMemberships.data.map((workosMembership) => {
+				workosMemberships.map((workosMembership) => {
 					const user = userMap.get(workosMembership.userId)
 					if (!user) {
 						result.errors.push(`User ${workosMembership.userId} not found for membership`)
@@ -392,14 +455,9 @@ export class WorkOSSync extends Effect.Service<WorkOSSync>()("WorkOSSync", {
 
 			const workosOrg = workosOrgResult.right
 
-			// Fetch invitations from WorkOS using WorkOS organization ID
+			// Fetch invitations from WorkOS using WorkOS organization ID (with pagination)
 			const workosInvitationsResult = yield* pipe(
-				workos.call((client) =>
-					client.userManagement.listInvitations({
-						organizationId: workosOrg.id,
-						limit: 100,
-					}),
-				),
+				fetchAllInvitations(workosOrg.id),
 				Effect.either,
 			)
 
@@ -426,7 +484,7 @@ export class WorkOSSync extends Effect.Service<WorkOSSync>()("WorkOSSync", {
 
 			// Upsert invitations from WorkOS
 			yield* Effect.all(
-				workosInvitations.data.map((workosInvitation) => {
+				workosInvitations.map((workosInvitation) => {
 					const existing = existingInvitationMap.get(workosInvitation.id)
 
 					// Determine status based on WorkOS data
