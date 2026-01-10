@@ -1,23 +1,44 @@
-import { buttonStyles } from "~/components/ui/button"
+import { useAtomSet } from "@effect-atom/atom-react"
+import type { ChannelId } from "@hazel/schema"
+import { Button } from "~/components/ui/button"
 import { Description } from "~/components/ui/field"
-import { ModalClose, ModalContent, ModalFooter, ModalHeader, ModalTitle } from "~/components/ui/modal"
+import { ModalContent, ModalFooter, ModalHeader, ModalTitle } from "~/components/ui/modal"
+import { deleteChannelAction } from "~/db/actions"
+import { matchExitWithToast } from "~/lib/toast-exit"
 
 interface DeleteChannelModalProps {
+	channelId: ChannelId
 	channelName: string
 	isOpen: boolean
 	onOpenChange: (open: boolean) => void
-	onConfirm: () => void
 }
 
 export function DeleteChannelModal({
+	channelId,
 	channelName,
 	isOpen,
 	onOpenChange,
-	onConfirm,
 }: DeleteChannelModalProps) {
-	const handleDelete = () => {
-		onConfirm()
-		onOpenChange(false)
+	const deleteChannel = useAtomSet(deleteChannelAction, {
+		mode: "promiseExit",
+	})
+
+	const handleDelete = async () => {
+		const exit = await deleteChannel({ channelId })
+
+		matchExitWithToast(exit, {
+			onSuccess: () => {
+				onOpenChange(false)
+			},
+			successMessage: "Channel deleted successfully",
+			customErrors: {
+				ChannelNotFoundError: () => ({
+					title: "Channel not found",
+					description: "This channel may have already been deleted.",
+					isRetryable: false,
+				}),
+			},
+		})
 	}
 
 	return (
@@ -31,16 +52,12 @@ export function DeleteChannelModal({
 			</ModalHeader>
 
 			<ModalFooter>
-				<button
-					type="button"
-					className={buttonStyles({ intent: "outline" })}
-					onClick={() => onOpenChange(false)}
-				>
+				<Button intent="outline" onPress={() => onOpenChange(false)}>
 					Cancel
-				</button>
-				<button type="button" className={buttonStyles({ intent: "danger" })} onClick={handleDelete}>
+				</Button>
+				<Button intent="danger" onPress={handleDelete}>
 					Delete
-				</button>
+				</Button>
 			</ModalFooter>
 		</ModalContent>
 	)
