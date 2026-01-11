@@ -186,6 +186,7 @@ export const setupCommand = Command.make(
 				envResult,
 				validate: (s) =>
 					s.startsWith("sk_") ? Effect.succeed(s) : Effect.fail("Must start with sk_"),
+				isSecret: true,
 			})
 
 			const workosClientId = yield* promptWithExisting({
