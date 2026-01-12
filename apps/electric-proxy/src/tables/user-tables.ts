@@ -247,7 +247,9 @@ export function getWhereClauseForTable(
 
 		Match.when("notifications", () =>
 			// Users can only see their own notifications (via subquery on organization_members)
-			Effect.succeed(buildUserMembershipClause(user.internalUserId, schema.notificationsTable.memberId)),
+			Effect.succeed(
+				buildUserMembershipClause(user.internalUserId, schema.notificationsTable.memberId),
+			),
 		),
 
 		Match.when("pinned_messages", () =>

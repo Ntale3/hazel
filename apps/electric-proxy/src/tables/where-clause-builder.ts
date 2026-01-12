@@ -181,10 +181,7 @@ export function buildUserOrgMembershipClause(
  * @param memberIdColumn - The memberId column to filter on
  * @returns WhereClauseResult with parameterized WHERE clause and subquery
  */
-export function buildUserMembershipClause(
-	userId: string,
-	memberIdColumn: PgColumn,
-): WhereClauseResult {
+export function buildUserMembershipClause(userId: string, memberIdColumn: PgColumn): WhereClauseResult {
 	const whereClause = `"${memberIdColumn.name}" IN (SELECT "id" FROM organization_members WHERE "userId" = $1 AND "deletedAt" IS NULL)`
 	return { whereClause, params: [userId] }
 }
